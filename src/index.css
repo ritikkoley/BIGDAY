@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .apple-card {
+    @apply bg-white/80 dark:bg-apple-gray-600/80 backdrop-blur-apple rounded-2xl shadow-lg border border-white/20 dark:border-white/10 transition-all duration-300 hover:shadow-xl;
+  }
+
+  .apple-button {
+    @apply px-4 py-2 bg-apple-blue-500 hover:bg-apple-blue-600 text-white rounded-full font-medium transition-all transform hover:scale-105 active:scale-95;
+  }
+
+  .apple-nav-button {
+    @apply px-4 py-2 rounded-full transition-all text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 active:scale-95;
+  }
+
+  .apple-gradient {
+    @apply bg-gradient-to-r from-apple-gray-50 to-white dark:from-apple-gray-600 dark:to-apple-gray-600/90 transition-colors duration-300;
+  }
+
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center text-xs font-medium transition-colors;
+  }
+
+  .mobile-nav-icon {
+    @apply w-6 h-6 mb-1;
+  }
+
+  .mobile-nav-text {
+    @apply text-[10px];
+  }
+}
+
+/* Tony Stark Login Animations */
+@keyframes scan-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(0, 255, 255, 0.6); }
+}
+
+@keyframes matrix-rain {
+  0% { transform: translateY(-100%); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+.scan-line {
+  animation: scan-line 3s linear infinite;
+}
+
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.matrix-rain {
+  animation: matrix-rain 2s linear infinite;
+}
+
+/* Custom Scrollbar for Dark Theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.5);
+}
