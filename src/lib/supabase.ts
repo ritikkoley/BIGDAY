@@ -12,11 +12,8 @@ if (!supabaseUrl || !supabaseAnonKey ||
     supabaseAnonKey === 'your_supabase_anon_key') {
   console.warn('Supabase not configured - using demo mode');
   
-  // Create a mock client for demo purposes
-  supabase = createClient('https://example.com', 'fake-key') as any;
-  
-  // Override with mock methods
-  Object.assign(supabase, {
+  // Create a comprehensive mock client for demo purposes
+  supabase = {
     auth: {
       signInWithPassword: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
       signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
@@ -49,7 +46,7 @@ if (!supabaseUrl || !supabaseAnonKey ||
     }),
     removeChannel: () => {}
   });
-} else {
+  } as any;
   // Create the real Supabase client
   supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
