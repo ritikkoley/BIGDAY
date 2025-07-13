@@ -1,24 +1,47 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://demo.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-anon-key';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_url' || supabaseAnonKey === 'your_supabase_anon_key') {
+  console.warn('Supabase not configured - using demo mode');
+  // Create a mock client for demo purposes
+  export const supabase = {
+    auth: {
+      signInWithPassword: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
+      signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
+      signOut: async () => ({ error: null }),
+      getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    },
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: [], error: null }),
+      update: () => ({ data: [], error: null }),
+      delete: () => ({ data: [], error: null })
+    }),
+    storage: {
+      from: () => ({
+        upload: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
+        getPublicUrl: () => ({ data: { publicUrl: '' } })
+      })
+    }
+  } as any;
+} else {
+  export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    }
+  });
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
-});
 
 // Database types for new entities
 export interface Database {
