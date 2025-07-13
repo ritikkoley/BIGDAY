@@ -17,29 +17,29 @@ if (!supabaseUrl || !supabaseAnonKey ||
       signOut: async () => ({ error: null }),
       getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
       getSession: async () => ({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
-    },
-    from: () => ({
-      select: () => ({ data: [], error: null }),
-      insert: () => ({ data: [], error: null }),
-      update: () => ({ data: [], error: null }),
-      delete: () => ({ data: [], error: null }),
-      eq: () => ({ data: [], error: null }),
-      single: () => ({ data: {}, error: null }),
-      order: () => ({ data: [], error: null }),
-      limit: () => ({ data: [], error: null })
-    }),
-    storage: {
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
       from: () => ({
-        upload: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
-        getPublicUrl: () => ({ data: { publicUrl: '' } })
+        select: () => ({ data: [], error: null }),
+        insert: () => ({ data: [], error: null }),
+        update: () => ({ data: [], error: null }),
+        delete: () => ({ data: [], error: null }),
+        eq: () => ({ data: [], error: null }),
+        single: () => ({ data: {}, error: null }),
+        order: () => ({ data: [], error: null }),
+        limit: () => ({ data: [], error: null })
+      }),
+      storage: {
+        from: () => ({
+          upload: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
+          getPublicUrl: () => ({ data: { publicUrl: '' } })
+        })
+      },
+      functions: {
+        invoke: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') })
+      },
+      channel: () => ({
+        on: () => ({ subscribe: () => ({}) })
       })
-    },
-    functions: {
-      invoke: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') })
-    },
-    channel: () => ({
-      on: () => ({ subscribe: () => ({}) })
   } as any;
 } else {
   // Create the real Supabase client
