@@ -3,10 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://demo.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-anon-key';
 
+let supabase: any;
+
 if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_url' || supabaseAnonKey === 'your_supabase_anon_key') {
   console.warn('Supabase not configured - using demo mode');
   // Create a mock client for demo purposes
-  export const supabase = {
+  supabase = {
     auth: {
       signInWithPassword: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
       signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
@@ -26,9 +28,9 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_u
         getPublicUrl: () => ({ data: { publicUrl: '' } })
       })
     }
-  } as any;
+  };
 } else {
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -42,6 +44,7 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_u
   });
 }
 
+export { supabase };
 
 // Database types for new entities
 export interface Database {
@@ -374,192 +377,6 @@ export interface Database {
           read_at: string | null;
           created_at: string;
           is_group_message: boolean;
-        }[];
-      };
-    };
-  };
-}
-
-// Database types
-export interface Database {
-  public: {
-    Tables: {
-      users: {
-        Row: {
-          id: string;
-          name: string;
-          email: string;
-          role: 'student' | 'teacher' | 'admin';
-          group_id: string | null;
-          admission_number: string | null;
-          employee_id: string | null;
-          department: string | null;
-          joining_date: string;
-          status: 'active' | 'inactive';
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          email: string;
-          role: 'student' | 'teacher' | 'admin';
-          group_id?: string | null;
-          admission_number?: string | null;
-          employee_id?: string | null;
-          department?: string | null;
-          joining_date?: string;
-          status?: 'active' | 'inactive';
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          email?: string;
-          role?: 'student' | 'teacher' | 'admin';
-          group_id?: string | null;
-          admission_number?: string | null;
-          employee_id?: string | null;
-          department?: string | null;
-          joining_date?: string;
-          status?: 'active' | 'inactive';
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      groups: {
-        Row: {
-          id: string;
-          name: string;
-          type: 'class' | 'department';
-          description: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          type: 'class' | 'department';
-          description?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          type?: 'class' | 'department';
-          description?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      courses: {
-        Row: {
-          id: string;
-          name: string;
-          code: string;
-          teacher_id: string;
-          group_ids: string[];
-          subtopics: any;
-          type: 'theory' | 'lab';
-          semester: number | null;
-          academic_year: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          code: string;
-          teacher_id: string;
-          group_ids?: string[];
-          subtopics?: any;
-          type?: 'theory' | 'lab';
-          semester?: number | null;
-          academic_year?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          code?: string;
-          teacher_id?: string;
-          group_ids?: string[];
-          subtopics?: any;
-          type?: 'theory' | 'lab';
-          semester?: number | null;
-          academic_year?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-      assessments: {
-        Row: {
-          id: string;
-          course_id: string;
-          name: string;
-          type: 'quiz' | 'midterm' | 'final' | 'digital' | 'assignment';
-          weightage: number;
-          total_marks: number;
-          subtopics_covered: any;
-          due_date: string | null;
-          instructions: string | null;
-          status: 'draft' | 'published' | 'completed';
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          course_id: string;
-          name: string;
-          type: 'quiz' | 'midterm' | 'final' | 'digital' | 'assignment';
-          weightage: number;
-          total_marks?: number;
-          subtopics_covered?: any;
-          due_date?: string | null;
-          instructions?: string | null;
-          status?: 'draft' | 'published' | 'completed';
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          course_id?: string;
-          name?: string;
-          type?: 'quiz' | 'midterm' | 'final' | 'digital' | 'assignment';
-          weightage?: number;
-          total_marks?: number;
-          subtopics_covered?: any;
-          due_date?: string | null;
-          instructions?: string | null;
-          status?: 'draft' | 'published' | 'completed';
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-    };
-    Functions: {
-      get_user_role: {
-        Args: { user_id: string };
-        Returns: string;
-      };
-      is_admin: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
-      is_teacher: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
-      get_user_courses: {
-        Args: { user_id: string };
-        Returns: {
-          course_id: string;
-          course_name: string;
-          course_code: string;
-          teacher_name: string;
         }[];
       };
     };
