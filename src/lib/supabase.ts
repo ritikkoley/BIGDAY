@@ -12,11 +12,8 @@ if (!supabaseUrl || !supabaseAnonKey ||
     supabaseAnonKey === 'your_supabase_anon_key') {
   console.warn('Supabase not configured - using demo mode');
   
-  // Create a comprehensive mock client for demo purposes
+  // Create a complete mock object that mimics SupabaseClient
   supabase = {
-    auth: {
-      signInWithPassword: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
-      signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
       signOut: async () => ({ error: null }),
       getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
       getSession: async () => ({ data: { session: null }, error: null }),
@@ -43,8 +40,6 @@ if (!supabaseUrl || !supabaseAnonKey ||
     },
     channel: () => ({
       on: () => ({ subscribe: () => ({}) })
-    }),
-    removeChannel: () => {}
   } as any;
 } else {
   // Create the real Supabase client
