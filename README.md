@@ -72,7 +72,7 @@ npm install
 
 3. Set up Supabase:
    - Create a new project at [supabase.com](https://supabase.com)
-   - Copy your project URL and anon key
+   - Copy your project URL and anon key from Project Settings > API
    - Enable Row Level Security (RLS) in your project settings
 
 4. Create environment file:
@@ -85,13 +85,16 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 5. Run database migrations:
    - Go to your Supabase dashboard
-   - Navigate to SQL Editor
-   - Run the migration files in `supabase/migrations/` in numerical order
+   - Navigate to the SQL Editor
+   - Run the migration file `001_initial_schema.sql` from the project
 
-6. Set up Edge Functions (optional for bulk operations):
-   - Install Supabase CLI: `npm install -g supabase`
-   - Deploy functions: `supabase functions deploy bulk-upload-grades`
-   - Deploy functions: `supabase functions deploy bulk-upload-attendance`
+6. Set up Edge Functions:
+   - In your Supabase dashboard, go to Edge Functions
+   - Create new functions for:
+     - `bulk-upload-grades`
+     - `bulk-upload-attendance`
+     - `project-grade`
+   - Copy the code from the project files into each function
 
 7. Start the development server:
 ```bash
