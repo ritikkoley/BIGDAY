@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TeacherProfile, StudentRecord, GradingSession } from '../../types/teacher';
 import { GraduationCap, Clock, Users, CheckCircle2, XCircle, AlertTriangle, Plus, Download, Upload, FileSpreadsheet } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { TeacherGradeEntry } from './TeacherGradeEntry';
