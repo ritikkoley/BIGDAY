@@ -27,6 +27,7 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 
 - Node.js 18+ 
 - npm or yarn
+- Supabase account
 
 ### Installation
 
@@ -44,6 +45,7 @@ npm install
 3. Set up Supabase:
    - Create a new project at [supabase.com](https://supabase.com)
    - Copy your project URL and anon key
+   - Enable Row Level Security (RLS) in your project settings
 
 4. Create environment file:
 ```bash
@@ -56,23 +58,41 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 5. Run database migrations:
    - Go to your Supabase dashboard
    - Navigate to SQL Editor
-   - Run the migration files in `supabase/migrations/` in order
+   - Run the migration files in `supabase/migrations/` in numerical order:
+     1. `001_create_foundation_schema.sql`
+     2. `002_create_storage_buckets.sql`
+     3. `003_create_auth_functions.sql`
+     4. `004_seed_initial_data.sql`
+     5. `005_core_entities_schema.sql`
+     6. `006_rpc_functions.sql`
 
-6. Start the development server:
+6. Set up Edge Functions (optional for bulk operations):
+   - Install Supabase CLI: `npm install -g supabase`
+   - Deploy functions: `supabase functions deploy bulk-upload-grades`
+   - Deploy functions: `supabase functions deploy bulk-upload-attendance`
+
+7. Start the development server:
 ```bash
 npm run dev
 ```
 
-7. Open your browser and navigate to `http://localhost:3000`
+8. Open your browser and navigate to `http://localhost:3000`
 
 ## Database Setup
 
-The application uses Supabase as the backend with the following core tables:
+The application uses Supabase as the backend with the following tables:
 
+### Core Tables
 - **users**: Core user table with roles (student, teacher, admin)
 - **groups**: Classes/sections/departments
 - **courses**: Courses with subtopics and teacher assignments
 - **assessments**: Quizzes, exams, and assignments
+
+### Data Tables
+- **grades**: Student scores linked to assessments with percentile rankings
+- **attendance**: Per class/session attendance tracking
+- **messages**: Teacher-student/class communication system
+- **resources**: Study materials metadata with file storage links
 
 ### Authentication
 
@@ -88,6 +108,13 @@ All tables have RLS enabled with policies that ensure:
 - Students see only their own data
 - Teachers see data for their assigned classes
 - Admins have full access to all data
+
+### Edge Functions
+
+The application includes Supabase Edge Functions for:
+- **Bulk grade uploads**: Process Excel files with student grades
+- **Bulk attendance uploads**: Process attendance data for entire classes
+- **Analytics calculations**: Real-time percentile and performance calculations
 
 ## Project Structure
 
@@ -105,14 +132,14 @@ src/
 ├── stores/             # Zustand state stores
 ├── lib/                # Supabase client and utilities
 ├── services/           # API service functions
+├── hooks/              # Custom React hooks
 ├── types/              # TypeScript type definitions
 ├── data/               # Sample data for development
-├── utils/              # Utility functions
 ├── styles/             # CSS files
 └── config/             # Configuration files
 supabase/
 ├── migrations/         # Database migration files
-└── functions/          # Edge functions (future)
+└── functions/          # Edge functions for bulk operations
 ```
 
 ## API Integration
@@ -123,6 +150,7 @@ The application integrates with Supabase for:
 2. **Data Operations**: Real-time CRUD operations with RLS
 3. **File Storage**: Secure file uploads for study materials
 4. **Realtime**: Live updates for collaborative features
+5. **Edge Functions**: Server-side processing for bulk operations
 
 ### Key API Services
 
@@ -130,8 +158,22 @@ The application integrates with Supabase for:
 - `groupApi` - Class/department management
 - `courseApi` - Course and curriculum management
 - `assessmentApi` - Quiz and exam management
+- `gradeApi` - Grade management and analytics
+- `attendanceApi` - Attendance tracking and summaries
+- `messageApi` - Communication system
+- `resourceApi` - File management and downloads
+- `analyticsApi` - Performance analytics and insights
 - `fileApi` - File upload and storage
 - `realtimeApi` - Live data subscriptions
+
+### Data Store
+
+The `dataStore` provides centralized state management for:
+- Real-time data synchronization
+- Optimistic updates
+- Caching and performance optimization
+- Bulk operations
+- Analytics and reporting
 
 ## Available Scripts
 
@@ -163,6 +205,13 @@ Required environment variables:
 - `VITE_APP_NAME` - Application name
 - `VITE_INSTITUTION_NAME` - Your institution name
 
+## Demo Accounts
+
+The system includes demo accounts for testing:
+- **Student**: `student@dpsb.edu` / `student123`
+- **Teacher**: `teacher@dpsb.edu` / `teacher123`
+- **Admin**: `admin@dpsb.edu` / `admin123`
+
 ## Security Features
 
 - Row Level Security (RLS) on all database tables
@@ -170,6 +219,8 @@ Required environment variables:
 - Role-based access control
 - Secure file upload with access policies
 - Input validation and sanitization
+- Edge function security with service role keys
+- Comprehensive audit trails
 
 ## Contributing
 
@@ -185,6 +236,8 @@ The application can be deployed to:
 - Netlify (recommended for frontend)
 - Vercel
 - Any static hosting provider
+
+Supabase handles the backend infrastructure automatically.
 
 ## License
 
