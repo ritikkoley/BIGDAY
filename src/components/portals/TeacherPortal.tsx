@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 
 // Teacher Components
 import { TeacherDashboard } from '../teacher/TeacherDashboard';
@@ -52,6 +54,99 @@ export const TeacherPortal: React.FC = () => {
   const { signOut } = useAuthStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchTeacherProfile();
+    
+    // Set up realtime subscription for messages
+    const channel = supabase
+      .channel('teacher_messages')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('Message update received:', payload);
+          // In a real app, we would update the UI or show a notification
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchTeacherProfile = async () => {
+    try {
+      setIsLoading(true);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      // Get teacher profile
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.user.id)
+        .eq('role', 'teacher')
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Get teacher's courses
+      const { data: courses, error: coursesError } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('teacher_id', user.user.id);
+
+      if (coursesError) throw coursesError;
+
+      // Format as TeacherProfile
+      // In a real app, we would fetch the schedule from a dedicated table
+      const formattedProfile: TeacherProfile = {
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        department: profile.department || 'Computer Science',
+        role: 'professor',
+        subjects: courses?.map(course => ({
+          id: course.id,
+          name: course.name,
+          code: course.code || 'CS101',
+          type: course.type || 'theory',
+          semester: course.semester || 1,
+          students: 120, // This would come from a count query in a real app
+          schedule: [
+            {
+              day: 'monday',
+              startTime: '10:30',
+              endTime: '11:45',
+              room: 'CS-301'
+            },
+            {
+              day: 'wednesday',
+              startTime: '10:30',
+              endTime: '11:45',
+              room: 'CS-301'
+            }
+          ]
+        })) || []
+      };
+
+      setTeacherProfile(formattedProfile);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch teacher profile');
+      console.error('Error fetching teacher profile:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSearch = async (query: string, filters: any) => {
     console.log('Searching:', query, filters);
@@ -73,6 +168,9 @@ export const TeacherPortal: React.FC = () => {
     teacher: ['studentId', 'courseCode'],
     admin: ['universal']
   };
+
+  // Use real profile if available, otherwise fall back to sample data
+  const displayProfile = teacherProfile || sampleTeacherProfile;
 
   return (
     <div className="min-h-screen apple-gradient transition-colors duration-300 relative">
@@ -224,56 +322,71 @@ export const TeacherPortal: React.FC = () => {
       </nav>
 
       <div className="min-h-screen pt-16">
-        <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
+        <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8 relative">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="apple-card p-6 mb-6">
+              <div className="flex items-center space-x-2 text-red-500">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Error: {error}</span>
+              </div>
+            </div>
+          )}
+          
           {activeTab === 'dashboard' && (
             <TeacherDashboard
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               dashboardData={sampleDashboardData}
             />
           )}
           {activeTab === 'attendance' && (
             <TeacherAttendance
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               attendanceSessions={sampleAttendanceSessions}
               studentRecords={sampleStudentRecords}
             />
           )}
           {activeTab === 'grading' && (
             <TeacherGrading
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               gradingSessions={sampleGradingSessions}
               studentRecords={sampleStudentRecords}
             />
           )}
           {activeTab === 'resources' && (
             <TeacherResources
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               resources={sampleResources}
             />
           )}
           {activeTab === 'messages' && (
             <TeacherMessages
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               messageTemplates={sampleMessageTemplates}
               studentRecords={sampleStudentRecords}
             />
           )}
           {activeTab === 'quizzes' && (
             <TeacherQuizzes
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
               quizzes={sampleQuizzes}
             />
           )}
           {activeTab === 'performance' && (
             <TeacherPerformanceView
-              teacherId={sampleTeacherProfile.id}
+              teacherId={displayProfile.id}
               metrics={sampleTeacherPerformanceMetrics}
               analytics={samplePerformanceAnalytics}
             />
           )}
           {activeTab === 'profile' && (
             <TeacherProfile
-              profile={sampleTeacherProfile}
+              profile={displayProfile}
             />
           )}
         </main>

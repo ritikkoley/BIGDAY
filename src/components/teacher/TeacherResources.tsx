@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { TeacherProfile, Resource } from '../../types/teacher';
 import { BookOpen, Download, Upload, Clock, Users, Eye, EyeOff } from 'lucide-react';
+import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 interface TeacherResourcesProps {
@@ -14,6 +16,131 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
 }) => {
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [activeTab, setActiveTab] = useState<'all' | 'documents' | 'assignments'>('all');
+  const [realResources, setRealResources] = useState<Resource[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadData, setUploadData] = useState({
+    name: '',
+    type: 'document' as Resource['type'],
+    visibility: 'visible' as 'visible' | 'hidden'
+  });
+
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchResources(selectedSubject);
+    }
+  }, [selectedSubject]);
+
+  const fetchResources = async (subjectId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get resources for this course
+      const { data, error: resourcesError } = await supabase
+        .from('resources')
+        .select(`
+          *,
+          uploader:users!resources_uploaded_by_fkey(name)
+        `)
+        .eq('course_id', courseId);
+
+      if (resourcesError) throw resourcesError;
+
+      // Format as Resource
+      const formattedResources: Resource[] = (data || []).map(resource => ({
+        id: resource.id,
+        title: resource.name,
+        type: resource.resource_type,
+        subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
+        uploadDate: resource.created_at,
+        deadline: resource.deadline,
+        visibility: resource.is_public ? 'visible' : 'hidden',
+        downloads: resource.download_count,
+        submissions: resource.submissions_count
+      }));
+
+      setRealResources(formattedResources);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch resources');
+      console.error('Error fetching resources:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadData(prev => ({ ...prev, name: file.name }));
+    }
+  };
+
+  const handleUpload = async () => {
+    try {
+      if (!uploadFile) {
+        setError('Please select a file to upload');
+        return;
+      }
+
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === selectedSubject)?.id;
+      if (!courseId) throw new Error('Course not found');
+
+      // Get current user
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      // Upload file to storage
+      const fileExt = uploadFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${courseId}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('study-materials')
+        .upload(filePath, uploadFile);
+
+      if (uploadError) throw uploadError;
+
+      // Create resource record
+      const { error: resourceError } = await supabase
+        .from('resources')
+        .insert({
+          course_id: courseId,
+          name: uploadData.name,
+          resource_type: uploadData.type,
+          file_path: filePath,
+          file_size: uploadFile.size,
+          file_type: uploadFile.type,
+          uploaded_by: user.user.id,
+          is_public: uploadData.visibility === 'visible'
+        });
+
+      if (resourceError) throw resourceError;
+
+      // Reset form and refresh resources
+      setUploadFile(null);
+      setUploadData({
+        name: '',
+        type: 'document',
+        visibility: 'visible'
+      });
+      fetchResources(selectedSubject);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload resource');
+      console.error('Error uploading resource:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getResourceTypeColor = (type: Resource['type']) => {
     const colors = {
@@ -25,7 +152,10 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
     return colors[type];
   };
 
-  const filteredResources = resources.filter(resource => {
+  // Use real resources if available, otherwise fall back to sample data
+  const displayResources = realResources.length > 0 ? realResources : resources;
+
+  const filteredResources = displayResources.filter(resource => {
     if (activeTab === 'all') return true;
     if (activeTab === 'documents') return resource.type === 'document' || resource.type === 'video';
     return resource.type === 'assignment';
@@ -70,7 +200,13 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
       </div>
 
       {/* Resource Tabs */}
-      <div className="apple-card">
+      <div className="apple-card relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        
         <div className="border-b border-apple-gray-200/50 dark:border-apple-gray-500/20 px-6">
           <div className="flex space-x-4">
             <button
@@ -103,6 +239,85 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
             >
               Assignments
             </button>
+          </div>
+        </div>
+
+        {/* Upload Form */}
+        <div className="p-6 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
+          <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">
+            Upload New Resource
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Resource Name
+              </label>
+              <input
+                type="text"
+                value={uploadData.name}
+                onChange={(e) => setUploadData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg"
+                placeholder="Enter resource name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Resource Type
+              </label>
+              <select
+                value={uploadData.type}
+                onChange={(e) => setUploadData(prev => ({ ...prev, type: e.target.value as Resource['type'] }))}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg"
+              >
+                <option value="document">Document</option>
+                <option value="video">Video</option>
+                <option value="link">Link</option>
+                <option value="assignment">Assignment</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Visibility
+              </label>
+              <select
+                value={uploadData.visibility}
+                onChange={(e) => setUploadData(prev => ({ ...prev, visibility: e.target.value as 'visible' | 'hidden' }))}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg"
+              >
+                <option value="visible">Visible</option>
+                <option value="hidden">Hidden</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              File
+            </label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="file"
+                id="resource-file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <label
+                htmlFor="resource-file"
+                className="px-4 py-2 bg-apple-gray-100 dark:bg-apple-gray-700 text-apple-gray-600 dark:text-apple-gray-300 rounded-lg cursor-pointer hover:bg-apple-gray-200 dark:hover:bg-apple-gray-600 transition-colors"
+              >
+                Choose File
+              </label>
+              <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
+                {uploadFile ? uploadFile.name : 'No file selected'}
+              </span>
+              <button
+                onClick={handleUpload}
+                disabled={!uploadFile || isLoading}
+                className="ml-auto px-4 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Upload Resource
+              </button>
+            </div>
           </div>
         </div>
 
@@ -159,6 +374,15 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
           ))}
         </div>
       </div>
+
+      {error && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

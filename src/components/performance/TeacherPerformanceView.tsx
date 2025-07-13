@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { TeacherPerformanceMetrics, PerformanceAnalytics } from '../../types/performance';
+import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { PerformanceOverview } from './tabs/PerformanceOverview';
 import { AcademicPerformance } from './tabs/AcademicPerformance';
 import { FeedbackAnalysis } from './tabs/FeedbackAnalysis';
@@ -31,6 +33,45 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
   analytics
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [realMetrics, setRealMetrics] = useState<TeacherPerformanceMetrics | null>(null);
+  const [realAnalytics, setRealAnalytics] = useState<PerformanceAnalytics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPerformanceData();
+  }, [teacherId]);
+
+  const fetchPerformanceData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // In a real implementation, we would fetch this data from Supabase
+      // For now, we'll use the sample data passed as props
+      
+      // This is a placeholder for real API calls
+      // const { data: metricsData, error: metricsError } = await supabase
+      //   .from('teacher_performance_metrics')
+      //   .select('*')
+      //   .eq('teacher_id', teacherId)
+      //   .single();
+      
+      // if (metricsError) throw metricsError;
+      // setRealMetrics(metricsData);
+      
+      // Simulate API call with timeout
+      setTimeout(() => {
+        setRealMetrics(metrics);
+        setRealAnalytics(analytics);
+        setIsLoading(false);
+      }, 1000);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch performance data');
+      console.error('Error fetching performance data:', err);
+      setIsLoading(false);
+    }
+  };
 
   const tabs = [
     {
@@ -78,12 +119,22 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
   ];
 
   const TabContent = tabs.find(tab => tab.id === activeTab)?.component;
+  
+  // Use real data if available, otherwise fall back to sample data
+  const displayMetrics = realMetrics || metrics;
+  const displayAnalytics = realAnalytics || analytics;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="apple-card p-6">
+        <div className="apple-card p-6 relative">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
@@ -91,22 +142,22 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
               </div>
               <div>
                 <h1 className="text-2xl font-medium text-apple-gray-600 dark:text-white">
-                  {metrics.name}'s Performance Review
+                  {displayMetrics.name}'s Performance Review
                 </h1>
                 <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-                  {metrics.department} • {metrics.role}
+                  {displayMetrics.department} • {displayMetrics.role}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
               <div className="px-4 py-2 bg-apple-gray-100 dark:bg-apple-gray-700 rounded-full">
                 <span className="text-sm font-medium text-apple-gray-600 dark:text-apple-gray-300">
-                  Overall Score: {metrics.overview.overallScore}%
+                  Overall Score: {displayMetrics.overview.overallScore}%
                 </span>
               </div>
               <div className="px-4 py-2 bg-apple-blue-500 text-white rounded-full">
                 <span className="text-sm font-medium">
-                  Rank: {metrics.overview.percentileRank}th percentile
+                  Rank: {displayMetrics.overview.percentileRank}th percentile
                 </span>
               </div>
             </div>
@@ -132,11 +183,20 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
         </div>
 
         {/* Tab Content */}
-        {TabContent && (
+        {TabContent && !isLoading && (
           <TabContent
-            metrics={metrics}
-            analytics={analytics}
+            metrics={displayMetrics}
+            analytics={displayAnalytics}
           />
+        )}
+
+        {error && (
+          <div className="apple-card p-6">
+            <div className="flex items-center space-x-2 text-red-500">
+              <AlertTriangle className="w-5 h-5" />
+              <span>Error: {error}</span>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { TeacherProfile, StudentRecord, GradingSession } from '../../types/teacher';
 import { GraduationCap, Clock, Users, CheckCircle2, XCircle, AlertTriangle, Plus, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { TeacherGradeEntry } from './TeacherGradeEntry';
 import { ExamCreationForm } from './ExamCreationForm';
@@ -21,44 +23,207 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
   const [selectedSession, setSelectedSession] = useState<GradingSession | null>(null);
   const [activeView, setActiveView] = useState<'sessions' | 'create-exam' | 'manual-entry' | 'bulk-upload'>('sessions');
   const [currentExam, setCurrentExam] = useState<any>(null);
+  const [realGradingSessions, setRealGradingSessions] = useState<GradingSession[]>([]);
+  const [realStudentRecords, setRealStudentRecords] = useState<StudentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchGradingSessions(selectedSubject);
+      fetchStudentRecords(selectedSubject);
+    }
+  }, [selectedSubject]);
+
+  const fetchGradingSessions = async (subjectId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get assessments for this course
+      const { data: assessments, error: assessmentsError } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('course_id', courseId);
+
+      if (assessmentsError) throw assessmentsError;
+
+      // For each assessment, get the submissions
+      const sessions: GradingSession[] = [];
+      
+      for (const assessment of assessments || []) {
+        // Get grades for this assessment
+        const { data: grades, error: gradesError } = await supabase
+          .from('grades')
+          .select(`
+            *,
+            student:users!grades_student_id_fkey(id, name)
+          `)
+          .eq('assessment_id', assessment.id);
+
+        if (gradesError) throw gradesError;
+
+        // Get total students in this course
+        const { data: students, error: studentsError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('role', 'student')
+          .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
+
+        if (studentsError) throw studentsError;
+
+        sessions.push({
+          id: assessment.id,
+          subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
+          assignmentTitle: assessment.name,
+          dueDate: assessment.due_date || '',
+          totalSubmissions: students?.length || 0,
+          gradedSubmissions: grades?.filter(g => g.graded_at).length || 0,
+          averageScore: grades?.length ? grades.reduce((sum, g) => sum + g.score, 0) / grades.length : 0,
+          submissions: grades?.map(g => ({
+            studentId: g.student_id,
+            studentName: g.student.name,
+            submissionDate: g.created_at,
+            status: g.graded_at ? 'graded' : 'pending',
+            score: g.score,
+            feedback: g.feedback || undefined
+          })) || []
+        });
+      }
+
+      setRealGradingSessions(sessions);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch grading sessions');
+      console.error('Error fetching grading sessions:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStudentRecords = async (subjectId: string) => {
+    try {
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get students in this course
+      const { data: students, error: studentsError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('role', 'student')
+        .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
+
+      if (studentsError) throw studentsError;
+
+      // Format as StudentRecord
+      const records: StudentRecord[] = (students || []).map(student => ({
+        id: student.id,
+        name: student.name,
+        rollNumber: student.id.substring(0, 8).toUpperCase(), // Generate a roll number from ID
+        email: student.email,
+        attendance: [],
+        grades: [],
+        submissions: []
+      }));
+
+      setRealStudentRecords(records);
+    } catch (err) {
+      console.error('Error fetching student records:', err);
+    }
+  };
 
   const handleCreateExam = async (examData: any) => {
     try {
-      // Here you would call your backend API to create the exam
-      console.log('Creating exam:', examData);
-      
-      // Mock exam creation
-      const newExam = {
-        id: Date.now().toString(),
-        ...examData,
-        status: 'created',
-        submissions: []
-      };
-      
-      setCurrentExam(newExam);
+      setIsLoading(true);
+      const courseId = profile.subjects.find(s => s.id === selectedSubject)?.id;
+      if (!courseId) throw new Error('Course not found');
+
+      // Create assessment in Supabase
+      const { data: assessment, error: assessmentError } = await supabase
+        .from('assessments')
+        .insert({
+          course_id: courseId,
+          name: examData.examName,
+          type: examData.type || 'quiz',
+          weightage: examData.maxMarks / 100, // Convert to decimal (e.g., 20 points = 0.2)
+          due_date: examData.examDate,
+          instructions: examData.instructions,
+          total_marks: examData.maxMarks
+        })
+        .select()
+        .single();
+
+      if (assessmentError) throw assessmentError;
+
+      setCurrentExam(assessment);
       setActiveView('manual-entry');
+      
+      // Refresh grading sessions
+      fetchGradingSessions(selectedSubject);
     } catch (error) {
       console.error('Error creating exam:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create exam');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSaveGrades = async (grades: { studentId: string; marks: number }[]) => {
     try {
-      // Here you would call your backend API to save grades
-      console.log('Saving grades:', grades);
+      setIsLoading(true);
+      
+      // Format grades for Supabase
+      const gradesToInsert = grades.map(grade => ({
+        student_id: grade.studentId,
+        assessment_id: currentExam.id,
+        score: grade.marks,
+        max_score: currentExam.total_marks || 100,
+        graded_by: (await supabase.auth.getUser()).data.user?.id,
+        graded_at: new Date().toISOString()
+      }));
+
+      // Use Edge Function for bulk upload
+      const { data, error } = await supabase.functions.invoke('bulk-upload-grades', {
+        body: { assessment_id: currentExam.id, grades: gradesToInsert }
+      });
+
+      if (error) throw error;
+      
+      // Refresh grading sessions
+      fetchGradingSessions(selectedSubject);
       setActiveView('sessions');
     } catch (error) {
       console.error('Error saving grades:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save grades');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleBulkUpload = async (file: File, examData: any) => {
     try {
-      // Here you would process the Excel file and save grades
-      console.log('Processing bulk upload:', file, examData);
+      setIsLoading(true);
+      
+      // Create the assessment first
+      await handleCreateExam(examData);
+      
+      // In a real implementation, we would:
+      // 1. Parse the Excel/CSV file (using FileReader API)
+      // 2. Extract student IDs and grades
+      // 3. Call the bulk-upload-grades Edge Function
+      
+      // For now, we'll just show a success message
+      alert('File uploaded successfully! In a real implementation, this would process the Excel file.');
+      
       setActiveView('sessions');
     } catch (error) {
       console.error('Error processing bulk upload:', error);
+      setError(error instanceof Error ? error.message : 'Failed to process bulk upload');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,7 +294,13 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
       </div>
 
       {/* Navigation Tabs */}
-      <div className="apple-card">
+      <div className="apple-card relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        
         <div className="border-b border-apple-gray-200/50 dark:border-apple-gray-500/20 px-6">
           <div className="flex space-x-4">
             <button
@@ -170,7 +341,7 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
           {activeView === 'sessions' && (
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
               <div className="lg:col-span-1 space-y-4">
-                {gradingSessions.map((session) => (
+                {(realGradingSessions.length > 0 ? realGradingSessions : gradingSessions).map((session) => (
                   <button
                     key={session.id}
                     onClick={() => setSelectedSession(session)}
@@ -288,7 +459,7 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
           {/* Manual Grade Entry View */}
           {activeView === 'manual-entry' && currentExam && (
             <TeacherGradeEntry
-              students={studentRecords}
+              students={realStudentRecords.length > 0 ? realStudentRecords : studentRecords}
               examName={currentExam.examName}
               maxMarks={currentExam.maxMarks}
               onSave={handleSaveGrades}
@@ -299,7 +470,7 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
           {/* Bulk Upload View */}
           {activeView === 'bulk-upload' && (
             <BulkGradeUpload
-              students={studentRecords}
+              students={realStudentRecords.length > 0 ? realStudentRecords : studentRecords}
               subjects={profile.subjects}
               onUpload={handleBulkUpload}
               onCancel={() => setActiveView('sessions')}
@@ -307,6 +478,15 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

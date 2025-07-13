@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TeacherProfile, StudentRecord, AttendanceSession } from '../../types/teacher';
 import { UserCheck, Users, Clock, Calendar, CheckCircle2, XCircle, AlertTriangle, Plus } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { TeacherAttendanceEntry } from './TeacherAttendanceEntry';
 
@@ -18,11 +19,157 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [showAttendanceEntry, setShowAttendanceEntry] = useState(false);
+  const [realAttendanceSessions, setRealAttendanceSessions] = useState<AttendanceSession[]>([]);
+  const [realStudentRecords, setRealStudentRecords] = useState<StudentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchAttendanceSessions(selectedSubject);
+      fetchStudentRecords(selectedSubject);
+    }
+  }, [selectedSubject]);
+
+  const fetchAttendanceSessions = async (subjectId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get unique dates with attendance records
+      const { data: dates, error: datesError } = await supabase
+        .from('attendance')
+        .select('date')
+        .eq('course_id', courseId)
+        .order('date', { ascending: false })
+        .limit(10);
+
+      if (datesError) throw datesError;
+
+      // For each date, create an attendance session
+      const sessions: AttendanceSession[] = [];
+      
+      for (const dateObj of dates || []) {
+        // Get attendance records for this date
+        const { data: records, error: recordsError } = await supabase
+          .from('attendance')
+          .select(`
+            *,
+            student:users!attendance_student_id_fkey(id, name)
+          `)
+          .eq('course_id', courseId)
+          .eq('date', dateObj.date);
+
+        if (recordsError) throw recordsError;
+
+        // Get total students in this course
+        const { data: students, error: studentsError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('role', 'student')
+          .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
+
+        if (studentsError) throw studentsError;
+
+        sessions.push({
+          id: `${courseId}-${dateObj.date}`,
+          subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
+          date: dateObj.date,
+          startTime: '10:30', // This would come from a schedule table in a real app
+          endTime: '11:45',   // This would come from a schedule table in a real app
+          totalStudents: students?.length || 0,
+          presentStudents: records?.filter(r => r.status === 'present').length || 0,
+          status: 'completed',
+          records: records?.map(record => ({
+            studentId: record.student_id,
+            studentName: record.student.name,
+            status: record.status as 'present' | 'absent' | 'late',
+            timestamp: record.created_at
+          })) || []
+        });
+      }
+
+      setRealAttendanceSessions(sessions);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch attendance sessions');
+      console.error('Error fetching attendance sessions:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStudentRecords = async (subjectId: string) => {
+    try {
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get students in this course
+      const { data: students, error: studentsError } = await supabase
+        .from('users')
+        .select('id, name, email')
+        .eq('role', 'student')
+        .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
+
+      if (studentsError) throw studentsError;
+
+      // Format as StudentRecord
+      const records: StudentRecord[] = (students || []).map(student => ({
+        id: student.id,
+        name: student.name,
+        rollNumber: student.id.substring(0, 8).toUpperCase(), // Generate a roll number from ID
+        email: student.email,
+        attendance: [],
+        grades: [],
+        submissions: []
+      }));
+
+      setRealStudentRecords(records);
+    } catch (err) {
+      console.error('Error fetching student records:', err);
+    }
+  };
 
   const handleSaveAttendance = async (attendance: { studentId: string; status: 'present' | 'absent' }[]) => {
-    // Implement attendance saving logic here
-    console.log('Saving attendance:', attendance);
-    setShowAttendanceEntry(false);
+    try {
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === selectedSubject)?.id;
+      if (!courseId) throw new Error('Course not found');
+
+      // Format attendance records
+      const records = attendance.map(record => ({
+        student_id: record.studentId,
+        course_id: courseId,
+        date: new Date().toISOString().split('T')[0],
+        status: record.status,
+        marked_by: (supabase.auth.getUser()).then(res => res.data.user?.id)
+      }));
+
+      // Use Edge Function for bulk upload
+      const { data, error } = await supabase.functions.invoke('bulk-upload-attendance', {
+        body: { 
+          course_id: courseId, 
+          date: new Date().toISOString().split('T')[0], 
+          attendance_records: records 
+        }
+      });
+
+      if (error) throw error;
+      
+      // Refresh attendance sessions
+      fetchAttendanceSessions(selectedSubject);
+      setShowAttendanceEntry(false);
+    } catch (err) {
+      console.error('Error saving attendance:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save attendance');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getAttendanceRate = (session: AttendanceSession) => {
@@ -87,14 +234,20 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
 
       {showAttendanceEntry ? (
         <TeacherAttendanceEntry
-          students={studentRecords}
+          students={realStudentRecords.length > 0 ? realStudentRecords : studentRecords}
           date={new Date()}
           onSave={handleSaveAttendance}
         />
       ) : (
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 relative">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10 lg:col-span-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+            </div>
+          )}
+          
           <div className="lg:col-span-1 space-y-4">
-            {attendanceSessions.map((session) => (
+            {(realAttendanceSessions.length > 0 ? realAttendanceSessions : attendanceSessions).map((session) => (
               <button
                 key={session.id}
                 onClick={() => setSelectedSession(session)}
@@ -201,6 +354,15 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
           </div>
         </div>
       )}

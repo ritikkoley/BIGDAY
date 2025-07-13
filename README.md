@@ -38,6 +38,111 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 
 ### Edge Functions:
 - `project-grade`: Advanced grade projection with multiple scenarios
+- `bulk-upload-grades`: Process Excel files with automatic percentile calculation
+- `bulk-upload-attendance`: Handle class-wide attendance uploads
+
+### Teacher Features:
+- **Dashboard Metrics**: At-risk students, top performers, class analytics
+- **Grading Management**: Individual and bulk grade entry
+- **Resource Management**: Upload and share study materials
+- **Messaging System**: Direct and class-wide communication
+- **Quiz Creation**: Create and manage assessments
+- **Performance Analytics**: Detailed teacher performance metrics
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd student-management-system
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Copy your project URL and anon key
+   - Enable Row Level Security (RLS) in your project settings
+
+4. Create environment file:
+```bash
+cp .env.example .env
+# Add your Supabase URL and anon key to .env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+5. Run database migrations:
+   - Go to your Supabase dashboard
+   - Navigate to SQL Editor
+   - Run the migration files in `supabase/migrations/` in numerical order
+
+6. Set up Edge Functions (optional for bulk operations):
+   - Install Supabase CLI: `npm install -g supabase`
+   - Deploy functions: `supabase functions deploy bulk-upload-grades`
+   - Deploy functions: `supabase functions deploy bulk-upload-attendance`
+
+7. Start the development server:
+```bash
+npm run dev
+```
+
+8. Open your browser and navigate to `http://localhost:3000`
+
+## Demo Accounts
+
+The system includes demo accounts for testing:
+- **Student**: `student@dpsb.edu` / `student123`
+- **Teacher**: `teacher@dpsb.edu` / `teacher123`
+- **Admin**: `admin@dpsb.edu` / `admin123`
+
+## Features
+
+- **Student Portal**: View grades, attendance, performance analytics, and study materials
+- **Teacher Portal**: Manage classes, grade assignments, track attendance, and communicate with students
+- **Admin Portal**: Oversee system-wide performance, manage users, and generate reports
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Dark Mode**: Full dark mode support with smooth transitions
+
+## Tech Stack 
+
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **State Management**: Zustand
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS with Apple-inspired design system
+### New Features Added:
+- **Student Timetable View**: Real-time view of courses and upcoming assessments
+- **Grade Projection System**: AI-powered grade predictions with multiple scenarios
+- **Subtopic Performance Tracking**: Detailed analysis of performance by topic
+- **Attendance Warnings**: Proactive alerts for attendance issues
+- **Real-time Messaging**: Live communication system with teachers
+- **AI Bot Preparation**: Database structure for future AI integration
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
+### Database Views:
+- `student_timetable`: Personalized schedule with urgency indicators
+- `student_progress`: Comprehensive performance analytics
+- **Database**: PostgreSQL with Row Level Security (RLS)
+### RPC Functions:
+- `calculate_current_grade`: Weighted grade calculations
+- `project_future_grade`: Predictive grade modeling
+- `get_attendance_warnings`: Attendance risk assessment
+- `get_subtopic_performance`: Topic-level performance analysis
+
+### Edge Functions:
+- `project-grade`: Advanced grade projection with multiple scenarios
 
 ## Getting Started
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { TeacherProfile, MessageTemplate, StudentRecord } from '../../types/teacher';
-import { MessageSquare, Clock, AlertTriangle, Send } from 'lucide-react';
+import { MessageSquare, Clock, AlertTriangle, Send, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 
 interface TeacherMessagesProps {
   profile: TeacherProfile;
@@ -14,6 +16,93 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
   studentRecords
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
+  const [messageContent, setMessageContent] = useState('');
+  const [messageSubject, setMessageSubject] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState<Record<string, boolean>>({});
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedTemplate) {
+      setMessageSubject(selectedTemplate.title);
+      setMessageContent(selectedTemplate.content);
+      setPriority(selectedTemplate.priority);
+    }
+  }, [selectedTemplate]);
+
+  const handleSelectAllStudents = () => {
+    const newSelectedStudents: Record<string, boolean> = {};
+    studentRecords.forEach(student => {
+      newSelectedStudents[student.id] = true;
+    });
+    setSelectedStudents(newSelectedStudents);
+  };
+
+  const handleToggleStudent = (studentId: string) => {
+    setSelectedStudents(prev => ({
+      ...prev,
+      [studentId]: !prev[studentId]
+    }));
+  };
+
+  const handleSendMessage = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      // Validate inputs
+      if (!messageSubject.trim()) {
+        throw new Error('Subject is required');
+      }
+      if (!messageContent.trim()) {
+        throw new Error('Message content is required');
+      }
+      const selectedStudentIds = Object.entries(selectedStudents)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([id]) => id);
+      
+      if (selectedStudentIds.length === 0) {
+        throw new Error('Please select at least one recipient');
+      }
+
+      // Get current user
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      // Send message to each selected student
+      const messages = selectedStudentIds.map(studentId => ({
+        sender_id: user.user!.id,
+        recipient_id: studentId,
+        subject: messageSubject,
+        content: messageContent,
+        priority: priority,
+        message_type: 'direct'
+      }));
+
+      const { error: messagesError } = await supabase
+        .from('messages')
+        .insert(messages);
+
+      if (messagesError) throw messagesError;
+
+      setSuccess(`Message sent to ${selectedStudentIds.length} student(s)`);
+      
+      // Reset form
+      setMessageSubject('');
+      setMessageContent('');
+      setSelectedStudents({});
+      setSelectedTemplate(null);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send message');
+      console.error('Error sending message:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getPriorityColor = (priority: 'low' | 'medium' | 'high') => {
     const colors = {
@@ -44,7 +133,13 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
       </div>
 
       {/* Message Templates and Composer */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10 lg:col-span-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        
         {/* Templates List */}
         <div className="lg:col-span-1 space-y-4">
           {messageTemplates.map((template) => (
@@ -102,9 +197,25 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={selectedTemplate.title}
+                    value={messageSubject}
+                    onChange={(e) => setMessageSubject(e.target.value)}
                     className="w-full px-4 py-2 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg text-apple-gray-600 dark:text-white placeholder-apple-gray-400 focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as 'low' | 'medium' | 'high')}
+                    className="w-full px-4 py-2 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg text-apple-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
                 </div>
 
                 <div>
@@ -113,7 +224,8 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
                   </label>
                   <textarea
                     rows={6}
-                    value={selectedTemplate.content}
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
                     className="w-full px-4 py-2 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg text-apple-gray-600 dark:text-white placeholder-apple-gray-400 focus:outline-none focus:ring-2 focus:ring-apple-blue-500 resize-none"
                   />
                 </div>
@@ -127,7 +239,10 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
                       <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
                         Selected Students: {studentRecords.length}
                       </span>
-                      <button className="text-apple-blue-500 text-sm font-medium">
+                      <button 
+                        onClick={handleSelectAllStudents}
+                        className="text-apple-blue-500 text-sm font-medium"
+                      >
                         Select All
                       </button>
                     </div>
@@ -147,6 +262,8 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
                           </div>
                           <input
                             type="checkbox"
+                            checked={!!selectedStudents[student.id]}
+                            onChange={() => handleToggleStudent(student.id)}
                             className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
                           />
                         </div>
@@ -156,15 +273,34 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-4">
-                  <div className="flex items-center space-x-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                    <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                      Message will be sent immediately
-                    </span>
-                  </div>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors">
-                    <Send className="w-4 h-4" />
-                    <span>Send Message</span>
+                  {error && (
+                    <div className="flex items-center space-x-2 text-red-500">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span className="text-sm">{error}</span>
+                    </div>
+                  )}
+                  {success && (
+                    <div className="flex items-center space-x-2 text-green-500">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-sm">{success}</span>
+                    </div>
+                  )}
+                  <button 
+                    onClick={handleSendMessage}
+                    disabled={isLoading}
+                    className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Sending...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Send Message</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -182,6 +318,15 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
           )}
         </div>
       </div>
+
+      {error && !selectedTemplate && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

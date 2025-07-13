@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { TeacherProfile, Quiz } from '../../types/teacher';
 import { BrainCircuit, Clock, AlertTriangle, CheckCircle2, GraduationCap } from 'lucide-react';
+import { useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 interface TeacherQuizzesProps {
@@ -14,6 +16,80 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
 }) => {
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
+  const [realQuizzes, setRealQuizzes] = useState<Quiz[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchQuizzes(selectedSubject);
+    }
+  }, [selectedSubject]);
+
+  const fetchQuizzes = async (subjectId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Get course ID from subject ID
+      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
+      if (!courseId) return;
+
+      // Get quizzes for this course
+      const { data, error: quizzesError } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('course_id', courseId)
+        .eq('type', 'quiz');
+
+      if (quizzesError) throw quizzesError;
+
+      // Format as Quiz
+      const formattedQuizzes: Quiz[] = (data || []).map(quiz => ({
+        id: quiz.id,
+        subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
+        title: quiz.name,
+        date: quiz.due_date || new Date().toISOString(),
+        duration: quiz.duration || 45,
+        totalMarks: quiz.total_marks || 20,
+        topics: quiz.subtopics_covered || [],
+        status: quiz.status as 'draft' | 'scheduled' | 'ongoing' | 'completed'
+      }));
+
+      setRealQuizzes(formattedQuizzes);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch quizzes');
+      console.error('Error fetching quizzes:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateQuiz = async () => {
+    try {
+      // This would open a modal or navigate to a quiz creation page
+      alert('In a real implementation, this would open a quiz creation form');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create quiz');
+    }
+  };
+
+  const handleEditQuiz = async (quizId: string) => {
+    try {
+      // This would open a modal or navigate to a quiz edit page
+      alert(`In a real implementation, this would open a form to edit quiz ${quizId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to edit quiz');
+    }
+  };
+
+  const handleViewResults = async (quizId: string) => {
+    try {
+      // This would navigate to a quiz results page
+      alert(`In a real implementation, this would show results for quiz ${quizId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to view quiz results');
+    }
+  };
 
   const getStatusColor = (status: Quiz['status']) => {
     const colors = {
@@ -25,11 +101,20 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
     return colors[status];
   };
 
+  // Use real quizzes if available, otherwise fall back to sample data
+  const displayQuizzes = realQuizzes.length > 0 ? realQuizzes : quizzes;
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="apple-card p-6">
-        <div className="flex items-center space-x-4">
+      <div className="apple-card p-6 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
           <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
             <BrainCircuit className="w-6 h-6 text-apple-blue-500" />
           </div>
@@ -41,6 +126,14 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
               Create and manage quizzes
             </p>
           </div>
+        </div>
+          <button
+            onClick={handleCreateQuiz}
+            className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Quiz</span>
+          </button>
         </div>
       </div>
 
@@ -64,9 +157,15 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
       </div>
 
       {/* Quiz List and Details */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10 lg:col-span-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        
         <div className="lg:col-span-1 space-y-4">
-          {quizzes.map((quiz) => (
+          {displayQuizzes.map((quiz) => (
             <button
               key={quiz.id}
               onClick={() => setSelectedQuiz(quiz)}
@@ -170,10 +269,16 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-apple-gray-200/50 dark:border-apple-gray-500/20">
-                <button className="px-4 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-full transition-colors">
+                <button 
+                  onClick={() => handleEditQuiz(selectedQuiz.id)}
+                  className="px-4 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-full transition-colors"
+                >
                   Edit Quiz
                 </button>
-                <button className="px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors">
+                <button 
+                  onClick={() => handleViewResults(selectedQuiz.id)}
+                  className="px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors"
+                >
                   {selectedQuiz.status === 'draft' ? 'Schedule Quiz' : 'View Results'}
                 </button>
               </div>
@@ -191,6 +296,15 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error: {error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

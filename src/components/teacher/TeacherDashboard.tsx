@@ -10,6 +10,8 @@ import {
   BookOpen,
   GraduationCap
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 interface TeacherDashboardProps {
@@ -21,6 +23,90 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   profile,
   dashboardData
 }) => {
+  const [realDashboardData, setRealDashboardData] = useState<TeacherDashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      // Fetch upcoming classes
+      const { data: scheduleData, error: scheduleError } = await supabase
+        .from('teacher_schedule')
+        .select('*');
+
+      if (scheduleError) throw scheduleError;
+
+      // Fetch pending tasks
+      const { data: tasksData, error: tasksError } = await supabase
+        .rpc('get_pending_tasks', { teacher_uuid: user.user.id });
+
+      if (tasksError) throw tasksError;
+
+      // Fetch recent submissions
+      const { data: submissionsData, error: submissionsError } = await supabase
+        .rpc('get_recent_submissions', { teacher_uuid: user.user.id });
+
+      if (submissionsError) throw submissionsError;
+
+      // Fetch class performance
+      const { data: performanceData, error: performanceError } = await supabase
+        .rpc('get_class_performance', { teacher_uuid: user.user.id });
+
+      if (performanceError) throw performanceError;
+
+      // Format data to match TeacherDashboardData interface
+      const formattedData: TeacherDashboardData = {
+        upcomingClasses: scheduleData?.map(item => ({
+          subject: item.course_name,
+          time: '10:30 AM - 11:45 AM', // This would come from a schedule table in a real app
+          room: 'CS-301', // This would come from a schedule table in a real app
+          studentsCount: item.student_count,
+          hasQuiz: item.has_quiz_today,
+          attendanceRate: item.attendance_rate
+        })) || [],
+        pendingTasks: tasksData?.map(task => ({
+          type: task.task_type as 'grading' | 'attendance' | 'quiz' | 'message',
+          subject: task.course_name,
+          title: task.title,
+          deadline: task.due_date,
+          priority: task.priority as 'low' | 'medium' | 'high'
+        })) || [],
+        recentSubmissions: submissionsData?.map(sub => ({
+          student: sub.student_name,
+          subject: sub.course_name,
+          assignment: sub.assessment_name,
+          submittedAt: sub.submitted_at,
+          status: sub.status as 'pending' | 'graded'
+        })) || [],
+        classPerformance: performanceData?.map(perf => ({
+          subject: perf.course_name,
+          averageScore: perf.average_score,
+          attendanceRate: perf.attendance_rate,
+          riskStudents: perf.grade_distribution?.F || 0,
+          topPerformers: perf.grade_distribution?.A || 0
+        })) || []
+      };
+
+      setRealDashboardData(formattedData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Use real data if available, otherwise fall back to sample data
+  const displayData = realDashboardData || dashboardData;
+
   const getPriorityColor = (priority: 'low' | 'medium' | 'high') => {
     const colors = {
       low: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -60,12 +146,17 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       </div>
 
       {/* Upcoming Classes */}
-      <div className="apple-card p-6">
+      <div className="apple-card p-6 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
         <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">
           Upcoming Classes
         </h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-          {dashboardData.upcomingClasses.map((classItem, index) => (
+          {displayData.upcomingClasses.map((classItem, index) => (
             <div
               key={index}
               className="bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center justify-between"
@@ -103,7 +194,13 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       </div>
 
       {/* Tasks and Performance */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center lg:col-span-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apple-blue-500"></div>
+          </div>
+        )}
+        
         {/* Pending Tasks */}
         <div className="lg:col-span-1">
           <div className="apple-card p-6">
@@ -111,7 +208,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               Pending Tasks
             </h2>
             <div className="space-y-4">
-              {dashboardData.pendingTasks.map((task, index) => (
+              {displayData.pendingTasks.map((task, index) => (
                 <div
                   key={index}
                   className="bg-white dark:bg-gray-800 rounded-lg p-4"
@@ -146,7 +243,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               Recent Submissions
             </h2>
             <div className="space-y-4">
-              {dashboardData.recentSubmissions.map((submission, index) => (
+              {displayData.recentSubmissions.map((submission, index) => (
                 <div
                   key={index}
                   className="bg-white dark:bg-gray-800 rounded-lg p-4"
@@ -183,7 +280,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               Class Performance
             </h2>
             <div className="space-y-4">
-              {dashboardData.classPerformance.map((performance, index) => (
+              {displayData.classPerformance.map((performance, index) => (
                 <div
                   key={index}
                   className="bg-white dark:bg-gray-800 rounded-lg p-4"
@@ -223,6 +320,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="apple-card p-6 mt-6">
+          <div className="flex items-center space-x-2 text-red-500">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Error loading dashboard data: {error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
