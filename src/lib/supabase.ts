@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://demo.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'demo-anon-key';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let supabase: any;
 
@@ -28,7 +28,14 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_u
         upload: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
         getPublicUrl: () => ({ data: { publicUrl: '' } })
       })
-    }
+    },
+    functions: {
+      invoke: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') })
+    },
+    channel: () => ({
+      on: () => ({ subscribe: () => ({}) })
+    }),
+    removeChannel: () => {}
   };
 } else {
   supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -54,179 +61,299 @@ export interface Database {
       users: {
         Row: {
           id: string;
-          name: string;
-          email: string;
           role: 'student' | 'teacher' | 'admin';
-          group_id: string | null;
+          identifier: string;
+          email: string;
+          profile_data: any;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
-          name: string;
-          email: string;
           role: 'student' | 'teacher' | 'admin';
-          group_id?: string | null;
+          identifier: string;
+          email: string;
+          profile_data?: any;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
-          name?: string;
-          email?: string;
           role?: 'student' | 'teacher' | 'admin';
-          group_id?: string | null;
+          identifier?: string;
+          email?: string;
+          profile_data?: any;
           created_at?: string;
-        };
-      };
-      groups: {
-        Row: {
-          id: string;
-          name: string;
-          type: 'class' | 'department';
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          type: 'class' | 'department';
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          type?: 'class' | 'department';
+          updated_at?: string;
         };
       };
       courses: {
         Row: {
           id: string;
-          name: string;
-          teacher_id: string;
-          group_ids: string[];
-          subtopics: any;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          teacher_id: string;
-          group_ids?: string[];
-          subtopics?: any;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          teacher_id?: string;
-          group_ids?: string[];
-          subtopics?: any;
-          created_at?: string;
-        };
-      };
-      assessments: {
-        Row: {
-          id: string;
           course_id: string;
-          name: string;
-          type: 'quiz' | 'midterm' | 'final' | 'digital';
-          weightage: number;
-          subtopics_covered: any;
-          due_date: string | null;
+          title: string;
+          description: string | null;
+          semester: number;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
           course_id: string;
-          name: string;
-          type: 'quiz' | 'midterm' | 'final' | 'digital';
-          weightage: number;
-          subtopics_covered?: any;
-          due_date?: string | null;
+          title: string;
+          description?: string | null;
+          semester: number;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: string;
           course_id?: string;
-          name?: string;
-          type?: 'quiz' | 'midterm' | 'final' | 'digital';
-          weightage?: number;
-          subtopics_covered?: any;
-          due_date?: string | null;
+          title?: string;
+          description?: string | null;
+          semester?: number;
           created_at?: string;
+          updated_at?: string;
+        };
+      };
+      enrollments: {
+        Row: {
+          id: string;
+          student_id: string | null;
+          course_id: string | null;
+          enrollment_date: string | null;
+          status: 'active' | 'completed' | 'dropped' | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          enrollment_date?: string | null;
+          status?: 'active' | 'completed' | 'dropped' | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          enrollment_date?: string | null;
+          status?: 'active' | 'completed' | 'dropped' | null;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
       };
       grades: {
         Row: {
           id: string;
-          student_id: string;
-          assessment_id: string;
+          student_id: string | null;
+          course_id: string | null;
+          type: 'assignment' | 'quiz' | 'midterm' | 'final';
           score: number;
           max_score: number;
-          percentile: number | null;
-          subtopic_performance: any;
+          weight: number;
+          date: string;
           feedback: string | null;
-          graded_by: string | null;
-          graded_at: string | null;
-          created_at: string;
-          updated_at: string;
+          created_at: string | null;
+          updated_at: string | null;
         };
         Insert: {
           id?: string;
-          student_id: string;
-          assessment_id: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          type: 'assignment' | 'quiz' | 'midterm' | 'final';
           score: number;
-          max_score?: number;
-          percentile?: number | null;
-          subtopic_performance?: any;
+          max_score: number;
+          weight: number;
+          date: string;
           feedback?: string | null;
-          graded_by?: string | null;
-          graded_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           id?: string;
-          student_id?: string;
-          assessment_id?: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          type?: 'assignment' | 'quiz' | 'midterm' | 'final';
           score?: number;
           max_score?: number;
-          percentile?: number | null;
-          subtopic_performance?: any;
+          weight?: number;
+          date?: string;
           feedback?: string | null;
-          graded_by?: string | null;
-          graded_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
         };
       };
       attendance: {
         Row: {
           id: string;
-          student_id: string;
-          course_id: string;
+          student_id: string | null;
+          course_id: string | null;
           date: string;
-          status: 'present' | 'absent' | 'late' | 'excused';
+          status: 'present' | 'absent' | 'late';
+          duration: number;
           notes: string | null;
-          marked_by: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          date: string;
+          status?: 'present' | 'absent' | 'late';
+          duration: number;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          student_id?: string | null;
+          course_id?: string | null;
+          date?: string;
+          status?: 'present' | 'absent' | 'late';
+          duration?: number;
+          notes?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      comments: {
+        Row: {
+          id: string;
+          from_id: string | null;
+          to_id: string | null;
+          course_id: string | null;
+          comment: string;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          from_id?: string | null;
+          to_id?: string | null;
+          course_id?: string | null;
+          comment: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          from_id?: string | null;
+          to_id?: string | null;
+          course_id?: string | null;
+          comment?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      student_historic_data: {
+        Row: {
+          id: string;
+          student_id: string | null;
+          year: number;
+          percentile: number;
+          cgpa: number;
+          strengths: string | null;
+          weaknesses: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          student_id?: string | null;
+          year: number;
+          percentile: number;
+          cgpa: number;
+          strengths?: string | null;
+          weaknesses?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          student_id?: string | null;
+          year?: number;
+          percentile?: number;
+          cgpa?: number;
+          strengths?: string | null;
+          weaknesses?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          message: string;
+          response: string | null;
+          bot_type: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          message: string;
+          response?: string | null;
+          bot_type?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          message?: string;
+          response?: string | null;
+          bot_type?: string;
+          created_at?: string;
+        };
+      };
+      resources: {
+        Row: {
+          id: string;
+          course_id: string;
+          name: string;
+          description: string | null;
+          file_path: string | null;
+          file_size: number | null;
+          file_type: string | null;
+          resource_type: string | null;
+          uploaded_by: string | null;
+          is_public: boolean;
+          download_count: number;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          student_id: string;
           course_id: string;
-          date: string;
-          status: 'present' | 'absent' | 'late' | 'excused';
-          notes?: string | null;
-          marked_by?: string | null;
+          name: string;
+          description?: string | null;
+          file_path?: string | null;
+          file_size?: number | null;
+          file_type?: string | null;
+          resource_type?: string | null;
+          uploaded_by?: string | null;
+          is_public?: boolean;
+          download_count?: number;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          student_id?: string;
           course_id?: string;
-          date?: string;
-          status?: 'present' | 'absent' | 'late' | 'excused';
-          notes?: string | null;
-          marked_by?: string | null;
+          name?: string;
+          description?: string | null;
+          file_path?: string | null;
+          file_size?: number | null;
+          file_type?: string | null;
+          resource_type?: string | null;
+          uploaded_by?: string | null;
+          is_public?: boolean;
+          download_count?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -240,10 +367,9 @@ export interface Database {
           course_id: string | null;
           subject: string;
           content: string;
-          priority: 'low' | 'normal' | 'high' | 'urgent';
-          read_at: string | null;
-          reply_to: string | null;
-          attachments: any;
+          priority: string | null;
+          message_type: string | null;
+          is_read: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -255,10 +381,9 @@ export interface Database {
           course_id?: string | null;
           subject: string;
           content: string;
-          priority?: 'low' | 'normal' | 'high' | 'urgent';
-          read_at?: string | null;
-          reply_to?: string | null;
-          attachments?: any;
+          priority?: string | null;
+          message_type?: string | null;
+          is_read?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -270,28 +395,25 @@ export interface Database {
           course_id?: string | null;
           subject?: string;
           content?: string;
-          priority?: 'low' | 'normal' | 'high' | 'urgent';
-          read_at?: string | null;
-          reply_to?: string | null;
-          attachments?: any;
+          priority?: string | null;
+          message_type?: string | null;
+          is_read?: boolean;
           created_at?: string;
           updated_at?: string;
         };
       };
-      resources: {
+      assessments: {
         Row: {
           id: string;
           course_id: string;
           name: string;
           description: string | null;
-          file_path: string | null;
-          file_size: number | null;
-          file_type: string | null;
-          resource_type: 'material' | 'assignment' | 'reference' | 'video' | 'link';
-          uploaded_by: string | null;
-          is_public: boolean;
-          download_count: number;
-          tags: any;
+          type: string;
+          due_date: string | null;
+          total_marks: number;
+          weightage: number;
+          status: string;
+          subtopics_covered: any;
           created_at: string;
           updated_at: string;
         };
@@ -300,14 +422,12 @@ export interface Database {
           course_id: string;
           name: string;
           description?: string | null;
-          file_path?: string | null;
-          file_size?: number | null;
-          file_type?: string | null;
-          resource_type?: 'material' | 'assignment' | 'reference' | 'video' | 'link';
-          uploaded_by?: string | null;
-          is_public?: boolean;
-          download_count?: number;
-          tags?: any;
+          type: string;
+          due_date?: string | null;
+          total_marks: number;
+          weightage: number;
+          status?: string;
+          subtopics_covered?: any;
           created_at?: string;
           updated_at?: string;
         };
@@ -316,69 +436,106 @@ export interface Database {
           course_id?: string;
           name?: string;
           description?: string | null;
-          file_path?: string | null;
-          file_size?: number | null;
-          file_type?: string | null;
-          resource_type?: 'material' | 'assignment' | 'reference' | 'video' | 'link';
-          uploaded_by?: string | null;
-          is_public?: boolean;
-          download_count?: number;
-          tags?: any;
+          type?: string;
+          due_date?: string | null;
+          total_marks?: number;
+          weightage?: number;
+          status?: string;
+          subtopics_covered?: any;
           created_at?: string;
           updated_at?: string;
         };
       };
     };
     Functions: {
-      calculate_percentiles: {
-        Args: { assess_id: string };
-        Returns: void;
+      calculate_current_grade: {
+        Args: { stud_id: string; crs_id: string };
+        Returns: {
+          current_grade: number;
+          completed_assessments: number;
+          total_weightage: number;
+        }[];
       };
-      get_attendance_summary: {
-        Args: { student_uuid: string; course_uuid?: string };
+      project_future_grade: {
+        Args: { stud_id: string; crs_id: string; assumed_performance?: number };
+        Returns: {
+          current_grade: number;
+          projected_grade: number;
+          remaining_weightage: number;
+          confidence_level: string;
+        }[];
+      };
+      get_attendance_warnings: {
+        Args: { stud_id: string; threshold?: number };
         Returns: {
           course_id: string;
           course_name: string;
           total_classes: number;
-          present_count: number;
-          absent_count: number;
-          late_count: number;
+          attended_classes: number;
           attendance_rate: number;
+          classes_needed: number;
+          is_at_risk: boolean;
         }[];
       };
-      get_grade_summary: {
-        Args: { student_uuid: string; course_uuid?: string };
+      get_subtopic_performance: {
+        Args: { stud_id: string; crs_id: string };
+        Returns: {
+          subtopic_name: string;
+          average_score: number;
+          assessment_count: number;
+          trend: string;
+        }[];
+      };
+      get_pending_tasks: {
+        Args: { teacher_uuid: string };
+        Returns: {
+          task_type: string;
+          course_id: string;
+          course_name: string;
+          title: string;
+          due_date: string;
+          priority: string;
+        }[];
+      };
+      get_recent_submissions: {
+        Args: { teacher_uuid: string };
+        Returns: {
+          student_id: string;
+          student_name: string;
+          course_id: string;
+          course_name: string;
+          assessment_id: string;
+          assessment_name: string;
+          submitted_at: string;
+          status: string;
+        }[];
+      };
+      get_class_performance: {
+        Args: { teacher_uuid: string };
         Returns: {
           course_id: string;
           course_name: string;
-          total_assessments: number;
           average_score: number;
-          average_percentile: number;
-          weighted_score: number;
+          attendance_rate: number;
+          risk_students: number;
+          top_performers: number;
         }[];
       };
-      get_course_analytics: {
-        Args: { course_uuid: string };
-        Returns: {
-          total_students: number;
-          average_attendance_rate: number;
-          average_grade: number;
-          grade_distribution: any;
-          at_risk_students: number;
-        }[];
-      };
-      get_recent_messages: {
-        Args: { user_uuid: string; limit_count?: number };
-        Returns: {
-          id: string;
-          sender_name: string;
-          subject: string;
-          content: string;
-          priority: string;
-          read_at: string | null;
-          created_at: string;
-          is_group_message: boolean;
-        }[];
+    };
+    Views: {
+      student_timetable: {
+        Row: {
+          course_id: string;
+          course_name: string;
+          teacher_id: string;
+          teacher_name: string;
+          assessment_id: string | null;
+          assessment_name: string | null;
+          assessment_type: string | null;
+          due_date: string | null;
+          weightage: number | null;
+          urgency_status: 'overdue' | 'upcoming' | 'future';
+        };
       };
     };
   };
@@ -404,56 +561,13 @@ export const getUserProfile = async (userId: string) => {
 
 export const getUserRole = async (userId: string) => {
   const { data, error } = await supabase
-    .rpc('get_user_role', { user_id: userId });
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
   
   if (error) throw error;
-  return data;
-};
-
-export const isAdmin = async (userId: string) => {
-  const { data, error } = await supabase
-    .rpc('is_admin', { user_id: userId });
-  
-  if (error) throw error;
-  return data;
-};
-
-export const isTeacher = async (userId: string) => {
-  const { data, error } = await supabase
-    .rpc('is_teacher', { user_id: userId });
-  
-  if (error) throw error;
-  return data;
-};
-
-export const getUserCourses = async (userId: string) => {
-  const { data, error } = await supabase
-    .rpc('get_user_courses', { user_id: userId });
-  
-  if (error) throw error;
-  return data;
-};
-
-// Realtime subscriptions
-export const subscribeToTable = (
-  table: string,
-  callback: (payload: any) => void,
-  filter?: { column: string; value: string }
-) => {
-  let subscription = supabase
-    .channel(`${table}_changes`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: table,
-        ...(filter && { filter: `${filter.column}=eq.${filter.value}` })
-      },
-      callback
-    );
-
-  return subscription.subscribe();
+  return data?.role;
 };
 
 // File upload helpers
@@ -487,4 +601,26 @@ export const deleteFile = async (bucket: string, path: string) => {
     .remove([path]);
 
   if (error) throw error;
+};
+
+// Realtime subscriptions
+export const subscribeToTable = (
+  table: string,
+  callback: (payload: any) => void,
+  filter?: { column: string; value: string }
+) => {
+  let subscription = supabase
+    .channel(`${table}_changes`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: table,
+        ...(filter && { filter: `${filter.column}=eq.${filter.value}` })
+      },
+      callback
+    );
+
+  return subscription.subscribe();
 };
