@@ -45,8 +45,8 @@ if (!supabaseUrl || !supabaseAnonKey ||
       on: () => ({ subscribe: () => ({}) })
     }),
     removeChannel: () => {}
-  });
   } as any;
+} else {
   // Create the real Supabase client
   supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
