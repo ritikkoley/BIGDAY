@@ -18,8 +18,26 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 - **Icons**: Lucide React
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with Apple-inspired design system
+### New Features Added:
+- **Student Timetable View**: Real-time view of courses and upcoming assessments
+- **Grade Projection System**: AI-powered grade predictions with multiple scenarios
+- **Subtopic Performance Tracking**: Detailed analysis of performance by topic
+- **Attendance Warnings**: Proactive alerts for attendance issues
+- **Real-time Messaging**: Live communication system with teachers
+- **AI Bot Preparation**: Database structure for future AI integration
 - **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
+### Database Views:
+- `student_timetable`: Personalized schedule with urgency indicators
+- `student_progress`: Comprehensive performance analytics
 - **Database**: PostgreSQL with Row Level Security (RLS)
+### RPC Functions:
+- `calculate_current_grade`: Weighted grade calculations
+- `project_future_grade`: Predictive grade modeling
+- `get_attendance_warnings`: Attendance risk assessment
+- `get_subtopic_performance`: Topic-level performance analysis
+
+### Edge Functions:
+- `project-grade`: Advanced grade projection with multiple scenarios
 
 ## Getting Started
 

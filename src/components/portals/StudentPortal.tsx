@@ -9,6 +9,8 @@ import GradesView from '../GradesView';
 import { AttendanceView } from '../AttendanceView';
 import { PerformanceReport } from '../PerformanceReport';
 import { StudyVault } from '../StudyVault';
+import { StudentProgress } from '../student/StudentProgress';
+import { StudentMessages } from '../student/StudentMessages';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -245,16 +247,12 @@ export const StudentPortal: React.FC = () => {
           {activeTab === 'home' && (
             <HomePage
               studentName="Ritik Koley"
-              data={sampleHomeData}
               onViewGrades={handleViewGrades}
               onViewAttendance={handleViewAttendance}
             />
           )}
           {activeTab === 'progress' && (
-            <ProgressDashboard
-              studentName="Ritik Koley"
-              subjects={sampleSubjects}
-            />
+            <StudentProgress />
           )}
           {activeTab === 'study-vault' && (
             <StudyVault
@@ -279,11 +277,7 @@ export const StudentPortal: React.FC = () => {
             />
           )}
           {activeTab === 'performance' && (
-            <PerformanceReport
-              studentName="Ritik Koley"
-              metrics={performanceMetrics}
-              grades={sampleGrades}
-            />
+            <StudentMessages />
           )}
         </main>
       </div>
