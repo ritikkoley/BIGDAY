@@ -14,10 +14,22 @@ if (!supabaseUrl || !supabaseAnonKey ||
   
   // Create a complete mock object that mimics SupabaseClient
   supabase = {
-      signOut: async () => ({ error: null }),
-      getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
+    auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
+      signInWithPassword: async () => ({ data: { user: null, session: null }, error: new Error('Demo mode - Supabase not configured') }),
+      signUp: async () => ({ data: { user: null, session: null }, error: new Error('Demo mode - Supabase not configured') }),
+      signInWithOAuth: async () => ({ data: { url: null, provider: null }, error: new Error('Demo mode - Supabase not configured') }),
+      signOut: async () => ({ error: null }),
+      resetPasswordForEmail: async () => ({ data: {}, error: new Error('Demo mode - Supabase not configured') }),
+      onAuthStateChange: () => ({ 
+        data: { 
+          subscription: { 
+            unsubscribe: () => {} 
+          } 
+        } 
+      })
+    },
       from: () => ({
         select: () => ({ data: [], error: null }),
         insert: () => ({ data: [], error: null }),
