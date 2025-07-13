@@ -28,17 +28,19 @@ serve(async (req) => {
       if (!record.student_id || !record.status) {
         throw new Error('Invalid attendance format: student_id and status required')
       }
-      if (!['present', 'absent', 'late', 'excused'].includes(record.status)) {
-        throw new Error('Invalid status: must be present, absent, late, or excused')
+      if (!['present', 'absent', 'late'].includes(record.status)) {
+        throw new Error('Invalid status: must be present, absent, or late')
       }
     }
 
     // Prepare attendance records
     const attendanceWithDetails = attendance_records.map(record => ({
-      ...record,
+      student_id: record.student_id,
       course_id,
       date,
-      marked_by: req.headers.get('user-id'), // From auth context
+      status: record.status,
+      duration: 90, // Default duration in minutes
+      notes: record.notes || null
     }))
 
     // Insert/update attendance records

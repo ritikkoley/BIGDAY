@@ -42,31 +42,26 @@ serve(async (req) => {
 
     // Prepare grades with assessment_id and validation
     const gradesWithAssessment = grades.map(grade => ({
-      ...grade,
-      assessment_id,
+      student_id: grade.student_id,
+      course_id: assessment.course_id,
+      type: 'assignment',
+      score: grade.score,
       max_score: assessment.total_marks,
-      graded_by: req.headers.get('user-id'), // From auth context
-      graded_at: new Date().toISOString()
+      weight: 1.0, // Default weight
+      date: new Date().toISOString(),
+      feedback: grade.feedback || null
     }))
 
     // Insert grades
     const { data: insertedGrades, error: insertError } = await supabase
       .from('grades')
       .upsert(gradesWithAssessment, { 
-        onConflict: 'student_id,assessment_id',
+        onConflict: 'student_id,course_id,date',
         ignoreDuplicates: false 
       })
       .select()
 
     if (insertError) throw insertError
-
-    // Calculate percentiles using RPC function
-    const { error: percentileError } = await supabase
-      .rpc('calculate_percentiles', { assess_id: assessment_id })
-
-    if (percentileError) {
-      console.warn('Percentile calculation failed:', percentileError)
-    }
 
     return new Response(
       JSON.stringify({ 
