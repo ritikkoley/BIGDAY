@@ -2,6 +2,44 @@
 
 A modern, Apple-inspired student management system built with React, TypeScript, and Tailwind CSS.
 
+## Setting Up Your Supabase Project
+
+### 1. Access Your Supabase Project
+
+Your project is already set up at: https://supabase.com/dashboard/project/eaofihviwzrvhabaeuxf
+
+### 2. Run the Migration Script
+
+1. Go to the SQL Editor in your Supabase dashboard
+2. Open the file `supabase/migrations/009_fresh_start.sql` from this project
+3. Run the entire SQL script to set up your database schema
+
+### 3. Set Up Storage Buckets
+
+1. In your Supabase dashboard, go to Storage
+2. Create two new buckets:
+   - `study_materials` - For course resources and assignments
+   - `profile_images` - For user profile pictures
+3. Set the privacy settings as needed (public or authenticated access)
+
+### 4. Deploy Edge Functions
+
+1. In your Supabase dashboard, go to Edge Functions
+2. Create three new functions:
+   - `bulk-upload-grades`
+   - `bulk-upload-attendance`
+   - `project-grade`
+3. Copy the code from the corresponding files in `supabase/functions/` directory
+
+### 5. Update Environment Variables
+
+Make sure your `.env` file contains the correct Supabase URL and anon key:
+
+```
+VITE_SUPABASE_URL=https://eaofihviwzrvhabaeuxf.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key_here
+```
+
 ## Features
 
 - **Student Portal**: View grades, attendance, performance analytics, and study materials
@@ -10,7 +48,7 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **Dark Mode**: Full dark mode support with smooth transitions
 
-## Tech Stack 
+## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **State Management**: Zustand
@@ -19,35 +57,27 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with Apple-inspired design system
 ### New Features Added:
-- **Student Timetable View**: Real-time view of courses and upcoming assessments
-- **Grade Projection System**: AI-powered grade predictions with multiple scenarios
-- **Subtopic Performance Tracking**: Detailed analysis of performance by topic
-- **Attendance Warnings**: Proactive alerts for attendance issues
-- **Real-time Messaging**: Live communication system with teachers
-- **AI Bot Preparation**: Database structure for future AI integration
-- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
-### Database Views:
-- `student_timetable`: Personalized schedule with urgency indicators
-- `student_progress`: Comprehensive performance analytics
-- **Database**: PostgreSQL with Row Level Security (RLS)
-### RPC Functions:
-- `calculate_current_grade`: Weighted grade calculations
-- `project_future_grade`: Predictive grade modeling
-- `get_attendance_warnings`: Attendance risk assessment
-- `get_subtopic_performance`: Topic-level performance analysis
+- **Student Features**:
+  - Real-time timetable view with upcoming assessments
+  - Grade projection system with multiple scenarios
+  - Subtopic performance tracking with trend analysis
+  - Attendance warnings with risk assessment
+  - Real-time messaging system
 
-### Edge Functions:
-- `project-grade`: Advanced grade projection with multiple scenarios
-- `bulk-upload-grades`: Process Excel files with automatic percentile calculation
-- `bulk-upload-attendance`: Handle class-wide attendance uploads
+- **Teacher Features**:
+  - Dashboard with at-risk students and top performers
+  - Bulk grading system with Excel upload
+  - Resource management with file uploads
+  - Messaging system with templates
+  - Quiz creation and management
+  - Performance analytics dashboard
 
-### Teacher Features:
-- **Dashboard Metrics**: At-risk students, top performers, class analytics
-- **Grading Management**: Individual and bulk grade entry
-- **Resource Management**: Upload and share study materials
-- **Messaging System**: Direct and class-wide communication
-- **Quiz Creation**: Create and manage assessments
-- **Performance Analytics**: Detailed teacher performance metrics
+- **Database Features**:
+  - PostgreSQL with Row Level Security (RLS)
+  - Real-time subscriptions with Supabase Realtime
+  - Edge Functions for complex operations
+  - Storage for files and resources
+  - RPC Functions for analytics and projections
 
 ## Getting Started
 
@@ -72,21 +102,21 @@ npm install
 
 3. Set up Supabase:
    - Create a new project at [supabase.com](https://supabase.com)
-   - Copy your project URL and anon key from Project Settings > API
-   - Enable Row Level Security (RLS) in your project settings
+   - Or use your existing project at https://supabase.com/dashboard/project/eaofihviwzrvhabaeuxf
+   - Get your project URL and anon key from Project Settings > API
 
 4. Create environment file:
 ```bash
 cp .env.example .env
 # Add your Supabase URL and anon key to .env
-VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_URL=https://eaofihviwzrvhabaeuxf.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 5. Run database migrations:
    - Go to your Supabase dashboard
    - Navigate to the SQL Editor
-   - Run the migration file `001_initial_schema.sql` from the project
+   - Run the migration file `009_fresh_start.sql` from the project
 
 6. Set up Edge Functions:
    - In your Supabase dashboard, go to Edge Functions
@@ -95,107 +125,6 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
      - `bulk-upload-attendance`
      - `project-grade`
    - Copy the code from the project files into each function
-
-7. Start the development server:
-```bash
-npm run dev
-```
-
-8. Open your browser and navigate to `http://localhost:3000`
-
-## Demo Accounts
-
-The system includes demo accounts for testing:
-- **Student**: `student@dpsb.edu` / `student123`
-- **Teacher**: `teacher@dpsb.edu` / `teacher123`
-- **Admin**: `admin@dpsb.edu` / `admin123`
-
-## Features
-
-- **Student Portal**: View grades, attendance, performance analytics, and study materials
-- **Teacher Portal**: Manage classes, grade assignments, track attendance, and communicate with students
-- **Admin Portal**: Oversee system-wide performance, manage users, and generate reports
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Dark Mode**: Full dark mode support with smooth transitions
-
-## Tech Stack 
-
-- **Frontend**: React 18, TypeScript, Tailwind CSS
-- **State Management**: Zustand
-- **Charts**: Recharts
-- **Icons**: Lucide React
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS with Apple-inspired design system
-### New Features Added:
-- **Student Timetable View**: Real-time view of courses and upcoming assessments
-- **Grade Projection System**: AI-powered grade predictions with multiple scenarios
-- **Subtopic Performance Tracking**: Detailed analysis of performance by topic
-- **Attendance Warnings**: Proactive alerts for attendance issues
-- **Real-time Messaging**: Live communication system with teachers
-- **AI Bot Preparation**: Database structure for future AI integration
-- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
-### Database Views:
-- `student_timetable`: Personalized schedule with urgency indicators
-- `student_progress`: Comprehensive performance analytics
-- **Database**: PostgreSQL with Row Level Security (RLS)
-### RPC Functions:
-- `calculate_current_grade`: Weighted grade calculations
-- `project_future_grade`: Predictive grade modeling
-- `get_attendance_warnings`: Attendance risk assessment
-- `get_subtopic_performance`: Topic-level performance analysis
-
-### Edge Functions:
-- `project-grade`: Advanced grade projection with multiple scenarios
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <your-repo-url>
-cd student-management-system
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up Supabase:
-   - Create a new project at [supabase.com](https://supabase.com)
-   - Copy your project URL and anon key
-   - Enable Row Level Security (RLS) in your project settings
-
-4. Create environment file:
-```bash
-cp .env.example .env
-# Add your Supabase URL and anon key to .env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-5. Run database migrations:
-   - Go to your Supabase dashboard
-   - Navigate to SQL Editor
-   - Run the migration files in `supabase/migrations/` in numerical order:
-     1. `001_create_foundation_schema.sql`
-     2. `002_create_storage_buckets.sql`
-     3. `003_create_auth_functions.sql`
-     4. `004_seed_initial_data.sql`
-     5. `005_core_entities_schema.sql`
-     6. `006_rpc_functions.sql`
-
-6. Set up Edge Functions (optional for bulk operations):
-   - Install Supabase CLI: `npm install -g supabase`
-   - Deploy functions: `supabase functions deploy bulk-upload-grades`
-   - Deploy functions: `supabase functions deploy bulk-upload-attendance`
 
 7. Start the development server:
 ```bash
@@ -237,10 +166,10 @@ All tables have RLS enabled with policies that ensure:
 
 ### Edge Functions
 
-The application includes Supabase Edge Functions for:
-- **Bulk grade uploads**: Process Excel files with student grades
-- **Bulk attendance uploads**: Process attendance data for entire classes
-- **Analytics calculations**: Real-time percentile and performance calculations
+The application includes three Supabase Edge Functions:
+- **bulk-upload-grades**: Process bulk grade uploads for assessments
+- **bulk-upload-attendance**: Handle class-wide attendance uploads
+- **project-grade**: Advanced grade projection with multiple scenarios
 
 ## Project Structure
 
@@ -333,10 +262,14 @@ Required environment variables:
 
 ## Demo Accounts
 
-The system includes demo accounts for testing:
-- **Student**: `student@dpsb.edu` / `student123`
-- **Teacher**: `teacher@dpsb.edu` / `teacher123`
-- **Admin**: `admin@dpsb.edu` / `admin123`
+After setting up your Supabase project, you can create test accounts:
+
+1. Register accounts with these email patterns:
+   - Student: any email not matching the patterns below
+   - Teacher: email containing `@teacher.`
+   - Admin: email containing `@admin.`
+
+2. The system will automatically assign the appropriate role based on the email pattern.
 
 ## Security Features
 
@@ -346,25 +279,4 @@ The system includes demo accounts for testing:
 - Secure file upload with access policies
 - Input validation and sanitization
 - Edge function security with service role keys
-- Comprehensive audit trails
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-
-## Deployment
-
-The application can be deployed to:
-- Netlify (recommended for frontend)
-- Vercel
-- Any static hosting provider
-
-Supabase handles the backend infrastructure automatically.
-
-## License
-
-This project is licensed under the MIT License.
+- Comprehensive audit trails through timestamps
