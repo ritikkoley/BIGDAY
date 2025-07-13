@@ -14,6 +14,7 @@ if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'your_supabase_project_u
       signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
       signOut: async () => ({ error: null }),
       getUser: async () => ({ data: { user: null }, error: new Error('Demo mode - Supabase not configured') }),
+      getSession: async () => ({ data: { session: null }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     },
     from: () => ({
