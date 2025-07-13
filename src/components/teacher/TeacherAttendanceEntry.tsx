@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Student } from '@/types/student';
+import { StudentRecord } from '../../types/teacher';
 import { Save, Calendar, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface TeacherAttendanceEntryProps {
-  students: Student[];
+  students: StudentRecord[];
   date: Date;
   onSave: (attendance: { studentId: string; status: 'present' | 'absent' }[]) => Promise<void>;
+  onCancel: () => void;
 }
 
 export const TeacherAttendanceEntry: React.FC<TeacherAttendanceEntryProps> = ({
   students,
   date,
-  onSave
+  onSave,
+  onCancel
 }) => {
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -59,14 +61,22 @@ export const TeacherAttendanceEntry: React.FC<TeacherAttendanceEntryProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : 'Save Attendance'}</span>
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors disabled:opacity-50"
+            >
+              <Save className="w-4 h-4" />
+              <span>{isSaving ? 'Saving...' : 'Save Attendance'}</span>
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -83,7 +93,7 @@ export const TeacherAttendanceEntry: React.FC<TeacherAttendanceEntryProps> = ({
             <thead>
               <tr className="border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
                 <th className="px-6 py-4 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
-                  Admission Number
+                  Roll Number
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
                   Student Name
@@ -97,10 +107,10 @@ export const TeacherAttendanceEntry: React.FC<TeacherAttendanceEntryProps> = ({
               {students.map((student) => (
                 <tr key={student.id}>
                   <td className="px-6 py-4 text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                    {student.studentId}
+                    {student.rollNumber}
                   </td>
                   <td className="px-6 py-4 text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                    {student.firstName} {student.lastName}
+                    {student.name}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">

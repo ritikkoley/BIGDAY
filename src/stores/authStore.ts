@@ -23,7 +23,7 @@ interface AuthState {
   resetLoginAttempts: () => void;
 }
 
-// Demo accounts
+// Demo accounts for development
 const demoAccounts = {
   'student@dpsb.edu': {
     password: 'student123',

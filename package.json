@@ -11,10 +11,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "backend:setup": "cd backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt",
-    "backend:seed": "cd backend && source venv/bin/activate && python seed_data.py",
-    "backend:dev": "cd backend && source venv/bin/activate && python run.py"
+    "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "date-fns": "^3.3.1",

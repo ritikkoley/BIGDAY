@@ -1,28 +1,30 @@
 import React, { useState } from 'react';
-import { Student } from '@/types/student';
+import { StudentRecord } from '../../types/teacher';
 import { Save, Search, AlertTriangle } from 'lucide-react';
 
 interface TeacherGradeEntryProps {
-  students: Student[];
+  students: StudentRecord[];
   examName: string;
   maxMarks: number;
   onSave: (grades: { studentId: string; marks: number }[]) => Promise<void>;
+  onCancel: () => void;
 }
 
 export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
   students,
   examName,
   maxMarks,
-  onSave
+  onSave,
+  onCancel
 }) => {
   const [grades, setGrades] = useState<Record<string, number>>({});
-  const [admissionNumber, setAdmissionNumber] = useState('');
+  const [rollNumber, setRollNumber] = useState('');
   const [marks, setMarks] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleAddGrade = () => {
-    const student = students.find(s => s.studentId === admissionNumber);
+    const student = students.find(s => s.rollNumber === rollNumber);
     if (!student) {
       setError('Student not found');
       return;
@@ -38,7 +40,7 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
       ...prev,
       [student.id]: numericMarks
     }));
-    setAdmissionNumber('');
+    setRollNumber('');
     setMarks('');
     setError(null);
   };
@@ -63,12 +65,12 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
 
   const getStudentName = (studentId: string) => {
     const student = students.find(s => s.id === studentId);
-    return student ? `${student.firstName} ${student.lastName}` : 'Unknown Student';
+    return student ? student.name : 'Unknown Student';
   };
 
-  const getAdmissionNumber = (studentId: string) => {
+  const getRollNumber = (studentId: string) => {
     const student = students.find(s => s.id === studentId);
-    return student ? student.studentId : 'N/A';
+    return student ? student.rollNumber : 'N/A';
   };
 
   return (
@@ -78,16 +80,16 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
-              Admission Number
+              Roll Number
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-apple-gray-400" />
               <input
                 type="text"
-                value={admissionNumber}
-                onChange={(e) => setAdmissionNumber(e.target.value)}
+                value={rollNumber}
+                onChange={(e) => setRollNumber(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-                placeholder="Enter admission number"
+                placeholder="Enter roll number"
               />
             </div>
           </div>
@@ -129,14 +131,22 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
           <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white">
             {examName} - Grades Summary
           </h3>
-          <button
-            onClick={handleSave}
-            disabled={isSaving || Object.keys(grades).length === 0}
-            className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : 'Save All Grades'}</span>
-          </button>
+          <div className="flex space-x-4">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving || Object.keys(grades).length === 0}
+              className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              <span>{isSaving ? 'Saving...' : 'Save All Grades'}</span>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -144,7 +154,7 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
             <thead>
               <tr className="border-b border-apple-gray-200 dark:border-apple-gray-700">
                 <th className="px-6 py-3 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
-                  Admission Number
+                  Roll Number
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
                   Student Name
@@ -161,7 +171,7 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
               {Object.entries(grades).map(([studentId, studentMarks]) => (
                 <tr key={studentId}>
                   <td className="px-6 py-4 text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                    {getAdmissionNumber(studentId)}
+                    {getRollNumber(studentId)}
                   </td>
                   <td className="px-6 py-4 text-sm text-apple-gray-600 dark:text-apple-gray-300">
                     {getStudentName(studentId)}
@@ -177,7 +187,7 @@ export const TeacherGradeEntry: React.FC<TeacherGradeEntryProps> = ({
               {Object.keys(grades).length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-apple-gray-400 dark:text-apple-gray-300">
-                    No grades entered yet. Start by entering a student's admission number and marks.
+                    No grades entered yet. Start by entering a student's roll number and marks.
                   </td>
                 </tr>
               )}

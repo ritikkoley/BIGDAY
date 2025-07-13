@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 
-type SearchResult = any; // Replace with your data types
+type SearchResult = {
+  id: string;
+  name: string;
+  type: 'student' | 'teacher' | 'course';
+  identifier: string;
+  email?: string;
+};
 
 interface SearchState {
   query: string;
@@ -28,9 +34,9 @@ export const useSearchStore = create<SearchState>((set) => ({
 
     try {
       // Mock search - replace with your backend API call
-      const mockResults = [
-        { id: '1', name: 'John Doe', type: 'student', identifier: 'S-123456' },
-        { id: '2', name: 'Jane Smith', type: 'student', identifier: 'S-123457' },
+      const mockResults: SearchResult[] = [
+        { id: '1', name: 'John Doe', type: 'student', identifier: 'S-123456', email: 'john@dpsb.edu' },
+        { id: '2', name: 'Jane Smith', type: 'student', identifier: 'S-123457', email: 'jane@dpsb.edu' },
         { id: '3', name: 'Computer Science 101', type: 'course', identifier: 'C-1001' },
       ].filter(item => 
         item.name.toLowerCase().includes(query.toLowerCase()) ||

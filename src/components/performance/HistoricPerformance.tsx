@@ -12,7 +12,22 @@ import {
   Legend
 } from 'recharts';
 import { TrendingUp, Award, Brain } from 'lucide-react';
-import type { StudentHistoricData, HistoricDataSummary } from '@/services/api/studentHistoric';
+
+interface HistoricData {
+  id: string;
+  year: number;
+  percentile: number;
+  cgpa: number;
+  strengths: string | null;
+  weaknesses: string | null;
+}
+
+interface HistoricDataSummary {
+  averageCGPA: number;
+  averagePercentile: number;
+  trend: 'improving' | 'declining' | 'stable';
+  yearlyData: HistoricData[];
+}
 
 interface HistoricPerformanceProps {
   data: HistoricDataSummary;
