@@ -174,13 +174,16 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
     try {
       setIsLoading(true);
       
+      // Get current user outside of map callback
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // Format grades for Supabase
       const gradesToInsert = grades.map(grade => ({
         student_id: grade.studentId,
         assessment_id: currentExam.id,
         score: grade.marks,
         max_score: currentExam.total_marks || 100,
-        graded_by: (await supabase.auth.getUser()).data.user?.id,
+        graded_by: user?.id,
         graded_at: new Date().toISOString()
       }));
 
