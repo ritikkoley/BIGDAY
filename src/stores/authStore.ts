@@ -1,172 +1,244 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase, getCurrentUser, getUserProfile, getUserRole } from '../lib/supabase';
+import type { User } from '@supabase/supabase-js';
+import type { Database } from '../lib/supabase';
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'student' | 'teacher' | 'admin';
-}
+type UserProfile = Database['public']['Tables']['users']['Row'];
 
 interface AuthState {
   user: User | null;
+  profile: UserProfile | null;
   role: 'student' | 'teacher' | 'admin' | null;
   isLoading: boolean;
-  loginAttempts: number;
-  lockoutUntil: number | null;
+  isInitialized: boolean;
+  
+  // Actions
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'apple') => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  setUser: (user: User) => void;
-  incrementLoginAttempts: () => void;
-  resetLoginAttempts: () => void;
+  initialize: () => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
-
-// Demo accounts for development
-const demoAccounts = {
-  'student@dpsb.edu': {
-    password: 'student123',
-    user: {
-      id: '1',
-      email: 'student@dpsb.edu',
-      name: 'Ritik Koley',
-      role: 'student' as const
-    }
-  },
-  'teacher@dpsb.edu': {
-    password: 'teacher123',
-    user: {
-      id: '2',
-      email: 'teacher@dpsb.edu',
-      name: 'Jagdeep Singh Sokhey',
-      role: 'teacher' as const
-    }
-  },
-  'admin@dpsb.edu': {
-    password: 'admin123',
-    user: {
-      id: '3',
-      email: 'admin@dpsb.edu',
-      name: 'Dr. Priya Sharma',
-      role: 'admin' as const
-    }
-  }
-};
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      profile: null,
       role: null,
       isLoading: false,
-      loginAttempts: 0,
-      lockoutUntil: null,
+      isInitialized: false,
 
-      setUser: (user) => set({ user, role: user.role, isLoading: false }),
+      initialize: async () => {
+        try {
+          set({ isLoading: true });
+          
+          // Get current session
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('Error getting session:', error);
+            set({ isLoading: false, isInitialized: true });
+            return;
+          }
 
-      incrementLoginAttempts: () => {
-        const { loginAttempts } = get();
-        const newAttempts = loginAttempts + 1;
-        
-        if (newAttempts >= 5) {
-          set({
-            loginAttempts: newAttempts,
-            lockoutUntil: Date.now() + 15 * 60 * 1000 // 15 minutes
+          if (session?.user) {
+            // Get user profile and role
+            const [profile, role] = await Promise.all([
+              getUserProfile(session.user.id),
+              getUserRole(session.user.id)
+            ]);
+
+            set({
+              user: session.user,
+              profile,
+              role: role as 'student' | 'teacher' | 'admin',
+              isLoading: false,
+              isInitialized: true
+            });
+          } else {
+            set({ 
+              user: null, 
+              profile: null, 
+              role: null, 
+              isLoading: false, 
+              isInitialized: true 
+            });
+          }
+
+          // Listen for auth changes
+          supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+              const [profile, role] = await Promise.all([
+                getUserProfile(session.user.id),
+                getUserRole(session.user.id)
+              ]);
+
+              set({
+                user: session.user,
+                profile,
+                role: role as 'student' | 'teacher' | 'admin'
+              });
+            } else if (event === 'SIGNED_OUT') {
+              set({ 
+                user: null, 
+                profile: null, 
+                role: null 
+              });
+            }
           });
-        } else {
-          set({ loginAttempts: newAttempts });
+
+        } catch (error) {
+          console.error('Error initializing auth:', error);
+          set({ isLoading: false, isInitialized: true });
         }
       },
 
-      resetLoginAttempts: () => set({ loginAttempts: 0, lockoutUntil: null }),
-
       signIn: async (email: string, password: string) => {
-        const { lockoutUntil } = get();
-
-        if (lockoutUntil && Date.now() < lockoutUntil) {
-          throw new Error('Too many login attempts. Please try again later.');
-        }
-
-        set({ isLoading: true });
-
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          set({ isLoading: true });
 
-          const account = demoAccounts[email as keyof typeof demoAccounts];
-          
-          if (account && account.password === password) {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+
+          if (error) throw error;
+
+          if (data.user) {
+            const [profile, role] = await Promise.all([
+              getUserProfile(data.user.id),
+              getUserRole(data.user.id)
+            ]);
+
             set({
-              user: account.user,
-              role: account.user.role,
-              isLoading: false,
+              user: data.user,
+              profile,
+              role: role as 'student' | 'teacher' | 'admin',
+              isLoading: false
             });
-            get().resetLoginAttempts();
-          } else {
-            get().incrementLoginAttempts();
-            throw new Error('Invalid email or password');
           }
         } catch (error) {
           set({ isLoading: false });
-          if (error instanceof Error && error.message !== 'Too many login attempts. Please try again later.') {
-            get().incrementLoginAttempts();
-          }
+          throw error;
+        }
+      },
+
+      signUp: async (email: string, password: string, name: string) => {
+        try {
+          set({ isLoading: true });
+
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name
+              }
+            }
+          });
+
+          if (error) throw error;
+
+          // User profile will be created automatically by the trigger
+          set({ isLoading: false });
+
+          // Note: User will need to verify email before they can sign in
+          return data;
+        } catch (error) {
+          set({ isLoading: false });
           throw error;
         }
       },
 
       signInWithOAuth: async (provider: 'google' | 'apple') => {
-        set({ isLoading: true });
-        
         try {
-          // Simulate OAuth flow
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // For demo purposes, sign in as student
-          const demoUser = demoAccounts['student@dpsb.edu'].user;
-          set({
-            user: demoUser,
-            role: demoUser.role,
-            isLoading: false,
+          set({ isLoading: true });
+
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`
+            }
           });
-          get().resetLoginAttempts();
+
+          if (error) throw error;
+
+          // OAuth flow will redirect, so we don't need to handle the response here
+          return data;
         } catch (error) {
           set({ isLoading: false });
-          throw new Error(`Failed to sign in with ${provider}`);
+          throw error;
         }
       },
 
       signOut: async () => {
         try {
           set({ isLoading: true });
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 500));
-          set({ user: null, role: null, isLoading: false });
+
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+
+          set({
+            user: null,
+            profile: null,
+            role: null,
+            isLoading: false
+          });
         } catch (error) {
           set({ isLoading: false });
-          throw new Error('Failed to sign out');
+          throw error;
         }
       },
 
       resetPassword: async (email: string) => {
         try {
-          // Simulate API delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          console.log('Password reset email sent to:', email);
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`
+          });
+
+          if (error) throw error;
         } catch (error) {
-          throw new Error('Failed to send reset email');
+          throw error;
         }
       },
+
+      updateProfile: async (updates: Partial<UserProfile>) => {
+        try {
+          const { user, profile } = get();
+          if (!user || !profile) throw new Error('No user logged in');
+
+          const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('id', user.id)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set({ profile: data });
+          return data;
+        } catch (error) {
+          throw error;
+        }
+      }
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
-        user: state.user, 
-        role: state.role,
-        loginAttempts: state.loginAttempts,
-        lockoutUntil: state.lockoutUntil
-      }),
+      partialize: (state) => ({
+        user: state.user,
+        profile: state.profile,
+        role: state.role
+      })
     }
   )
 );
+
+// Initialize auth on app start
+if (typeof window !== 'undefined') {
+  useAuthStore.getState().initialize();
+}

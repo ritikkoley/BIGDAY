@@ -1,4 +1,4 @@
-# Student Management System
+# BIG DAY - Student Management System
 
 A modern, Apple-inspired student management system built with React, TypeScript, and Tailwind CSS.
 
@@ -10,7 +10,7 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **Dark Mode**: Full dark mode support with smooth transitions
 
-## Tech Stack
+## Tech Stack 
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **State Management**: Zustand
@@ -18,6 +18,8 @@ A modern, Apple-inspired student management system built with React, TypeScript,
 - **Icons**: Lucide React
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS with Apple-inspired design system
+- **Backend**: Supabase (PostgreSQL + Auth + Storage + Realtime)
+- **Database**: PostgreSQL with Row Level Security (RLS)
 
 ## Getting Started
 
@@ -39,23 +41,53 @@ cd student-management-system
 npm install
 ```
 
-3. Create environment file:
+3. Set up Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Copy your project URL and anon key
+
+4. Create environment file:
 ```bash
 cp .env.example .env
+# Add your Supabase URL and anon key to .env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-4. Start the development server:
+5. Run database migrations:
+   - Go to your Supabase dashboard
+   - Navigate to SQL Editor
+   - Run the migration files in `supabase/migrations/` in order
+
+6. Start the development server:
 ```bash
 npm run dev
 ```
 
-5. Open your browser and navigate to `http://localhost:3000`
+7. Open your browser and navigate to `http://localhost:3000`
 
-### Default Login Credentials
+## Database Setup
 
-- **Admin**: admin@school.edu / admin123
-- **Teacher**: teacher@school.edu / teacher123  
-- **Student**: student@school.edu / student123
+The application uses Supabase as the backend with the following core tables:
+
+- **users**: Core user table with roles (student, teacher, admin)
+- **groups**: Classes/sections/departments
+- **courses**: Courses with subtopics and teacher assignments
+- **assessments**: Quizzes, exams, and assignments
+
+### Authentication
+
+The system supports:
+- Email/password authentication
+- OAuth with Google and Apple
+- Role-based access control (RLS)
+- Automatic user profile creation
+
+### Row Level Security (RLS)
+
+All tables have RLS enabled with policies that ensure:
+- Students see only their own data
+- Teachers see data for their assigned classes
+- Admins have full access to all data
 
 ## Project Structure
 
@@ -64,39 +96,42 @@ src/
 ├── components/          # React components
 │   ├── admin/          # Admin-specific components
 │   ├── teacher/        # Teacher-specific components
-│   ├── search/         # Search functionality
+│   ├── student/        # Student-specific components
+│   ├── auth/           # Authentication components
+│   ├── search/         # Search functionality  
+│   └── performance/    # Performance analytics
 │   └── ...
 ├── hooks/              # Custom React hooks
 ├── stores/             # Zustand state stores
+├── lib/                # Supabase client and utilities
+├── services/           # API service functions
 ├── types/              # TypeScript type definitions
 ├── data/               # Sample data for development
 ├── utils/              # Utility functions
-└── styles/             # CSS files
+├── styles/             # CSS files
+└── config/             # Configuration files
+supabase/
+├── migrations/         # Database migration files
+└── functions/          # Edge functions (future)
 ```
 
-## Backend Integration
+## API Integration
 
-This project is currently set up with mock data and services. To integrate with your backend:
+The application integrates with Supabase for:
 
-1. **Authentication**: Update `src/stores/authStore.ts` with your authentication API
-2. **Data Operations**: Replace mock implementations in `src/stores/dataStore.ts` with your API calls
-3. **Search**: Update `src/stores/searchStore.ts` with your search API
-4. **Services**: Replace mock services in `src/services/index.ts` with real API calls
+1. **Authentication**: JWT-based auth with automatic session management
+2. **Data Operations**: Real-time CRUD operations with RLS
+3. **File Storage**: Secure file uploads for study materials
+4. **Realtime**: Live updates for collaborative features
 
-### API Endpoints to Implement
+### Key API Services
 
-- `POST /auth/login` - User authentication
-- `POST /auth/logout` - User logout
-- `GET /users` - Get users (with role-based filtering)
-- `POST /users` - Create user
-- `PUT /users/:id` - Update user
-- `DELETE /users/:id` - Delete user
-- `GET /courses` - Get courses
-- `POST /courses` - Create course
-- `GET /grades` - Get grades
-- `POST /grades` - Create grades
-- `GET /attendance` - Get attendance
-- `POST /attendance` - Create attendance records
+- `userApi` - User management operations
+- `groupApi` - Class/department management
+- `courseApi` - Course and curriculum management
+- `assessmentApi` - Quiz and exam management
+- `fileApi` - File upload and storage
+- `realtimeApi` - Live data subscriptions
 
 ## Available Scripts
 
@@ -106,6 +141,7 @@ This project is currently set up with mock data and services. To integrate with 
 - `npm run lint` - Run ESLint
 - `npm run type-check` - Run TypeScript type checking
 - `npm run format` - Format code with Prettier
+- `npm run test` - Run tests with Vitest
 
 ## Building for Production
 
@@ -118,13 +154,22 @@ npm run build
 
 3. Deploy the `dist/` directory to your web server
 
-## Environment Variables
+## Environment Variables 
 
-Create a `.env` file based on `.env.example` and configure:
+Required environment variables:
 
-- `VITE_API_BASE_URL` - Your backend API URL
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 - `VITE_APP_NAME` - Application name
-- Other configuration as needed
+- `VITE_INSTITUTION_NAME` - Your institution name
+
+## Security Features
+
+- Row Level Security (RLS) on all database tables
+- JWT-based authentication with automatic refresh
+- Role-based access control
+- Secure file upload with access policies
+- Input validation and sanitization
 
 ## Contributing
 
@@ -133,6 +178,13 @@ Create a `.env` file based on `.env.example` and configure:
 3. Make your changes
 4. Run tests and linting
 5. Submit a pull request
+
+## Deployment
+
+The application can be deployed to:
+- Netlify (recommended for frontend)
+- Vercel
+- Any static hosting provider
 
 ## License
 
