@@ -4,7 +4,7 @@ import type { Database } from '../types/database.types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-let supabase;
+let supabase: ReturnType<typeof createClient<Database>>;
 
 // Check if we have valid Supabase credentials
 if (!supabaseUrl || !supabaseAnonKey || 
@@ -13,7 +13,10 @@ if (!supabaseUrl || !supabaseAnonKey ||
   console.warn('Supabase not configured - using demo mode');
   
   // Create a mock client for demo purposes
-  supabase = {
+  supabase = createClient('https://example.com', 'fake-key') as any;
+  
+  // Override with mock methods
+  Object.assign(supabase, {
     auth: {
       signInWithPassword: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
       signUp: async () => ({ data: null, error: new Error('Demo mode - Supabase not configured') }),
@@ -45,7 +48,7 @@ if (!supabaseUrl || !supabaseAnonKey ||
       on: () => ({ subscribe: () => ({}) })
     }),
     removeChannel: () => {}
-  };
+  });
 } else {
   // Create the real Supabase client
   supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

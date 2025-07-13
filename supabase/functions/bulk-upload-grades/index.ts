@@ -1,3 +1,4 @@
+// Follow Deno Deploy's ES modules convention
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -62,6 +63,9 @@ serve(async (req) => {
       .select()
 
     if (insertError) throw insertError
+
+    // Calculate percentiles for the assessment
+    await supabase.rpc('update_percentiles', { assess_id: assessment_id })
 
     return new Response(
       JSON.stringify({ 

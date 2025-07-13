@@ -2,23 +2,23 @@
 
 A modern, Apple-inspired student management system built with React, TypeScript, and Tailwind CSS.
 
-## Setting Up Your Supabase Project
+## Setting Up Your Supabase Project (https://supabase.com/dashboard/project/eaofihviwzrvhabaeuxf)
 
 ### 1. Access Your Supabase Project
 
-Your project is already set up at: https://supabase.com/dashboard/project/eaofihviwzrvhabaeuxf
+Your project is set up at: https://supabase.com/dashboard/project/eaofihviwzrvhabaeuxf
 
 ### 2. Run the Migration Script
 
 1. Go to the SQL Editor in your Supabase dashboard
-2. Open the file `supabase/migrations/009_fresh_start.sql` from this project
+2. Open the file `supabase/migrations/010_sync_with_original_approach.sql` from this project
 3. Run the entire SQL script to set up your database schema
 
 ### 3. Set Up Storage Buckets
 
 1. In your Supabase dashboard, go to Storage
 2. Create two new buckets:
-   - `study_materials` - For course resources and assignments
+   - `study-materials` - For course resources and assignments
    - `profile_images` - For user profile pictures
 3. Set the privacy settings as needed (public or authenticated access)
 

@@ -1,3 +1,4 @@
+// Follow Deno Deploy's ES modules convention
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -54,30 +55,26 @@ serve(async (req) => {
 
     if (currentError) throw currentError
 
-    // Get projection
-    const { data: projection, error: projectionError } = await supabase
-      .rpc('project_future_grade', { 
-        stud_id: student_id, 
-        crs_id: course_id,
-        assumed_performance: performanceRate
-      })
-
-    if (projectionError) throw projectionError
-
     // Get remaining assessments for detailed breakdown
     const { data: remainingAssessments, error: assessmentsError } = await supabase
       .from('assessments')
-      .select('name, type, weightage, due_date')
+      .select('title, type, weightage, due_date')
       .eq('course_id', course_id)
       .gt('due_date', new Date().toISOString())
       .order('due_date')
 
     if (assessmentsError) throw assessmentsError
 
-    // Calculate grade boundaries
-    const current = projection[0]?.current_grade || 0
-    const projected = projection[0]?.projected_grade || 0
-    const confidence = projection[0]?.confidence_level || 'low'
+    // Calculate current and projected grades
+    const current = currentGrade[0]?.current_grade || 0
+    const totalWeightage = currentGrade[0]?.total_weightage || 0
+    const remainingWeightage = remainingAssessments?.reduce((sum, a) => sum + a.weightage, 0) || 0
+    const projected = current + (remainingWeightage * performanceRate)
+    
+    // Determine confidence level based on remaining weightage
+    let confidence = 'medium'
+    if (remainingWeightage < 0.2) confidence = 'high'
+    if (remainingWeightage > 0.5) confidence = 'low'
 
     // Grade letter calculation
     const getGradeLetter = (score: number) => {
@@ -95,9 +92,8 @@ serve(async (req) => {
                               projected >= 70 ? 80 : 
                               projected >= 60 ? 70 : 60
 
-    const remainingWeight = projection[0]?.remaining_weightage || 0
-    const neededScore = remainingWeight > 0 ? 
-      Math.max(0, Math.min(100, (nextGradeThreshold - current) / remainingWeight)) : 0
+    const neededScore = remainingWeightage > 0 ? 
+      Math.max(0, Math.min(100, (nextGradeThreshold - current) / remainingWeightage)) : 0
 
     const result = {
       current_performance: {
@@ -115,16 +111,16 @@ serve(async (req) => {
         next_grade_threshold: nextGradeThreshold,
         score_needed_on_remaining: Math.round(neededScore * 100) / 100,
         is_achievable: neededScore <= 100,
-        remaining_weightage: remainingWeight
+        remaining_weightage: remainingWeightage
       },
       remaining_assessments: remainingAssessments?.map(assessment => ({
         ...assessment,
         impact_on_grade: (assessment.weightage * performanceRate * 100).toFixed(1)
       })) || [],
       scenarios: {
-        optimistic: Math.round((current + remainingWeight * 0.95) * 100) / 100,
-        realistic: Math.round((current + remainingWeight * 0.8) * 100) / 100,
-        pessimistic: Math.round((current + remainingWeight * 0.6) * 100) / 100
+        optimistic: Math.round((current + remainingWeightage * 0.95) * 100) / 100,
+        realistic: Math.round((current + remainingWeightage * 0.8) * 100) / 100,
+        pessimistic: Math.round((current + remainingWeightage * 0.6) * 100) / 100
       }
     }
 
