@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { TeacherPerformanceMetrics, PerformanceAnalytics } from '../../types/performance';
-import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { PerformanceOverview } from './tabs/PerformanceOverview';
 import { AcademicPerformance } from './tabs/AcademicPerformance';
 import { FeedbackAnalysis } from './tabs/FeedbackAnalysis';
@@ -38,7 +36,7 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchPerformanceData();
   }, [teacherId]);
 
@@ -48,16 +46,6 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
       
       // In a real implementation, we would fetch this data from Supabase
       // For now, we'll use the sample data passed as props
-      
-      // This is a placeholder for real API calls
-      // const { data: metricsData, error: metricsError } = await supabase
-      //   .from('teacher_performance_metrics')
-      //   .select('*')
-      //   .eq('teacher_id', teacherId)
-      //   .single();
-      
-      // if (metricsError) throw metricsError;
-      // setRealMetrics(metricsData);
       
       // Simulate API call with timeout
       setTimeout(() => {

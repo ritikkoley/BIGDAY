@@ -34,7 +34,7 @@ export interface Grade {
     totalMarks: number;
     classAverage: number;
     percentile: number;
-    distribution: number[];  // Array of 10 numbers representing student count in each decile (0-10, 11-20, etc.)
+    distribution: number[];
     modules: string[];
   }[];
   projections?: {
@@ -156,4 +156,25 @@ export interface PerformanceMetrics {
       }[];
     };
   };
+}
+
+// User types for the application
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'teacher' | 'admin';
+  group_id?: string;
+  department?: string;
+  status?: 'active' | 'inactive';
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'teacher' | 'admin';
+  group_id?: string;
+  department?: string;
+  status?: 'active' | 'inactive';
 }

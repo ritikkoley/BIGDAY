@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { X } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
-import { useOnClickOutside } from '@/hooks/useOnClickOutside';
-import { useSearchStore } from '@/stores/searchStore';
+import { useDebounce } from '../../hooks/useDebounce';
+import { useOnClickOutside } from '../../hooks/useOnClickOutside';
+import { useSearchStore } from '../../stores/searchStore';
 import { SearchResults } from './SearchResults';
 
 interface SearchBarProps {
