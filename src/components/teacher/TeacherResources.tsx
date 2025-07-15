@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { TeacherProfile, Resource } from '../../types/teacher';
 import { BookOpen, Download, Upload, Clock, Users, Eye, EyeOff } from 'lucide-react';
 import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 interface TeacherResourcesProps {
@@ -35,36 +34,8 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
   const fetchResources = async (subjectId: string) => {
     try {
       setIsLoading(true);
-      
-      // Get course ID from subject ID
-      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
-      if (!courseId) return;
-
-      // Get resources for this course
-      const { data, error: resourcesError } = await supabase
-        .from('resources')
-        .select(`
-          *,
-          uploader:users!resources_uploaded_by_fkey(name)
-        `)
-        .eq('course_id', courseId);
-
-      if (resourcesError) throw resourcesError;
-
-      // Format as Resource
-      const formattedResources: Resource[] = (data || []).map(resource => ({
-        id: resource.id,
-        title: resource.name,
-        type: resource.resource_type,
-        subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
-        uploadDate: resource.created_at,
-        deadline: resource.deadline,
-        visibility: resource.is_public ? 'visible' : 'hidden',
-        downloads: resource.download_count,
-        submissions: resource.submissions_count
-      }));
-
-      setRealResources(formattedResources);
+      // Use the sample data directly instead of fetching from Supabase
+      setRealResources(resources);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch resources');
       console.error('Error fetching resources:', err);
@@ -89,41 +60,22 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
       }
 
       setIsLoading(true);
+      // Mock uploading a file
+      console.log('Uploading file:', uploadFile.name);
       
-      // Get course ID from subject ID
-      const courseId = profile.subjects.find(s => s.id === selectedSubject)?.id;
-      if (!courseId) throw new Error('Course not found');
-
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
-      // Upload file to storage
-      const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${courseId}/${fileName}`;
+      // Mock creating a resource
+      const mockResource: Resource = {
+        id: `resource-${Date.now()}`,
+        title: uploadData.name,
+        type: uploadData.type,
+        subject: profile.subjects.find(s => s.id === selectedSubject)?.name || '',
+        uploadDate: new Date().toISOString(),
+        visibility: uploadData.visibility,
+        downloads: 0
+      };
       
-      const { error: uploadError } = await supabase.storage
-        .from('study-materials')
-        .upload(filePath, uploadFile);
-
-      if (uploadError) throw uploadError;
-
-      // Create resource record
-      const { error: resourceError } = await supabase
-        .from('resources')
-        .insert({
-          course_id: courseId,
-          name: uploadData.name,
-          resource_type: uploadData.type,
-          file_path: filePath,
-          file_size: uploadFile.size,
-          file_type: uploadFile.type,
-          uploaded_by: user.user.id,
-          is_public: uploadData.visibility === 'visible'
-        });
-
-      if (resourceError) throw resourceError;
+      // Add to real resources
+      setRealResources(prev => [mockResource, ...prev]);
 
       // Reset form and refresh resources
       setUploadFile(null);
@@ -132,7 +84,6 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
         type: 'document',
         visibility: 'visible'
       });
-      fetchResources(selectedSubject);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload resource');

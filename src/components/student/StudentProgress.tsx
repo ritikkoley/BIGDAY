@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Target, Award, AlertTriangle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import { CircularProgress } from '../CircularProgress';
 
 interface ProgressData {
@@ -68,15 +67,34 @@ export const StudentProgress: React.FC = () => {
   const fetchProgressData = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('student_progress')
-        .select('*');
-
-      if (error) throw error;
-      setProgressData(data || []);
+      // Mock data instead of fetching from Supabase
+      const mockProgressData: ProgressData[] = [
+        {
+          course_id: 'c1',
+          course_name: 'Computer Science',
+          subtopics: [],
+          total_assessments: 4,
+          average_score: 92.5,
+          average_percentile: 95,
+          weighted_score: 91.2,
+          assessment_history: []
+        },
+        {
+          course_id: 'c2',
+          course_name: 'Data Structures',
+          subtopics: [],
+          total_assessments: 3,
+          average_score: 88.7,
+          average_percentile: 92,
+          weighted_score: 87.5,
+          assessment_history: []
+        }
+      ];
       
-      if (data && data.length > 0 && !selectedCourse) {
-        setSelectedCourse(data[0].course_id);
+      setProgressData(mockProgressData);
+      
+      if (mockProgressData.length > 0 && !selectedCourse) {
+        setSelectedCourse(mockProgressData[0].course_id);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch progress data');
@@ -87,17 +105,28 @@ export const StudentProgress: React.FC = () => {
 
   const fetchSubtopicData = async (courseId: string) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      const { data, error } = await supabase
-        .rpc('get_subtopic_performance', {
-          stud_id: user.user.id,
-          crs_id: courseId
-        });
-
-      if (error) throw error;
-      setSubtopicData(data || []);
+      // Mock data instead of fetching from Supabase
+      const mockSubtopicData: SubtopicPerformance[] = [
+        {
+          subtopic_name: 'Neural Networks',
+          average_score: 92,
+          assessment_count: 2,
+          trend: 'improving'
+        },
+        {
+          subtopic_name: 'Data Structures',
+          average_score: 85,
+          assessment_count: 3,
+          trend: 'stable'
+        },
+        {
+          subtopic_name: 'Algorithms',
+          average_score: 78,
+          assessment_count: 1,
+          trend: 'improving'
+        }
+      ];
+      setSubtopicData(mockSubtopicData);
     } catch (err) {
       console.error('Error fetching subtopic data:', err);
     }
@@ -105,19 +134,32 @@ export const StudentProgress: React.FC = () => {
 
   const fetchGradeProjection = async (courseId: string) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      const { data, error } = await supabase.functions.invoke('project-grade', {
-        body: {
-          student_id: user.user.id,
-          course_id: courseId,
+      // Mock data instead of fetching from Supabase
+      const mockProjection: GradeProjection = {
+        current_performance: {
+          score: 87.5,
+          letter: 'B+',
+          completed_assessments: 3
+        },
+        projection: {
+          score: 91.2,
+          letter: 'A-',
+          confidence_level: 'medium',
           scenario: 'realistic'
+        },
+        grade_improvement: {
+          next_grade_threshold: 92,
+          score_needed_on_remaining: 95,
+          is_achievable: true,
+          remaining_weightage: 0.3
+        },
+        scenarios: {
+          optimistic: 94.5,
+          realistic: 91.2,
+          pessimistic: 88.0
         }
-      });
-
-      if (error) throw error;
-      setProjection(data);
+      };
+      setProjection(mockProjection);
     } catch (err) {
       console.error('Error fetching grade projection:', err);
     }

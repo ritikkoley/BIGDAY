@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { TeacherProfile, MessageTemplate, StudentRecord } from '../../types/teacher';
 import { MessageSquare, Clock, AlertTriangle, Send, Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 
 interface TeacherMessagesProps {
   profile: TeacherProfile;
@@ -68,25 +67,11 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
         throw new Error('Please select at least one recipient');
       }
 
-      // Get current user
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
-
-      // Send message to each selected student
-      const messages = selectedStudentIds.map(studentId => ({
-        sender_id: user.user!.id,
-        recipient_id: studentId,
-        subject: messageSubject,
-        content: messageContent,
-        priority: priority,
-        message_type: 'direct'
-      }));
-
-      const { error: messagesError } = await supabase
-        .from('messages')
-        .insert(messages);
-
-      if (messagesError) throw messagesError;
+      // Mock sending messages
+      console.log('Sending messages to:', selectedStudentIds);
+      console.log('Subject:', messageSubject);
+      console.log('Content:', messageContent);
+      console.log('Priority:', priority);
 
       setSuccess(`Message sent to ${selectedStudentIds.length} student(s)`);
       

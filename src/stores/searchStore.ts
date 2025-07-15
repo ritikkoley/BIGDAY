@@ -1,9 +1,4 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase';
-import type { Database } from '../lib/supabase';
-
-type User = Database['public']['Tables']['users']['Row'];
-type Course = Database['public']['Tables']['courses']['Row'];
 
 type SearchResult = {
   id: string;
@@ -24,6 +19,25 @@ interface SearchState {
   clearSearch: () => void;
 }
 
+// Mock search results
+const mockStudents: SearchResult[] = [
+  { id: 's1', name: 'Ritik Koley', type: 'student', identifier: 'S-123456', email: 'ritik.koley@example.com' },
+  { id: 's2', name: 'Alex Johnson', type: 'student', identifier: 'S-123457', email: 'alex.johnson@example.com' },
+  { id: 's3', name: 'Sarah Williams', type: 'student', identifier: 'S-123458', email: 'sarah.williams@example.com' }
+];
+
+const mockTeachers: SearchResult[] = [
+  { id: 't1', name: 'Jagdeep Singh Sokhey', type: 'teacher', identifier: 'T-001', email: 'jagdeep.singh@example.com' },
+  { id: 't2', name: 'Michael Zhang', type: 'teacher', identifier: 'T-002', email: 'michael.zhang@example.com' },
+  { id: 't3', name: 'Emily Brown', type: 'teacher', identifier: 'T-003', email: 'emily.brown@example.com' }
+];
+
+const mockCourses: SearchResult[] = [
+  { id: 'c1', name: 'Computer Science', type: 'course', identifier: 'CS101', code: 'CS101' },
+  { id: 'c2', name: 'Data Structures', type: 'course', identifier: 'CS102', code: 'CS102' },
+  { id: 'c3', name: 'Physics', type: 'course', identifier: 'PHY101', code: 'PHY101' }
+];
+
 export const useSearchStore = create<SearchState>((set, get) => ({
   query: '',
   results: [],
@@ -39,70 +53,51 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     set({ isLoading: true, error: null, query });
 
     try {
-      const results: SearchResult[] = [];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const searchQuery = query.toLowerCase();
+      let results: SearchResult[] = [];
 
-      // Search users based on role permissions
+      // Filter based on role and query
       if (role === 'admin') {
-        // Admins can search all users
-        const { data: users, error: usersError } = await supabase
-          .from('users')
-          .select('id, name, email, role, admission_number, employee_id')
-          .or(`name.ilike.%${query}%,email.ilike.%${query}%,admission_number.ilike.%${query}%,employee_id.ilike.%${query}%`)
-          .limit(10);
-
-        if (usersError) throw usersError;
-
-        users?.forEach(user => {
-          results.push({
-            id: user.id,
-            name: user.name,
-            type: user.role as 'student' | 'teacher',
-            identifier: user.role === 'student' 
-              ? user.admission_number || 'No ID' 
-              : user.employee_id || 'No ID',
-            email: user.email
-          });
-        });
+        // Admins can search all users and courses
+        results = [
+          ...mockStudents.filter(s => 
+            s.name.toLowerCase().includes(searchQuery) || 
+            s.identifier.toLowerCase().includes(searchQuery) ||
+            s.email?.toLowerCase().includes(searchQuery)
+          ),
+          ...mockTeachers.filter(t => 
+            t.name.toLowerCase().includes(searchQuery) || 
+            t.identifier.toLowerCase().includes(searchQuery) ||
+            t.email?.toLowerCase().includes(searchQuery)
+          ),
+          ...mockCourses.filter(c => 
+            c.name.toLowerCase().includes(searchQuery) || 
+            c.identifier.toLowerCase().includes(searchQuery)
+          )
+        ];
       } else if (role === 'teacher') {
-        // Teachers can search students in their groups
-        const { data: students, error: studentsError } = await supabase
-          .from('users')
-          .select('id, name, email, admission_number, group_id')
-          .eq('role', 'student')
-          .or(`name.ilike.%${query}%,email.ilike.%${query}%,admission_number.ilike.%${query}%`)
-          .limit(10);
-
-        if (studentsError) throw studentsError;
-
-        students?.forEach(student => {
-          results.push({
-            id: student.id,
-            name: student.name,
-            type: 'student',
-            identifier: student.admission_number || 'No ID',
-            email: student.email
-          });
-        });
+        // Teachers can search students and courses
+        results = [
+          ...mockStudents.filter(s => 
+            s.name.toLowerCase().includes(searchQuery) || 
+            s.identifier.toLowerCase().includes(searchQuery) ||
+            s.email?.toLowerCase().includes(searchQuery)
+          ),
+          ...mockCourses.filter(c => 
+            c.name.toLowerCase().includes(searchQuery) || 
+            c.identifier.toLowerCase().includes(searchQuery)
+          )
+        ];
+      } else {
+        // Students can only search courses
+        results = mockCourses.filter(c => 
+          c.name.toLowerCase().includes(searchQuery) || 
+          c.identifier.toLowerCase().includes(searchQuery)
+        );
       }
-
-      // Search courses (all roles can search courses they have access to)
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('id, name, code')
-        .or(`name.ilike.%${query}%,code.ilike.%${query}%`)
-        .limit(10);
-
-      if (coursesError) throw coursesError;
-
-      courses?.forEach(course => {
-        results.push({
-          id: course.id,
-          name: course.name,
-          type: 'course',
-          identifier: course.code,
-          code: course.code
-        });
-      });
 
       set({ 
         results,

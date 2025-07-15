@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, AlertTriangle, BookOpen, User } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 interface TimetableItem {
   course_id: string;
@@ -27,13 +26,34 @@ export const StudentTimetable: React.FC = () => {
   const fetchTimetable = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('student_timetable')
-        .select('*')
-        .limit(20);
-
-      if (error) throw error;
-      setTimetable(data || []);
+      // Mock data instead of fetching from Supabase
+      const mockTimetable: TimetableItem[] = [
+        {
+          course_id: 'c1',
+          course_name: 'Computer Science',
+          teacher_id: 't1',
+          teacher_name: 'Professor Jagdeep Singh Sokhey',
+          assessment_id: 'a1',
+          assessment_name: 'Neural Networks Quiz',
+          assessment_type: 'quiz',
+          due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+          weightage: 0.1,
+          urgency_status: 'upcoming'
+        },
+        {
+          course_id: 'c2',
+          course_name: 'Data Structures',
+          teacher_id: 't1',
+          teacher_name: 'Professor Jagdeep Singh Sokhey',
+          assessment_id: 'a2',
+          assessment_name: 'Binary Trees Assignment',
+          assessment_type: 'assignment',
+          due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+          weightage: 0.2,
+          urgency_status: 'future'
+        }
+      ];
+      setTimetable(mockTimetable);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch timetable');
     } finally {

@@ -1,15 +1,54 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
-import type { Database } from '../lib/supabase';
+import { sampleGrades, sampleAttendance, sampleHomeData, sampleStudyVaultData } from '../data/sampleData';
 
-// Type aliases for convenience
-type Grade = Database['public']['Tables']['grades']['Row'];
-type Attendance = Database['public']['Tables']['attendance']['Row'];
-type Message = Database['public']['Tables']['messages']['Row'];
-type Resource = Database['public']['Tables']['resources']['Row'];
-type Course = Database['public']['Tables']['courses']['Row'];
-type Assessment = Database['public']['Tables']['assessments']['Row'];
+// Mock types for the store
+type Grade = typeof sampleGrades[0];
+type Attendance = typeof sampleAttendance[0];
+type Message = {
+  id: string;
+  sender_id: string;
+  recipient_id: string | null;
+  subject: string;
+  content: string;
+  priority: string;
+  is_read: boolean;
+  created_at: string;
+  sender: {
+    name: string;
+    role: string;
+  };
+};
+type Resource = {
+  id: string;
+  title: string;
+  type: string;
+  subject: string;
+  uploadDate: string;
+  visibility: string;
+  downloads: number;
+  submissions?: number;
+};
+type Course = {
+  id: string;
+  name: string;
+  code: string;
+  teacher_id: string;
+  teacher: {
+    name: string;
+    email: string;
+  };
+};
+type Assessment = {
+  id: string;
+  course_id: string;
+  name: string;
+  type: string;
+  due_date: string;
+  total_marks: number;
+  weightage: number;
+  status: string;
+};
 
 interface DataState {
   // Data
@@ -33,17 +72,17 @@ interface DataState {
   fetchAssessments: (courseId: string) => Promise<void>;
   
   // CRUD operations
-  createGrade: (grade: Database['public']['Tables']['grades']['Insert']) => Promise<void>;
-  updateGrade: (id: string, updates: Database['public']['Tables']['grades']['Update']) => Promise<void>;
+  createGrade: (grade: any) => Promise<void>;
+  updateGrade: (id: string, updates: any) => Promise<void>;
   deleteGrade: (id: string) => Promise<void>;
   
-  createAttendance: (attendance: Database['public']['Tables']['attendance']['Insert']) => Promise<void>;
-  updateAttendance: (id: string, updates: Database['public']['Tables']['attendance']['Update']) => Promise<void>;
+  createAttendance: (attendance: any) => Promise<void>;
+  updateAttendance: (id: string, updates: any) => Promise<void>;
   
-  sendMessage: (message: Database['public']['Tables']['messages']['Insert']) => Promise<void>;
+  sendMessage: (message: any) => Promise<void>;
   markMessageAsRead: (messageId: string) => Promise<void>;
   
-  uploadResource: (resource: Database['public']['Tables']['resources']['Insert'], file?: File) => Promise<void>;
+  uploadResource: (resource: any, file?: File) => Promise<void>;
   downloadResource: (resourceId: string) => Promise<string>;
   
   // Bulk operations
@@ -63,16 +102,119 @@ interface DataState {
   clearData: () => void;
 }
 
+// Mock messages
+const mockMessages: Message[] = [
+  {
+    id: 'm1',
+    sender_id: 'teacher-1',
+    recipient_id: 'student-1',
+    subject: 'Upcoming Quiz',
+    content: 'Please be prepared for the upcoming quiz on neural networks. Focus on activation functions and gradient descent.',
+    priority: 'high',
+    is_read: false,
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    sender: {
+      name: 'Professor Jagdeep Singh Sokhey',
+      role: 'teacher'
+    }
+  },
+  {
+    id: 'm2',
+    sender_id: 'teacher-1',
+    recipient_id: 'student-1',
+    subject: 'Office Hours',
+    content: 'Office hours extended today until 5 PM for Linear Algebra consultation.',
+    priority: 'medium',
+    is_read: true,
+    created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    sender: {
+      name: 'Professor Jagdeep Singh Sokhey',
+      role: 'teacher'
+    }
+  }
+];
+
+// Mock resources
+const mockResources: Resource[] = [
+  {
+    id: 'r1',
+    title: 'Neural Networks Lecture Notes',
+    type: 'document',
+    subject: 'Computer Science',
+    uploadDate: '2024-03-15',
+    visibility: 'visible',
+    downloads: 98
+  },
+  {
+    id: 'r2',
+    title: 'Binary Trees Implementation Assignment',
+    type: 'assignment',
+    subject: 'Data Structures',
+    uploadDate: '2024-03-18',
+    visibility: 'visible',
+    downloads: 112,
+    submissions: 95
+  }
+];
+
+// Mock courses
+const mockCourses: Course[] = [
+  {
+    id: 'c1',
+    name: 'Computer Science',
+    code: 'CS101',
+    teacher_id: 'teacher-1',
+    teacher: {
+      name: 'Professor Jagdeep Singh Sokhey',
+      email: 'teacher@dpsb.edu'
+    }
+  },
+  {
+    id: 'c2',
+    name: 'Data Structures',
+    code: 'CS102',
+    teacher_id: 'teacher-1',
+    teacher: {
+      name: 'Professor Jagdeep Singh Sokhey',
+      email: 'teacher@dpsb.edu'
+    }
+  }
+];
+
+// Mock assessments
+const mockAssessments: Assessment[] = [
+  {
+    id: 'a1',
+    course_id: 'c1',
+    name: 'Neural Networks Quiz',
+    type: 'quiz',
+    due_date: '2024-03-25',
+    total_marks: 20,
+    weightage: 0.1,
+    status: 'published'
+  },
+  {
+    id: 'a2',
+    course_id: 'c2',
+    name: 'Binary Trees Assignment',
+    type: 'assignment',
+    due_date: '2024-03-26',
+    total_marks: 50,
+    weightage: 0.2,
+    status: 'published'
+  }
+];
+
 export const useDataStore = create<DataState>()(
   persist(
     (set, get) => ({
       // Initial state
-      grades: [],
-      attendance: [],
-      messages: [],
-      resources: [],
-      courses: [],
-      assessments: [],
+      grades: sampleGrades,
+      attendance: sampleAttendance,
+      messages: mockMessages,
+      resources: mockResources,
+      courses: mockCourses,
+      assessments: mockAssessments,
       isLoading: false,
       error: null,
 
@@ -80,29 +222,8 @@ export const useDataStore = create<DataState>()(
       fetchGrades: async (studentId: string, courseId?: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          let query = supabase
-            .from('grades')
-            .select(`
-              *,
-              assessment:assessments(
-                name,
-                type,
-                due_date,
-                course:courses(name)
-              )
-            `)
-            .eq('student_id', studentId);
-          
-          if (courseId) {
-            query = query.eq('assessment.course_id', courseId);
-          }
-          
-          const { data, error } = await query.order('created_at', { ascending: false });
-          
-          if (error) throw error;
-          
-          set({ grades: data || [], isLoading: false });
+          // Using sample data instead of fetching from Supabase
+          set({ grades: sampleGrades, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch grades', isLoading: false });
         }
@@ -111,24 +232,8 @@ export const useDataStore = create<DataState>()(
       fetchAttendance: async (studentId: string, courseId?: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          let query = supabase
-            .from('attendance')
-            .select(`
-              *,
-              course:courses(name)
-            `)
-            .eq('student_id', studentId);
-          
-          if (courseId) {
-            query = query.eq('course_id', courseId);
-          }
-          
-          const { data, error } = await query.order('date', { ascending: false });
-          
-          if (error) throw error;
-          
-          set({ attendance: data || [], isLoading: false });
+          // Using sample data instead of fetching from Supabase
+          set({ attendance: sampleAttendance, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch attendance', isLoading: false });
         }
@@ -137,13 +242,8 @@ export const useDataStore = create<DataState>()(
       fetchMessages: async (userId: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          const { data, error } = await supabase
-            .rpc('get_recent_messages', { user_uuid: userId, limit_count: 50 });
-          
-          if (error) throw error;
-          
-          set({ messages: data || [], isLoading: false });
+          // Using mock data instead of fetching from Supabase
+          set({ messages: mockMessages, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch messages', isLoading: false });
         }
@@ -152,19 +252,8 @@ export const useDataStore = create<DataState>()(
       fetchResources: async (courseId: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          const { data, error } = await supabase
-            .from('resources')
-            .select(`
-              *,
-              uploader:users!resources_uploaded_by_fkey(name)
-            `)
-            .eq('course_id', courseId)
-            .order('created_at', { ascending: false });
-          
-          if (error) throw error;
-          
-          set({ resources: data || [], isLoading: false });
+          // Using mock data instead of fetching from Supabase
+          set({ resources: mockResources, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch resources', isLoading: false });
         }
@@ -173,18 +262,8 @@ export const useDataStore = create<DataState>()(
       fetchCourses: async (userId: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          const { data, error } = await supabase
-            .from('courses')
-            .select(`
-              *,
-              teacher:users!courses_teacher_id_fkey(name, email)
-            `)
-            .order('name');
-          
-          if (error) throw error;
-          
-          set({ courses: data || [], isLoading: false });
+          // Using mock data instead of fetching from Supabase
+          set({ courses: mockCourses, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch courses', isLoading: false });
         }
@@ -193,16 +272,9 @@ export const useDataStore = create<DataState>()(
       fetchAssessments: async (courseId: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          const { data, error } = await supabase
-            .from('assessments')
-            .select('*')
-            .eq('course_id', courseId)
-            .order('due_date', { ascending: true });
-          
-          if (error) throw error;
-          
-          set({ assessments: data || [], isLoading: false });
+          // Using mock data instead of fetching from Supabase
+          const filteredAssessments = mockAssessments.filter(a => a.course_id === courseId);
+          set({ assessments: filteredAssessments, isLoading: false });
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to fetch assessments', isLoading: false });
         }
@@ -211,15 +283,9 @@ export const useDataStore = create<DataState>()(
       // CRUD operations
       createGrade: async (grade) => {
         try {
-          const { data, error } = await supabase
-            .from('grades')
-            .insert(grade)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          set(state => ({ grades: [data, ...state.grades] }));
+          // Mock implementation
+          const newGrade = { ...grade, id: `grade-${Date.now()}` };
+          set(state => ({ grades: [...state.grades, newGrade] }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to create grade' });
         }
@@ -227,17 +293,11 @@ export const useDataStore = create<DataState>()(
 
       updateGrade: async (id, updates) => {
         try {
-          const { data, error } = await supabase
-            .from('grades')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
+          // Mock implementation
           set(state => ({
-            grades: state.grades.map(grade => grade.id === id ? data : grade)
+            grades: state.grades.map(grade => 
+              grade.id === id ? { ...grade, ...updates } : grade
+            )
           }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to update grade' });
@@ -246,13 +306,7 @@ export const useDataStore = create<DataState>()(
 
       deleteGrade: async (id) => {
         try {
-          const { error } = await supabase
-            .from('grades')
-            .delete()
-            .eq('id', id);
-          
-          if (error) throw error;
-          
+          // Mock implementation
           set(state => ({
             grades: state.grades.filter(grade => grade.id !== id)
           }));
@@ -263,15 +317,9 @@ export const useDataStore = create<DataState>()(
 
       createAttendance: async (attendance) => {
         try {
-          const { data, error } = await supabase
-            .from('attendance')
-            .insert(attendance)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          set(state => ({ attendance: [data, ...state.attendance] }));
+          // Mock implementation
+          const newAttendance = { ...attendance, id: `attendance-${Date.now()}` };
+          set(state => ({ attendance: [...state.attendance, newAttendance] }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to create attendance record' });
         }
@@ -279,17 +327,11 @@ export const useDataStore = create<DataState>()(
 
       updateAttendance: async (id, updates) => {
         try {
-          const { data, error } = await supabase
-            .from('attendance')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
+          // Mock implementation
           set(state => ({
-            attendance: state.attendance.map(record => record.id === id ? data : record)
+            attendance: state.attendance.map(record => 
+              record.id === id ? { ...record, ...updates } : record
+            )
           }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to update attendance' });
@@ -298,15 +340,17 @@ export const useDataStore = create<DataState>()(
 
       sendMessage: async (message) => {
         try {
-          const { data, error } = await supabase
-            .from('messages')
-            .insert(message)
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          set(state => ({ messages: [data, ...state.messages] }));
+          // Mock implementation
+          const newMessage = { 
+            ...message, 
+            id: `message-${Date.now()}`,
+            created_at: new Date().toISOString(),
+            sender: {
+              name: 'Current User',
+              role: 'student'
+            }
+          };
+          set(state => ({ messages: [newMessage, ...state.messages] }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to send message' });
         }
@@ -314,16 +358,10 @@ export const useDataStore = create<DataState>()(
 
       markMessageAsRead: async (messageId) => {
         try {
-          const { error } = await supabase
-            .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .eq('id', messageId);
-          
-          if (error) throw error;
-          
+          // Mock implementation
           set(state => ({
             messages: state.messages.map(msg => 
-              msg.id === messageId ? { ...msg, read_at: new Date().toISOString() } : msg
+              msg.id === messageId ? { ...msg, is_read: true } : msg
             )
           }));
         } catch (error) {
@@ -333,34 +371,14 @@ export const useDataStore = create<DataState>()(
 
       uploadResource: async (resource, file) => {
         try {
-          let filePath = null;
-          
-          if (file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            filePath = `${resource.course_id}/${fileName}`;
-            
-            const { error: uploadError } = await supabase.storage
-              .from('study-materials')
-              .upload(filePath, file);
-            
-            if (uploadError) throw uploadError;
-          }
-          
-          const { data, error } = await supabase
-            .from('resources')
-            .insert({
-              ...resource,
-              file_path: filePath,
-              file_size: file?.size || null,
-              file_type: file?.type || null,
-            })
-            .select()
-            .single();
-          
-          if (error) throw error;
-          
-          set(state => ({ resources: [data, ...state.resources] }));
+          // Mock implementation
+          const newResource = {
+            ...resource,
+            id: `resource-${Date.now()}`,
+            uploadDate: new Date().toISOString(),
+            downloads: 0
+          };
+          set(state => ({ resources: [newResource, ...state.resources] }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to upload resource' });
         }
@@ -368,29 +386,20 @@ export const useDataStore = create<DataState>()(
 
       downloadResource: async (resourceId) => {
         try {
-          const { data: resource, error } = await supabase
-            .from('resources')
-            .select('file_path')
-            .eq('id', resourceId)
-            .single();
-          
-          if (error) throw error;
-          
-          if (!resource.file_path) {
-            throw new Error('No file associated with this resource');
+          // Mock implementation
+          const resource = get().resources.find(r => r.id === resourceId);
+          if (!resource) {
+            throw new Error('Resource not found');
           }
           
-          const { data } = supabase.storage
-            .from('study-materials')
-            .getPublicUrl(resource.file_path);
-          
           // Increment download count
-          await supabase
-            .from('resources')
-            .update({ download_count: supabase.sql`download_count + 1` })
-            .eq('id', resourceId);
+          set(state => ({
+            resources: state.resources.map(r => 
+              r.id === resourceId ? { ...r, downloads: r.downloads + 1 } : r
+            )
+          }));
           
-          return data.publicUrl;
+          return `https://example.com/mock-download/${resourceId}`;
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to download resource' });
           throw error;
@@ -400,17 +409,9 @@ export const useDataStore = create<DataState>()(
       // Bulk operations
       bulkUploadGrades: async (assessmentId, grades) => {
         try {
-          const { data, error } = await supabase.functions.invoke('bulk-upload-grades', {
-            body: { assessment_id: assessmentId, grades }
-          });
-          
-          if (error) throw error;
-          
-          // Refresh grades
-          const currentUser = await supabase.auth.getUser();
-          if (currentUser.data.user) {
-            await get().fetchGrades(currentUser.data.user.id);
-          }
+          // Mock implementation
+          console.log(`Bulk uploading ${grades.length} grades for assessment ${assessmentId}`);
+          // In a real implementation, this would update the grades in the database
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to bulk upload grades' });
         }
@@ -418,17 +419,9 @@ export const useDataStore = create<DataState>()(
 
       bulkUploadAttendance: async (courseId, date, records) => {
         try {
-          const { data, error } = await supabase.functions.invoke('bulk-upload-attendance', {
-            body: { course_id: courseId, date, attendance_records: records }
-          });
-          
-          if (error) throw error;
-          
-          // Refresh attendance
-          const currentUser = await supabase.auth.getUser();
-          if (currentUser.data.user) {
-            await get().fetchAttendance(currentUser.data.user.id);
-          }
+          // Mock implementation
+          console.log(`Bulk uploading ${records.length} attendance records for course ${courseId} on ${date}`);
+          // In a real implementation, this would update the attendance records in the database
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to bulk upload attendance' });
         }
@@ -437,11 +430,14 @@ export const useDataStore = create<DataState>()(
       // Analytics
       getAttendanceSummary: async (studentId, courseId) => {
         try {
-          const { data, error } = await supabase
-            .rpc('get_attendance_summary', { student_uuid: studentId, course_uuid: courseId });
-          
-          if (error) throw error;
-          return data;
+          // Mock implementation
+          return sampleAttendance.map(record => ({
+            subject: record.subject,
+            attendance_rate: record.attendedClasses / record.totalClasses,
+            total_classes: record.totalClasses,
+            attended_classes: record.attendedClasses,
+            missed_classes: record.missedClasses
+          }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to get attendance summary' });
           return [];
@@ -450,11 +446,14 @@ export const useDataStore = create<DataState>()(
 
       getGradeSummary: async (studentId, courseId) => {
         try {
-          const { data, error } = await supabase
-            .rpc('get_grade_summary', { student_uuid: studentId, course_uuid: courseId });
-          
-          if (error) throw error;
-          return data;
+          // Mock implementation
+          return sampleGrades.map(grade => ({
+            subject: grade.subject,
+            average_score: grade.exams.reduce((sum, exam) => sum + exam.score, 0) / grade.exams.length,
+            exam_count: grade.exams.length,
+            highest_score: Math.max(...grade.exams.map(exam => exam.score)),
+            lowest_score: Math.min(...grade.exams.map(exam => exam.score))
+          }));
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to get grade summary' });
           return [];
@@ -463,11 +462,20 @@ export const useDataStore = create<DataState>()(
 
       getCourseAnalytics: async (courseId) => {
         try {
-          const { data, error } = await supabase
-            .rpc('get_course_analytics', { course_uuid: courseId });
-          
-          if (error) throw error;
-          return data[0] || {};
+          // Mock implementation
+          return {
+            average_score: 85,
+            attendance_rate: 0.92,
+            at_risk_students: 5,
+            top_performers: 15,
+            grade_distribution: {
+              A: 20,
+              B: 35,
+              C: 25,
+              D: 15,
+              F: 5
+            }
+          };
         } catch (error) {
           set({ error: error instanceof Error ? error.message : 'Failed to get course analytics' });
           return {};
@@ -476,47 +484,15 @@ export const useDataStore = create<DataState>()(
 
       // Realtime subscriptions
       subscribeToGrades: (studentId) => {
-        const channel = supabase
-          .channel('grades_changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'grades',
-              filter: `student_id=eq.${studentId}`
-            },
-            (payload) => {
-              console.log('Grade change received:', payload);
-              // Refresh grades
-              get().fetchGrades(studentId);
-            }
-          )
-          .subscribe();
-
-        return () => supabase.removeChannel(channel);
+        // Mock implementation
+        console.log(`Subscribed to grades for student ${studentId}`);
+        return () => console.log(`Unsubscribed from grades for student ${studentId}`);
       },
 
       subscribeToMessages: (userId) => {
-        const channel = supabase
-          .channel('messages_changes')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'messages',
-              filter: `recipient_id=eq.${userId}`
-            },
-            (payload) => {
-              console.log('Message change received:', payload);
-              // Refresh messages
-              get().fetchMessages(userId);
-            }
-          )
-          .subscribe();
-
-        return () => supabase.removeChannel(channel);
+        // Mock implementation
+        console.log(`Subscribed to messages for user ${userId}`);
+        return () => console.log(`Unsubscribed from messages for user ${userId}`);
       },
 
       clearData: () => {

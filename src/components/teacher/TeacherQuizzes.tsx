@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { TeacherProfile, Quiz } from '../../types/teacher';
 import { BrainCircuit, Clock, AlertTriangle, CheckCircle2, GraduationCap } from 'lucide-react';
 import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 
 interface TeacherQuizzesProps {
@@ -29,33 +28,8 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
   const fetchQuizzes = async (subjectId: string) => {
     try {
       setIsLoading(true);
-      
-      // Get course ID from subject ID
-      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
-      if (!courseId) return;
-
-      // Get quizzes for this course
-      const { data, error: quizzesError } = await supabase
-        .from('assessments')
-        .select('*')
-        .eq('course_id', courseId)
-        .eq('type', 'quiz');
-
-      if (quizzesError) throw quizzesError;
-
-      // Format as Quiz
-      const formattedQuizzes: Quiz[] = (data || []).map(quiz => ({
-        id: quiz.id,
-        subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
-        title: quiz.name,
-        date: quiz.due_date || new Date().toISOString(),
-        duration: quiz.duration || 45,
-        totalMarks: quiz.total_marks || 20,
-        topics: quiz.subtopics_covered || [],
-        status: quiz.status as 'draft' | 'scheduled' | 'ongoing' | 'completed'
-      }));
-
-      setRealQuizzes(formattedQuizzes);
+      // Use the sample data directly instead of fetching from Supabase
+      setRealQuizzes(quizzes);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch quizzes');
       console.error('Error fetching quizzes:', err);

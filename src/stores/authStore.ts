@@ -1,10 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase, getCurrentUser, getUserProfile, getUserRole } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import type { Database } from '../lib/supabase';
 
-type UserProfile = Database['public']['Tables']['users']['Row'];
+type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'teacher' | 'admin';
+  group_id?: string;
+  department?: string;
+  status?: 'active' | 'inactive';
+};
 
 interface AuthState {
   user: User | null;
@@ -23,6 +29,36 @@ interface AuthState {
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
+// Mock data for demo purposes
+const MOCK_USERS = [
+  {
+    id: 'student-1',
+    email: 'student@dpsb.edu',
+    password: 'student123',
+    name: 'Ritik Koley',
+    role: 'student',
+    group_id: 'class-10a',
+    status: 'active'
+  },
+  {
+    id: 'teacher-1',
+    email: 'teacher@dpsb.edu',
+    password: 'teacher123',
+    name: 'Jagdeep Singh Sokhey',
+    role: 'teacher',
+    department: 'Computer Science',
+    status: 'active'
+  },
+  {
+    id: 'admin-1',
+    email: 'admin@dpsb.edu',
+    password: 'admin123',
+    name: 'Admin User',
+    role: 'admin',
+    status: 'active'
+  }
+];
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -36,61 +72,29 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
           
-          // Get current session
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error('Error getting session:', error);
-            set({ isLoading: false, isInitialized: true });
-            return;
-          }
-
-          if (session?.user) {
-            // Get user profile and role
-            const [profile, role] = await Promise.all([
-              getUserProfile(session.user.id),
-              getUserRole(session.user.id)
-            ]);
-
-            set({
-              user: session.user,
-              profile,
-              role: role as 'student' | 'teacher' | 'admin',
-              isLoading: false,
-              isInitialized: true
-            });
-          } else {
-            set({ 
-              user: null, 
-              profile: null, 
-              role: null, 
-              isLoading: false, 
-              isInitialized: true 
-            });
-          }
-
-          // Listen for auth changes
-          supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-              const [profile, role] = await Promise.all([
-                getUserProfile(session.user.id),
-                getUserRole(session.user.id)
-              ]);
-
+          // Check if there's a stored session
+          const storedAuth = localStorage.getItem('auth-storage');
+          if (storedAuth) {
+            const { state } = JSON.parse(storedAuth);
+            if (state.user && state.profile && state.role) {
               set({
-                user: session.user,
-                profile,
-                role: role as 'student' | 'teacher' | 'admin'
+                user: state.user,
+                profile: state.profile,
+                role: state.role,
+                isLoading: false,
+                isInitialized: true
               });
-            } else if (event === 'SIGNED_OUT') {
-              set({ 
-                user: null, 
-                profile: null, 
-                role: null 
-              });
+              return;
             }
+          }
+          
+          set({ 
+            user: null, 
+            profile: null, 
+            role: null, 
+            isLoading: false, 
+            isInitialized: true 
           });
-
         } catch (error) {
           console.error('Error initializing auth:', error);
           set({ isLoading: false, isInitialized: true });
@@ -101,26 +105,39 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
+          // Find user in mock data
+          const mockUser = MOCK_USERS.find(
+            user => user.email === email && user.password === password
+          );
 
-          if (error) throw error;
-
-          if (data.user) {
-            const [profile, role] = await Promise.all([
-              getUserProfile(data.user.id),
-              getUserRole(data.user.id)
-            ]);
-
-            set({
-              user: data.user,
-              profile,
-              role: role as 'student' | 'teacher' | 'admin',
-              isLoading: false
-            });
+          if (!mockUser) {
+            throw new Error('Invalid login credentials');
           }
+
+          const user = {
+            id: mockUser.id,
+            email: mockUser.email,
+            user_metadata: {
+              name: mockUser.name
+            }
+          } as unknown as User;
+
+          const profile = {
+            id: mockUser.id,
+            name: mockUser.name,
+            email: mockUser.email,
+            role: mockUser.role as 'student' | 'teacher' | 'admin',
+            group_id: mockUser.group_id,
+            department: mockUser.department,
+            status: mockUser.status as 'active' | 'inactive'
+          };
+
+          set({
+            user,
+            profile,
+            role: mockUser.role as 'student' | 'teacher' | 'admin',
+            isLoading: false
+          });
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -131,23 +148,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                name
-              }
-            }
-          });
-
-          if (error) throw error;
-
-          // User profile will be created automatically by the trigger
+          // In a real app, this would create a new user
+          // For demo, just simulate success
+          console.log('Sign up successful for:', email, name);
+          
           set({ isLoading: false });
-
-          // Note: User will need to verify email before they can sign in
-          return data;
+          return { user: null, session: null };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -158,17 +164,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            provider,
-            options: {
-              redirectTo: `${window.location.origin}/auth/callback`
-            }
-          });
-
-          if (error) throw error;
-
-          // OAuth flow will redirect, so we don't need to handle the response here
-          return data;
+          // In a real app, this would redirect to OAuth
+          // For demo, just simulate success
+          console.log('OAuth sign in with:', provider);
+          
+          set({ isLoading: false });
+          return { url: null, provider: null };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -178,9 +179,6 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         try {
           set({ isLoading: true });
-
-          const { error } = await supabase.auth.signOut();
-          if (error) throw error;
 
           set({
             user: null,
@@ -196,11 +194,9 @@ export const useAuthStore = create<AuthState>()(
 
       resetPassword: async (email: string) => {
         try {
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/auth/reset-password`
-          });
-
-          if (error) throw error;
+          // In a real app, this would send a reset email
+          // For demo, just simulate success
+          console.log('Password reset email sent to:', email);
         } catch (error) {
           throw error;
         }
@@ -208,20 +204,12 @@ export const useAuthStore = create<AuthState>()(
 
       updateProfile: async (updates: Partial<UserProfile>) => {
         try {
-          const { user, profile } = get();
-          if (!user || !profile) throw new Error('No user logged in');
+          const { profile } = get();
+          if (!profile) throw new Error('No user logged in');
 
-          const { data, error } = await supabase
-            .from('users')
-            .update(updates)
-            .eq('id', user.id)
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          set({ profile: data });
-          return data;
+          const updatedProfile = { ...profile, ...updates };
+          set({ profile: updatedProfile });
+          return updatedProfile;
         } catch (error) {
           throw error;
         }

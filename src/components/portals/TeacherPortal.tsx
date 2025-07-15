@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
 
 // Teacher Components
 import { TeacherDashboard } from '../teacher/TeacherDashboard';
@@ -60,86 +59,13 @@ export const TeacherPortal: React.FC = () => {
 
   useEffect(() => {
     fetchTeacherProfile();
-    
-    // Set up realtime subscription for messages
-    const channel = supabase
-      .channel('teacher_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          console.log('Message update received:', payload);
-          // In a real app, we would update the UI or show a notification
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const fetchTeacherProfile = async () => {
     try {
       setIsLoading(true);
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      // Get teacher profile
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.user.id)
-        .eq('role', 'teacher')
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Get teacher's courses
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('teacher_id', user.user.id);
-
-      if (coursesError) throw coursesError;
-
-      // Format as TeacherProfile
-      // In a real app, we would fetch the schedule from a dedicated table
-      const formattedProfile: TeacherProfile = {
-        id: profile.id,
-        name: profile.name,
-        email: profile.email,
-        department: profile.department || 'Computer Science',
-        role: 'professor',
-        subjects: courses?.map(course => ({
-          id: course.id,
-          name: course.name,
-          code: course.code || 'CS101',
-          type: course.type || 'theory',
-          semester: course.semester || 1,
-          students: 120, // This would come from a count query in a real app
-          schedule: [
-            {
-              day: 'monday',
-              startTime: '10:30',
-              endTime: '11:45',
-              room: 'CS-301'
-            },
-            {
-              day: 'wednesday',
-              startTime: '10:30',
-              endTime: '11:45',
-              room: 'CS-301'
-            }
-          ]
-        })) || []
-      };
-
-      setTeacherProfile(formattedProfile);
+      // Use the sample data directly instead of fetching from Supabase
+      setTeacherProfile(sampleTeacherProfile);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch teacher profile');
       console.error('Error fetching teacher profile:', err);

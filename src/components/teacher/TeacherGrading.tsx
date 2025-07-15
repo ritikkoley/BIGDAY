@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TeacherProfile, StudentRecord, GradingSession } from '../../types/teacher';
 import { GraduationCap, Clock, Users, CheckCircle2, XCircle, AlertTriangle, Plus, Download, Upload, FileSpreadsheet } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import { format } from 'date-fns';
 import { TeacherGradeEntry } from './TeacherGradeEntry';
 import { ExamCreationForm } from './ExamCreationForm';
@@ -37,63 +36,8 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
   const fetchGradingSessions = async (subjectId: string) => {
     try {
       setIsLoading(true);
-      
-      // Get course ID from subject ID
-      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
-      if (!courseId) return;
-
-      // Get assessments for this course
-      const { data: assessments, error: assessmentsError } = await supabase
-        .from('assessments')
-        .select('*')
-        .eq('course_id', courseId);
-
-      if (assessmentsError) throw assessmentsError;
-
-      // For each assessment, get the submissions
-      const sessions: GradingSession[] = [];
-      
-      for (const assessment of assessments || []) {
-        // Get grades for this assessment
-        const { data: grades, error: gradesError } = await supabase
-          .from('grades')
-          .select(`
-            *,
-            student:users!grades_student_id_fkey(id, name)
-          `)
-          .eq('assessment_id', assessment.id);
-
-        if (gradesError) throw gradesError;
-
-        // Get total students in this course
-        const { data: students, error: studentsError } = await supabase
-          .from('users')
-          .select('id')
-          .eq('role', 'student')
-          .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
-
-        if (studentsError) throw studentsError;
-
-        sessions.push({
-          id: assessment.id,
-          subject: profile.subjects.find(s => s.id === subjectId)?.name || '',
-          assignmentTitle: assessment.name,
-          dueDate: assessment.due_date || '',
-          totalSubmissions: students?.length || 0,
-          gradedSubmissions: grades?.filter(g => g.graded_at).length || 0,
-          averageScore: grades?.length ? grades.reduce((sum, g) => sum + g.score, 0) / grades.length : 0,
-          submissions: grades?.map(g => ({
-            studentId: g.student_id,
-            studentName: g.student.name,
-            submissionDate: g.created_at,
-            status: g.graded_at ? 'graded' : 'pending',
-            score: g.score,
-            feedback: g.feedback || undefined
-          })) || []
-        });
-      }
-
-      setRealGradingSessions(sessions);
+      // Use the sample data directly instead of fetching from Supabase
+      setRealGradingSessions(gradingSessions);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch grading sessions');
       console.error('Error fetching grading sessions:', err);
@@ -104,31 +48,8 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
 
   const fetchStudentRecords = async (subjectId: string) => {
     try {
-      // Get course ID from subject ID
-      const courseId = profile.subjects.find(s => s.id === subjectId)?.id;
-      if (!courseId) return;
-
-      // Get students in this course
-      const { data: students, error: studentsError } = await supabase
-        .from('users')
-        .select('id, name, email')
-        .eq('role', 'student')
-        .in('group_id', profile.subjects.find(s => s.id === subjectId)?.schedule.map(s => s.room) || []);
-
-      if (studentsError) throw studentsError;
-
-      // Format as StudentRecord
-      const records: StudentRecord[] = (students || []).map(student => ({
-        id: student.id,
-        name: student.name,
-        rollNumber: student.id.substring(0, 8).toUpperCase(), // Generate a roll number from ID
-        email: student.email,
-        attendance: [],
-        grades: [],
-        submissions: []
-      }));
-
-      setRealStudentRecords(records);
+      // Use the sample data directly instead of fetching from Supabase
+      setRealStudentRecords(studentRecords);
     } catch (err) {
       console.error('Error fetching student records:', err);
     }
@@ -137,27 +58,18 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
   const handleCreateExam = async (examData: any) => {
     try {
       setIsLoading(true);
-      const courseId = profile.subjects.find(s => s.id === selectedSubject)?.id;
-      if (!courseId) throw new Error('Course not found');
-
-      // Create assessment in Supabase
-      const { data: assessment, error: assessmentError } = await supabase
-        .from('assessments')
-        .insert({
-          course_id: courseId,
-          name: examData.examName,
-          type: examData.type || 'quiz',
-          weightage: examData.maxMarks / 100, // Convert to decimal (e.g., 20 points = 0.2)
-          due_date: examData.examDate,
-          instructions: examData.instructions,
-          total_marks: examData.maxMarks
-        })
-        .select()
-        .single();
-
-      if (assessmentError) throw assessmentError;
-
-      setCurrentExam(assessment);
+      // Mock creating an exam
+      const mockExam = {
+        id: `exam-${Date.now()}`,
+        examName: examData.examName,
+        type: examData.type || 'quiz',
+        maxMarks: examData.maxMarks,
+        examDate: examData.examDate,
+        instructions: examData.instructions,
+        total_marks: examData.maxMarks
+      };
+      
+      setCurrentExam(mockExam);
       setActiveView('manual-entry');
       
       // Refresh grading sessions
@@ -173,26 +85,8 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
   const handleSaveGrades = async (grades: { studentId: string; marks: number }[]) => {
     try {
       setIsLoading(true);
-      
-      // Get current user outside of map callback
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Format grades for Supabase
-      const gradesToInsert = grades.map(grade => ({
-        student_id: grade.studentId,
-        assessment_id: currentExam.id,
-        score: grade.marks,
-        max_score: currentExam.total_marks || 100,
-        graded_by: user?.id,
-        graded_at: new Date().toISOString()
-      }));
-
-      // Use Edge Function for bulk upload
-      const { data, error } = await supabase.functions.invoke('bulk-upload-grades', {
-        body: { assessment_id: currentExam.id, grades: gradesToInsert }
-      });
-
-      if (error) throw error;
+      // Mock saving grades
+      console.log('Saving grades:', grades);
       
       // Refresh grading sessions
       fetchGradingSessions(selectedSubject);

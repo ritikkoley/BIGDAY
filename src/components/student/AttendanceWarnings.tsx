@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Calendar, TrendingDown, CheckCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 interface AttendanceWarning {
   course_id: string;
@@ -24,17 +23,37 @@ export const AttendanceWarnings: React.FC = () => {
   const fetchAttendanceWarnings = async () => {
     try {
       setIsLoading(true);
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      const { data, error } = await supabase
-        .rpc('get_attendance_warnings', {
-          stud_id: user.user.id,
-          threshold: 0.75 // 75% threshold
-        });
-
-      if (error) throw error;
-      setWarnings(data || []);
+      // Mock data instead of fetching from Supabase
+      const mockWarnings: AttendanceWarning[] = [
+        {
+          course_id: 'c1',
+          course_name: 'Computer Science',
+          total_classes: 24,
+          attended_classes: 22,
+          attendance_rate: 0.92,
+          classes_needed: 0,
+          is_at_risk: false
+        },
+        {
+          course_id: 'c2',
+          course_name: 'Data Structures',
+          total_classes: 24,
+          attended_classes: 21,
+          attendance_rate: 0.88,
+          classes_needed: 0,
+          is_at_risk: false
+        },
+        {
+          course_id: 'c3',
+          course_name: 'Physics',
+          total_classes: 24,
+          attended_classes: 16,
+          attendance_rate: 0.67,
+          classes_needed: 2,
+          is_at_risk: true
+        }
+      ];
+      setWarnings(mockWarnings);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch attendance warnings');
     } finally {

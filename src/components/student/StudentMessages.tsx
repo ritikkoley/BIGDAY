@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send, User, Clock, AlertTriangle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 interface Message {
   id: string;
@@ -27,47 +26,47 @@ export const StudentMessages: React.FC = () => {
 
   useEffect(() => {
     fetchMessages();
-    
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('student_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'messages'
-        },
-        (payload) => {
-          console.log('Message update received:', payload);
-          fetchMessages(); // Refresh messages on any change
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const fetchMessages = async () => {
     try {
       setIsLoading(true);
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) return;
-
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          sender:users!messages_sender_id_fkey(name, role)
-        `)
-        .or(`recipient_id.eq.${user.user.id},group_id.in.(select group_id from users where id = '${user.user.id}')`)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      setMessages(data || []);
+      // Mock data instead of fetching from Supabase
+      const mockMessages: Message[] = [
+        {
+          id: 'm1',
+          sender_id: 't1',
+          recipient_id: 's1',
+          group_id: null,
+          subject: 'Upcoming Quiz',
+          content: 'Please be prepared for the upcoming quiz on neural networks. Focus on activation functions and gradient descent.',
+          priority: 'high',
+          is_read: false,
+          message_type: 'direct',
+          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            name: 'Professor Jagdeep Singh Sokhey',
+            role: 'teacher'
+          }
+        },
+        {
+          id: 'm2',
+          sender_id: 't1',
+          recipient_id: 's1',
+          group_id: null,
+          subject: 'Office Hours',
+          content: 'Office hours extended today until 5 PM for Linear Algebra consultation.',
+          priority: 'medium',
+          is_read: true,
+          message_type: 'direct',
+          created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          sender: {
+            name: 'Professor Jagdeep Singh Sokhey',
+            role: 'teacher'
+          }
+        }
+      ];
+      setMessages(mockMessages);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch messages');
     } finally {
@@ -77,13 +76,6 @@ export const StudentMessages: React.FC = () => {
 
   const markAsRead = async (messageId: string) => {
     try {
-      const { error } = await supabase
-        .from('messages')
-        .update({ is_read: true })
-        .eq('id', messageId);
-
-      if (error) throw error;
-
       // Update local state
       setMessages(prev => 
         prev.map(msg => 
