@@ -1,16 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
-type UserProfile = {
+interface UserProfile {
   id: string;
   name: string;
-  email: string;
   role: 'student' | 'teacher' | 'admin';
   group_id?: string;
   department?: string;
+  profile_data?: any;
   status?: 'active' | 'inactive';
-};
+}
 
 interface AuthState {
   user: User | null;
@@ -21,43 +22,13 @@ interface AuthState {
   
   // Actions
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: 'student' | 'teacher' | 'admin') => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'apple') => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   initialize: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
-
-// Mock data for demo purposes
-const MOCK_USERS = [
-  {
-    id: 'student-1',
-    email: 'student@dpsb.edu',
-    password: 'student123',
-    name: 'Ritik Koley',
-    role: 'student',
-    group_id: 'class-10a',
-    status: 'active'
-  },
-  {
-    id: 'teacher-1',
-    email: 'teacher@dpsb.edu',
-    password: 'teacher123',
-    name: 'Jagdeep Singh Sokhey',
-    role: 'teacher',
-    department: 'Computer Science',
-    status: 'active'
-  },
-  {
-    id: 'admin-1',
-    email: 'admin@dpsb.edu',
-    password: 'admin123',
-    name: 'Admin User',
-    role: 'admin',
-    status: 'active'
-  }
-];
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -72,15 +43,20 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
           
-          // Check if there's a stored session
-          const storedAuth = localStorage.getItem('auth-storage');
-          if (storedAuth) {
-            const { state } = JSON.parse(storedAuth);
-            if (state.user && state.profile && state.role) {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.user) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profile) {
               set({
-                user: state.user,
-                profile: state.profile,
-                role: state.role,
+                user: session.user,
+                profile,
+                role: profile.role,
                 isLoading: false,
                 isInitialized: true
               });
@@ -105,55 +81,76 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          // Find user in mock data
-          const mockUser = MOCK_USERS.find(
-            user => user.email === email && user.password === password
-          );
-
-          if (!mockUser) {
-            throw new Error('Invalid login credentials');
-          }
-
-          const user = {
-            id: mockUser.id,
-            email: mockUser.email,
-            user_metadata: {
-              name: mockUser.name
-            }
-          } as unknown as User;
-
-          const profile = {
-            id: mockUser.id,
-            name: mockUser.name,
-            email: mockUser.email,
-            role: mockUser.role as 'student' | 'teacher' | 'admin',
-            group_id: mockUser.group_id,
-            department: mockUser.department,
-            status: mockUser.status as 'active' | 'inactive'
-          };
-
-          set({
-            user,
-            profile,
-            role: mockUser.role as 'student' | 'teacher' | 'admin',
-            isLoading: false
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
           });
+
+          if (error) throw error;
+
+          if (data.user) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', data.user.id)
+              .single();
+
+            if (profile) {
+              set({
+                user: data.user,
+                profile,
+                role: profile.role,
+                isLoading: false
+              });
+
+              // Role-based redirect
+              if (profile.role === 'student') {
+                window.location.href = '/student/home';
+              } else if (profile.role === 'teacher') {
+                window.location.href = '/teacher/dashboard';
+              } else if (profile.role === 'admin') {
+                window.location.href = '/admin/performance';
+              }
+            }
+          }
         } catch (error) {
           set({ isLoading: false });
           throw error;
         }
       },
 
-      signUp: async (email: string, password: string, name: string) => {
+      signUp: async (email: string, password: string, name: string, role: 'student' | 'teacher' | 'admin') => {
         try {
           set({ isLoading: true });
 
-          // In a real app, this would create a new user
-          // For demo, just simulate success
-          console.log('Sign up successful for:', email, name);
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                name,
+                role
+              }
+            }
+          });
+
+          if (error) throw error;
+
+          if (data.user) {
+            // Create profile
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert({
+                id: data.user.id,
+                name,
+                role,
+                profile_data: { baseline: 0, strengths: [], psycho_test: {} }
+              });
+
+            if (profileError) throw profileError;
+          }
           
           set({ isLoading: false });
-          return { user: null, session: null };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -164,12 +161,16 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true });
 
-          // In a real app, this would redirect to OAuth
-          // For demo, just simulate success
-          console.log('OAuth sign in with:', provider);
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`
+            }
+          });
+
+          if (error) throw error;
           
           set({ isLoading: false });
-          return { url: null, provider: null };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -179,6 +180,9 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         try {
           set({ isLoading: true });
+
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
 
           set({
             user: null,
@@ -194,9 +198,10 @@ export const useAuthStore = create<AuthState>()(
 
       resetPassword: async (email: string) => {
         try {
-          // In a real app, this would send a reset email
-          // For demo, just simulate success
-          console.log('Password reset email sent to:', email);
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset-password`
+          });
+          if (error) throw error;
         } catch (error) {
           throw error;
         }
@@ -207,9 +212,17 @@ export const useAuthStore = create<AuthState>()(
           const { profile } = get();
           if (!profile) throw new Error('No user logged in');
 
-          const updatedProfile = { ...profile, ...updates };
-          set({ profile: updatedProfile });
-          return updatedProfile;
+          const { data, error } = await supabase
+            .from('user_profiles')
+            .update(updates)
+            .eq('id', profile.id)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          set({ profile: data });
+          return data;
         } catch (error) {
           throw error;
         }
@@ -230,3 +243,28 @@ export const useAuthStore = create<AuthState>()(
 if (typeof window !== 'undefined') {
   useAuthStore.getState().initialize();
 }
+
+// Listen for auth changes
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT' || !session) {
+    useAuthStore.setState({
+      user: null,
+      profile: null,
+      role: null
+    });
+  } else if (event === 'SIGNED_IN' && session) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile) {
+      useAuthStore.setState({
+        user: session.user,
+        profile,
+        role: profile.role
+      });
+    }
+  }
+});
