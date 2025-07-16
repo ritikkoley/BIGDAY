@@ -19,9 +19,13 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      console.log('Submitting login form...');
       await signIn(email, password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      console.error('Login error:', err);
+      setError(err instanceof Error ? 
+        err.message : 
+        'Failed to sign in. Please check your network connection and try again.');
     } finally {
       setIsSubmitting(false);
     }

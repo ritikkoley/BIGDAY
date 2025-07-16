@@ -80,13 +80,18 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         try {
           set({ isLoading: true });
+          
+          console.log('Attempting to sign in with:', email);
 
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Auth Error:', error.message);
+            throw error;
+          }
 
           if (data.user) {
             const { data: profile } = await supabase
@@ -114,8 +119,11 @@ export const useAuthStore = create<AuthState>()(
             }
           }
         } catch (error) {
+          console.error('Fetch Error:', error);
           set({ isLoading: false });
-          throw error;
+          throw new Error(error instanceof Error ? 
+            error.message : 
+            'Network issue - check Supabase URL/key or CORS settings');
         }
       },
 
