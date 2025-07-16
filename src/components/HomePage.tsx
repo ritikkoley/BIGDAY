@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StudentTimetable } from './student/StudentTimetable';
 import { AttendanceWarnings } from './student/AttendanceWarnings';
+import { UpcomingAssessments } from './student/UpcomingAssessments';
 import { Clock, Calendar, BookOpen, GraduationCap, MessageSquare, Bell, AlertTriangle, CheckCircle2, ChevronRight, Microscope } from 'lucide-react';
 
 interface HomePageProps {
@@ -14,7 +15,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onViewGrades,
   onViewAttendance
 }) => {
-  const [activeTab, setActiveTab] = useState<'timetable' | 'attendance'>('timetable');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'timetable' | 'attendance'>('upcoming');
   
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -77,6 +78,19 @@ export const HomePage: React.FC<HomePageProps> = ({
       {/* Navigation Tabs */}
       <div className="flex space-x-2 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
         <button
+          onClick={() => setActiveTab('upcoming')}
+          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+            activeTab === 'upcoming'
+              ? 'text-apple-blue-500'
+              : 'text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          Upcoming
+          {activeTab === 'upcoming' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
+          )}
+        </button>
+        <button
           onClick={() => setActiveTab('timetable')}
           className={`px-4 py-2 text-sm font-medium transition-colors relative ${
             activeTab === 'timetable'
@@ -106,6 +120,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* Content */}
       <div className="space-y-6">
+        {activeTab === 'upcoming' && (
+          <UpcomingAssessments />
+        )}
+
         {activeTab === 'timetable' && (
           <StudentTimetable />
         )}
