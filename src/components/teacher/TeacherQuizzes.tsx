@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TeacherProfile, Quiz } from '../../types/teacher';
-import { BrainCircuit, Clock, AlertTriangle, CheckCircle2, GraduationCap } from 'lucide-react';
+import { BrainCircuit, Clock, AlertTriangle, CheckCircle2, GraduationCap, Plus } from 'lucide-react';
 import { useEffect } from 'react';
 import { format } from 'date-fns';
 
