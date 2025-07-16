@@ -525,5 +525,5 @@ export const TeacherQuizzes: React.FC<TeacherQuizzesProps> = ({
         </div>
       )}
     </div>
-  }
+  );
 };
