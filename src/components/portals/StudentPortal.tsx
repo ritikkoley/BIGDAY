@@ -11,6 +11,7 @@ import { PerformanceReport } from '../PerformanceReport';
 import { StudyVault } from '../StudyVault';
 import { StudentProgress } from '../student/StudentProgress';
 import { StudentMessages } from '../student/StudentMessages';
+import { StudentTimetable } from '../student/StudentTimetable';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
