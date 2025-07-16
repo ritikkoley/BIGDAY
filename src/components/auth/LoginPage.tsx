@@ -16,10 +16,16 @@ export const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    // Basic validation
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting login form...');
       await signIn(email, password);
     } catch (err) {
       console.error('Login error:', err);
@@ -52,6 +58,7 @@ export const LoginPage: React.FC = () => {
   const fillDemoCredentials = (email: string, password: string) => {
     setEmail(email);
     setPassword(password);
+    setError(null);
   };
 
   return (

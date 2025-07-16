@@ -8,7 +8,12 @@ import { TeacherPortal } from './components/portals/TeacherPortal';
 import { AdminPortal } from './components/portals/AdminPortal';
 
 function App() {
-  const { user, role, isLoading } = useAuthStore();
+  const { user, role, isLoading, initialize } = useAuthStore();
+  
+  // Initialize auth on component mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   if (isLoading) {
     return (
