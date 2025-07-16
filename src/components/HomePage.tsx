@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StudentTimetable } from './student/StudentTimetable';
 import { AttendanceWarnings } from './student/AttendanceWarnings';
 import { UpcomingAssessments } from './student/UpcomingAssessments';
-import { Clock, Calendar, BookOpen, GraduationCap, MessageSquare, Bell, AlertTriangle, CheckCircle2, ChevronRight, Microscope } from 'lucide-react';
+import { Clock, Calendar, BookOpen, GraduationCap, MessageSquare, Bell, AlertTriangle, CheckCircle2, ChevronRight, Microscope, FileText } from 'lucide-react';
 
 interface HomePageProps {
   studentName: string;
@@ -79,39 +79,42 @@ export const HomePage: React.FC<HomePageProps> = ({
       <div className="flex space-x-2 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+          className={`px-4 py-2 text-sm font-medium transition-colors relative flex items-center space-x-2 ${
             activeTab === 'upcoming'
               ? 'text-apple-blue-500'
               : 'text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
           }`}
         >
-          Upcoming
+          <FileText className="w-4 h-4" />
+          <span>Upcoming</span>
           {activeTab === 'upcoming' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
           )}
         </button>
         <button
           onClick={() => setActiveTab('timetable')}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+          className={`px-4 py-2 text-sm font-medium transition-colors relative flex items-center space-x-2 ${
             activeTab === 'timetable'
               ? 'text-apple-blue-500'
               : 'text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
           }`}
         >
-          Timetable
+          <Calendar className="w-4 h-4" />
+          <span>Timetable</span>
           {activeTab === 'timetable' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
           )}
         </button>
         <button
           onClick={() => setActiveTab('attendance')}
-          className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+          className={`px-4 py-2 text-sm font-medium transition-colors relative flex items-center space-x-2 ${
             activeTab === 'attendance'
               ? 'text-apple-blue-500'
               : 'text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
           }`}
         >
-          Attendance
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Attendance</span>
           {activeTab === 'attendance' && (
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
           )}

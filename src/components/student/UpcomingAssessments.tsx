@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, AlertTriangle, BookOpen, User } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, BookOpen, User, GraduationCap, FileText, Microscope, CheckSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface UpcomingItem {
   id: string;
-  type: 'quiz' | 'assignment' | 'exam' | 'project';
+  type: 'quiz' | 'assignment' | 'exam' | 'project' | 'class' | 'meeting' | 'deadline';
   title: string;
   course: string;
   teacher: string;
@@ -28,6 +28,16 @@ export const UpcomingAssessments: React.FC = () => {
       setIsLoading(true);
       // Mock data instead of fetching from Supabase
       const mockItems: UpcomingItem[] = [
+        {
+          id: '0',
+          type: 'class',
+          title: 'Neural Networks Lecture',
+          course: 'Computer Science',
+          teacher: 'Professor Jagdeep Singh Sokhey',
+          dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+          urgency: 'medium',
+          description: 'Introduction to neural network architectures and applications',
+        },
         {
           id: '1',
           type: 'quiz',
@@ -72,6 +82,27 @@ export const UpcomingAssessments: React.FC = () => {
           description: 'Analysis of pendulum motion experiment',
           weightage: 20
         }
+        ,
+        {
+          id: '5',
+          type: 'meeting',
+          title: 'Office Hours - Linear Algebra',
+          course: 'Mathematics',
+          teacher: 'Dr. Michael Zhang',
+          dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+          urgency: 'low',
+          description: 'Optional office hours for Linear Algebra questions'
+        },
+        {
+          id: '6',
+          type: 'deadline',
+          title: 'Course Registration',
+          course: 'Administration',
+          teacher: 'Academic Office',
+          dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          urgency: 'high',
+          description: 'Deadline for next semester course registration'
+        }
       ];
       setUpcomingItems(mockItems);
     } catch (err) {
@@ -95,13 +126,19 @@ export const UpcomingAssessments: React.FC = () => {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'quiz':
-        return '📝';
+        return <CheckSquare className="w-5 h-5 text-blue-500" />;
       case 'exam':
-        return '🎯';
+        return <GraduationCap className="w-5 h-5 text-purple-500" />;
       case 'project':
-        return '🔬';
+        return <Microscope className="w-5 h-5 text-green-500" />;
+      case 'class':
+        return <BookOpen className="w-5 h-5 text-indigo-500" />;
+      case 'meeting':
+        return <User className="w-5 h-5 text-orange-500" />;
+      case 'deadline':
+        return <Clock className="w-5 h-5 text-red-500" />;
       default:
-        return '📚';
+        return <FileText className="w-5 h-5 text-gray-500" />;
     }
   };
 
@@ -146,11 +183,28 @@ export const UpcomingAssessments: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="apple-card p-6">
-        <div className="flex items-center space-x-3 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
           <Calendar className="w-6 h-6 text-apple-blue-500" />
           <h2 className="text-xl font-medium text-apple-gray-600 dark:text-white">
             Upcoming Assessments
           </h2>
+          </div>
+          <div className="flex space-x-2">
+            <select className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm">
+              <option value="all">All Types</option>
+              <option value="quiz">Quizzes</option>
+              <option value="assignment">Assignments</option>
+              <option value="exam">Exams</option>
+              <option value="class">Classes</option>
+            </select>
+            <select className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm">
+              <option value="all">All Courses</option>
+              <option value="cs">Computer Science</option>
+              <option value="math">Mathematics</option>
+              <option value="physics">Physics</option>
+            </select>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -162,7 +216,9 @@ export const UpcomingAssessments: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl" role="img" aria-label={item.type}>
-                    {getTypeIcon(item.type)}
+                    <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                      {getTypeIcon(item.type)}
+                    </div>
                   </span>
                   <div>
                     <h3 className="font-medium text-apple-gray-600 dark:text-white text-lg">
@@ -178,11 +234,17 @@ export const UpcomingAssessments: React.FC = () => {
                   <div className="text-sm font-medium text-apple-blue-500">
                     {formatDate(item.dueDate)}
                   </div>
-                  {item.weightage && (
+                  <div className="flex items-center space-x-1">
+                    {item.type === 'quiz' || item.type === 'assignment' || item.type === 'exam' ? (
                     <div className="text-xs text-apple-gray-400 dark:text-apple-gray-300">
-                      Weight: {item.weightage}%
+                      {item.weightage ? `Weight: ${item.weightage}%` : ''}
                     </div>
-                  )}
+                    ) : (
+                      <div className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs uppercase">
+                        {item.type}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -201,10 +263,21 @@ export const UpcomingAssessments: React.FC = () => {
 
           {upcomingItems.length === 0 && (
             <div className="text-center py-8 text-apple-gray-400 dark:text-apple-gray-300">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p>No upcoming assessments</p>
             </div>
           )}
+        </div>
+        
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">
+              Showing {upcomingItems.length} upcoming items
+            </div>
+            <button className="text-sm text-apple-blue-500 hover:text-apple-blue-600 transition-colors">
+              View Calendar
+            </button>
+          </div>
         </div>
       </div>
     </div>

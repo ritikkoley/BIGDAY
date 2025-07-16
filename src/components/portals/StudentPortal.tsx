@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 
 // Student Components
-import { HomePage } from '../HomePage';
+import { HomePage } from '../HomePage'; 
 import { ProgressDashboard } from '../ProgressDashboard';
 import GradesView from '../GradesView';
 import { AttendanceView } from '../AttendanceView';
@@ -125,14 +125,6 @@ export const StudentPortal: React.FC = () => {
                   Home
                 </button>
                 <button
-                  onClick={() => handleTabChange('upcoming')}
-                  className={`apple-nav-button ${
-                    activeTab === 'upcoming' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
-                >
-                  Upcoming
-                </button>
-                <button
                   onClick={() => handleTabChange('progress')}
                   className={`apple-nav-button ${
                     activeTab === 'progress' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
@@ -216,12 +208,6 @@ export const StudentPortal: React.FC = () => {
                   Home
                 </button>
                 <button
-                  onClick={() => handleTabChange('upcoming')}
-                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
-                >
-                  Upcoming
-                </button>
-                <button
                   onClick={() => handleTabChange('progress')}
                   className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
                 >
@@ -262,12 +248,6 @@ export const StudentPortal: React.FC = () => {
           {activeTab === 'home' && (
             <HomePage
               studentName="Ritik Koley"
-              onViewGrades={handleViewGrades}
-              onViewAttendance={handleViewAttendance}
-            />
-          )}
-          {activeTab === 'upcoming' && (
-            <StudentTimetable
               onViewGrades={handleViewGrades}
               onViewAttendance={handleViewAttendance}
             />
@@ -316,17 +296,6 @@ export const StudentPortal: React.FC = () => {
           >
             <Home className="mobile-nav-icon" />
             <span className="mobile-nav-text">Home</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('upcoming')}
-            className={`mobile-nav-item ${
-              activeTab === 'upcoming'
-                ? 'text-apple-blue-500'
-                : 'text-apple-gray-400 dark:text-apple-gray-300'
-            }`}
-          >
-            <Home className="mobile-nav-icon" />
-            <span className="mobile-nav-text">Upcoming</span>
           </button>
           <button
             onClick={() => handleTabChange('progress')}
