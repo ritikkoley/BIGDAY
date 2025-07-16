@@ -80,13 +80,42 @@ export const useAuthStore = create<AuthState>()(
       signIn: async (email: string, password: string) => {
         try {
           set({ isLoading: true });
-          
-          console.log('Attempting to sign in with:', email);
 
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-          });
+          // Demo accounts for testing
+          const demoAccounts = {
+            'student@dpsb.edu': { role: 'student', name: 'Ritik Koley', id: 'student-1' },
+            'teacher@dpsb.edu': { role: 'teacher', name: 'Jagdeep Singh Sokhey', id: 'teacher-1' },
+            'admin@dpsb.edu': { role: 'admin', name: 'Admin User', id: 'admin-1' }
+          };
+          
+          // Check if using a demo account
+          if (demoAccounts[email] && password.includes('123')) {
+            // Mock successful login for demo accounts
+            const demoUser = {
+              id: demoAccounts[email].id,
+              email: email,
+              user_metadata: { name: demoAccounts[email].name }
+            };
+            
+            const demoProfile = {
+              id: demoAccounts[email].id,
+              name: demoAccounts[email].name,
+              role: demoAccounts[email].role,
+              status: 'active'
+            };
+            
+            set({
+              user: demoUser as User,
+              profile: demoProfile,
+              role: demoAccounts[email].role,
+              isLoading: false
+            });
+            
+            return;
+          }
+          
+          // Real authentication for non-demo accounts
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
           if (error) {
             console.error('Auth Error:', error.message);
@@ -188,6 +217,19 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         try {
           set({ isLoading: true });
+          
+          // Check if using a demo account
+          const { profile } = get();
+          if (profile?.id?.startsWith('student-') || profile?.id?.startsWith('teacher-') || profile?.id?.startsWith('admin-')) {
+            // Just clear the state for demo accounts
+            set({
+              user: null,
+              profile: null,
+              role: null,
+              isLoading: false
+            });
+            return;
+          }
 
           const { error } = await supabase.auth.signOut();
           if (error) throw error;
