@@ -78,6 +78,24 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Check if userId is a mock ID (not a valid UUID)
+      if (userId.startsWith('student-') || userId.startsWith('teacher-') || userId.startsWith('admin-')) {
+        // Set mock profile for demo purposes
+        const mockProfile = {
+          id: userId,
+          name: userId.includes('student') ? 'Demo Student' : userId.includes('teacher') ? 'Demo Teacher' : 'Demo Admin',
+          role: userId.includes('student') ? 'student' : userId.includes('teacher') ? 'teacher' : 'admin',
+          group_id: userId.includes('student') ? 'mock-group-id' : null,
+          department: null,
+          profile_data: {},
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        set({ profile: mockProfile, isLoading: false });
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -98,6 +116,13 @@ export const useDataStore = create<DataState>((set, get) => ({
   fetchCourses: async (userId: string, role: string) => {
     try {
       set({ isLoading: true, error: null });
+      
+      // Check if userId is a mock ID (not a valid UUID)
+      if (userId.startsWith('student-') || userId.startsWith('teacher-') || userId.startsWith('admin-')) {
+        // Set empty courses array for mock users
+        set({ courses: [], isLoading: false });
+        return;
+      }
       
       let query = supabase.from('courses').select('*');
       
