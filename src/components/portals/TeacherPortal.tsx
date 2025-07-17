@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
 import { useEffect } from 'react'; 
@@ -51,9 +51,11 @@ import {
 
 export const TeacherPortal: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signOut } = useAuthStore();
   const { fetchUserProfile, profile, unsubscribeAll } = useDataStore();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,11 +64,20 @@ export const TeacherPortal: React.FC = () => {
   useEffect(() => {
     fetchTeacherProfile();
     
+    // Check URL parameters for studentId
+    const params = new URLSearchParams(location.search);
+    const studentId = params.get('studentId');
+    
+    if (studentId) {
+      setSelectedStudentId(studentId);
+      setActiveTab('performance');
+    }
+    
     // Cleanup all subscriptions when component unmounts
     return () => {
       unsubscribeAll();
     };
-  }, [unsubscribeAll]);
+  }, [location, unsubscribeAll]);
 
   const fetchTeacherProfile = async () => {
     try {
@@ -326,6 +337,7 @@ export const TeacherPortal: React.FC = () => {
           {activeTab === 'performance' && (
             <TeacherPerformanceView
               teacherId={displayProfile.id}
+              studentId={selectedStudentId}
               metrics={sampleTeacherPerformanceMetrics}
               analytics={samplePerformanceAnalytics}
             />

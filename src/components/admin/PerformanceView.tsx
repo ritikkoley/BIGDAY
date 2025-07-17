@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { TrendingUp, Users } from 'lucide-react';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
 import { PerformanceReport } from '../PerformanceReport';
@@ -7,6 +8,24 @@ import { sampleGrades, performanceMetrics } from '../../data/sampleData';
 
 export const PerformanceView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'teachers' | 'students'>('teachers');
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('teacher-1');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('student-1');
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Check URL parameters for teacherId or studentId
+    const params = new URLSearchParams(location.search);
+    const teacherId = params.get('teacherId');
+    const studentId = params.get('studentId');
+    
+    if (teacherId) {
+      setSelectedTeacherId(teacherId);
+      setActiveTab('teachers');
+    } else if (studentId) {
+      setSelectedStudentId(studentId);
+      setActiveTab('students');
+    }
+  }, [location]);
 
   return (
     <div className="space-y-6">
@@ -57,13 +76,15 @@ export const PerformanceView: React.FC = () => {
       <div>
         {activeTab === 'teachers' ? (
           <TeacherPerformanceView
-            teacherId="t-001"
+            teacherId={selectedTeacherId}
             metrics={sampleTeacherPerformanceMetrics}
             analytics={samplePerformanceAnalytics}
           />
         ) : (
           <PerformanceReport
-            studentName="Ritik Koley"
+            studentName={selectedStudentId === 'student-1' ? 'Ritik Koley' : 
+                         selectedStudentId === 'student-2' ? 'Alex Johnson' : 
+                         selectedStudentId === 'student-3' ? 'Sarah Williams' : 'Student'}
             metrics={performanceMetrics}
             grades={sampleGrades}
           />

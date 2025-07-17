@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside';
 import { useSearchStore } from '../../stores/searchStore';
+import { useNavigate } from 'react-router-dom';
 import { SearchResults } from './SearchResults';
 
 interface SearchBarProps {
@@ -17,6 +18,7 @@ interface SearchBarProps {
 
 export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, role }) => {
   const [query, setQuery] = useState('');
+  const navigate = useNavigate();
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +70,21 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, role }) => {
   };
 
   const handleResultClick = (result: any) => {
-    console.log('Selected result:', result);
+    // Navigate to the appropriate view based on the result type
+    if (result.type === 'student') {
+      if (role === 'teacher' || role === 'admin') {
+        // Navigate to student performance view
+        navigate(`/teacher/performance?studentId=${result.id}`);
+      }
+    } else if (result.type === 'teacher') {
+      if (role === 'admin') {
+        // Navigate to teacher performance view
+        navigate(`/admin/performance?teacherId=${result.id}`);
+      }
+    } else if (result.type === 'course') {
+      // Navigate to course view
+      navigate(`/${role}/grades?courseId=${result.id}`);
+    }
     setShowResults(false);
   };
 
