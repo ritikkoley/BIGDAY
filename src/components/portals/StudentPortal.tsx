@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 
 // Student Components
 import { HomePage } from '../HomePage'; 
@@ -42,10 +43,18 @@ import {
 export const StudentPortal: React.FC = () => {
   const navigate = useNavigate();
   const { signOut, user } = useAuthStore();
+  const { fetchUserProfile, profile, fetchCourses, courses } = useDataStore();
   const [activeTab, setActiveTab] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile(user.id);
+      fetchCourses(user.id, 'student');
+    }
+  }, [user, fetchUserProfile, fetchCourses]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -247,7 +256,7 @@ export const StudentPortal: React.FC = () => {
         <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
           {activeTab === 'home' && (
             <HomePage
-              studentName="Ritik Koley"
+              studentName={profile?.name || "Student"}
               onViewGrades={handleViewGrades}
               onViewAttendance={handleViewAttendance}
             />
@@ -257,7 +266,7 @@ export const StudentPortal: React.FC = () => {
           )}
           {activeTab === 'study-vault' && (
             <StudyVault
-              studentName="Ritik Koley"
+              studentName={profile?.name || "Student"}
               data={sampleStudyVaultData}
               onUploadAssignment={async () => {}}
               onDownloadMaterial={async () => {}}
@@ -265,14 +274,14 @@ export const StudentPortal: React.FC = () => {
           )}
           {activeTab === 'grades' && (
             <GradesView
-              studentName="Ritik Koley"
+              studentName={profile?.name || "Student"}
               grades={sampleGrades}
               selectedSubject={selectedSubject}
             />
           )}
           {activeTab === 'attendance' && (
             <AttendanceView
-              studentName="Ritik Koley"
+              studentName={profile?.name || "Student"}
               attendance={sampleAttendance}
               selectedSubject={selectedSubject}
             />

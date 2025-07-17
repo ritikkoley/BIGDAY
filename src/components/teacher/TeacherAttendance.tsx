@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { TeacherProfile, StudentRecord, AttendanceSession } from '../../types/teacher';
 import { UserCheck, Users, Clock, Calendar, CheckCircle2, XCircle, AlertTriangle, Plus } from 'lucide-react';
 import { format } from 'date-fns';
@@ -15,6 +18,8 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
   attendanceSessions,
   studentRecords
 }) => {
+  const { user } = useAuthStore();
+  const { fetchAttendance, attendance } = useDataStore();
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
   const [showAttendanceEntry, setShowAttendanceEntry] = useState(false);
@@ -27,6 +32,7 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
     if (selectedSubject) {
       fetchAttendanceSessions(selectedSubject);
       fetchStudentRecords(selectedSubject);
+      if (user) fetchAttendance(user.id, selectedSubject);
     }
   }, [selectedSubject]);
 
@@ -81,6 +87,14 @@ export const TeacherAttendance: React.FC<TeacherAttendanceProps> = ({
     };
     return colors[status];
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

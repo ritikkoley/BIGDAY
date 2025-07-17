@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { TeacherProfile, Resource } from '../../types/teacher';
 import { BookOpen, Download, Upload, Clock, Users, Eye, EyeOff } from 'lucide-react';
-import { useEffect } from 'react';
 import { format } from 'date-fns';
 
 interface TeacherResourcesProps {
@@ -13,6 +15,8 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
   profile,
   resources
 }) => {
+  const { user } = useAuthStore();
+  const { fetchResources } = useDataStore();
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [activeTab, setActiveTab] = useState<'all' | 'documents' | 'assignments'>('all');
   const [realResources, setRealResources] = useState<Resource[]>([]);
@@ -27,7 +31,7 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
 
   useEffect(() => {
     if (selectedSubject) {
-      fetchResources(selectedSubject);
+      if (user) fetchResources(selectedSubject);
     }
   }, [selectedSubject]);
 
@@ -111,6 +115,14 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
     if (activeTab === 'documents') return resource.type === 'document' || resource.type === 'video';
     return resource.type === 'assignment';
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

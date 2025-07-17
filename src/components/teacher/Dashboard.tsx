@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { LayoutDashboard, Clock, Users, AlertTriangle, CheckCircle2, TrendingUp, BookOpen, GraduationCap } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -275,6 +276,7 @@ const PerformanceMetrics: React.FC<{
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
+  const { fetchCourses, courses, getAtRiskStudents, getTopPerformers } = useDataStore();
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     upcomingClasses: [],
     pendingTasks: [],
@@ -289,34 +291,16 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      fetchCourses();
+      fetchCourses(user.id, 'teacher');
     }
-  }, [user]);
+  }, [user, fetchCourses]);
 
-  const fetchCourses = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Get teacher's courses
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('teacher_id', user?.id);
-      
-      if (coursesError) throw coursesError;
-      
-      if (courses && courses.length > 0) {
-        setSelectedCourse(courses[0].id);
-        await fetchDashboardData(courses);
-      }
-      
-    } catch (err) {
-      console.error('Error fetching courses:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch courses');
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (courses.length > 0) {
+      setSelectedCourse(courses[0].id);
+      fetchDashboardData(courses);
     }
-  };
+  }, [courses]);
 
   const fetchDashboardData = async (courses: any[]) => {
     try {
@@ -481,19 +465,11 @@ export const Dashboard: React.FC = () => {
       
       // Get at-risk students and top performers for the first course
       if (courses.length > 0) {
-        const { data: atRisk, error: atRiskError } = await supabase
-          .rpc('get_at_risk', { crs_id: courses[0].id });
+        const atRisk = await getAtRiskStudents(courses[0].id);
+        setAtRiskStudents(atRisk || []);
         
-        if (!atRiskError) {
-          setAtRiskStudents(atRisk || []);
-        }
-        
-        const { data: top, error: topError } = await supabase
-          .rpc('get_top_performers', { crs_id: courses[0].id });
-        
-        if (!topError) {
-          setTopPerformers(top || []);
-        }
+        const top = await getTopPerformers(courses[0].id);
+        setTopPerformers(top || []);
       }
       
       // Update dashboard data
@@ -517,7 +493,7 @@ export const Dashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
       </div>
     );

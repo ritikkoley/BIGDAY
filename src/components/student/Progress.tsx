@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { CircularProgress } from '../CircularProgress';
 import { TrendingUp, Brain, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface SubtopicProgress {
 
 export const Progress: React.FC = () => {
   const { user } = useAuthStore();
+  const { fetchCourses, courses } = useDataStore();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [progress, setProgress] = useState<SubtopicProgress>({});
@@ -29,50 +31,33 @@ export const Progress: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      fetchSubjects();
+      fetchCourses(user.id, 'student');
+      fetchSubjectsFromCourses();
     }
-  }, [user]);
+  }, [user, fetchCourses, courses]);
+
+  const fetchSubjectsFromCourses = () => {
+    if (courses && courses.length > 0) {
+      const mappedSubjects = courses.map(course => ({
+        id: course.id,
+        name: course.name,
+        code: course.code,
+        subtopics: course.subtopics || []
+      }));
+      
+      setSubjects(mappedSubjects);
+      
+      if (mappedSubjects.length > 0 && !selectedSubject) {
+        setSelectedSubject(mappedSubjects[0].id);
+      }
+    }
+  };
 
   useEffect(() => {
     if (selectedSubject) {
       fetchProgress(selectedSubject);
     }
   }, [selectedSubject]);
-
-  const fetchSubjects = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Get user's group_id
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('group_id')
-        .eq('id', user?.id)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      // Get courses for the user's group
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('id, name, code, subtopics')
-        .contains('group_ids', [profile?.group_id]);
-      
-      if (coursesError) throw coursesError;
-      
-      setSubjects(courses || []);
-      
-      if (courses && courses.length > 0) {
-        setSelectedSubject(courses[0].id);
-      }
-      
-    } catch (err) {
-      console.error('Error fetching subjects:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch subjects');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchProgress = async (courseId: string) => {
     try {

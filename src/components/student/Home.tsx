@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { Calendar, Clock, MessageSquare, AlertTriangle, BookOpen, User } from 'lucide-react';
+import { useDataStore } from '../../stores/dataStore';
 import { format } from 'date-fns';
 
 interface UpcomingAssessment {
@@ -235,18 +236,18 @@ const MessagesChatComponent: React.FC<{
 
 export const Home: React.FC = () => {
   const { user } = useAuthStore();
+  const { fetchMessages, messages, isLoading: messagesLoading, error: messagesError } = useDataStore();
   const [upcoming, setUpcoming] = useState<UpcomingAssessment[]>([]);
   const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(messagesError);
 
   useEffect(() => {
     if (user) {
       fetchData();
-      subscribeToMessages();
+      fetchMessages(user.id);
     }
-  }, [user]);
+  }, [user, fetchMessages]);
 
   const fetchData = async () => {
     try {
@@ -292,61 +293,12 @@ export const Home: React.FC = () => {
       
       setTimetable(timetableEntries);
       
-      // Fetch messages
-      const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          sender:user_profiles!messages_sender_id_fkey(name, role)
-        `)
-        .or(`recipient_id.eq.${user?.id},group_id.eq.${
-          (await supabase
-            .from('user_profiles')
-            .select('group_id')
-            .eq('id', user?.id)
-            .single()
-          ).data?.group_id
-        }`)
-        .order('created_at', { ascending: false });
-      
-      if (messagesError) throw messagesError;
-      setMessages(messagesData || []);
-      
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const subscribeToMessages = () => {
-    const channel = supabase
-      .channel('messages-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'messages',
-          filter: `recipient_id=eq.${user?.id}`
-        }, 
-        payload => {
-          if (payload.eventType === 'INSERT') {
-            setMessages(prev => [payload.new as Message, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setMessages(prev => 
-              prev.map(msg => 
-                msg.id === payload.new.id ? { ...msg, ...payload.new } : msg
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   };
 
   const markMessageAsRead = async (id: string) => {
@@ -359,9 +311,7 @@ export const Home: React.FC = () => {
       if (error) throw error;
       
       // Update local state
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === id ? { ...msg, is_read: true } : msg
+      fetchMessages(user?.id || '');
         )
       );
     } catch (err) {
@@ -371,7 +321,7 @@ export const Home: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
       </div>
     );
@@ -409,7 +359,7 @@ export const Home: React.FC = () => {
       </div>
 
       <MessagesChatComponent 
-        messages={messages} 
+        messages={messages as Message[]} 
         markRead={markMessageAsRead} 
       />
     </div>

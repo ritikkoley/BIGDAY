@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { TeacherProfile, StudentRecord, GradingSession } from '../../types/teacher';
 import { GraduationCap, Clock, Users, CheckCircle2, XCircle, AlertTriangle, Plus, Download, Upload, FileSpreadsheet } from 'lucide-react';
 import { format } from 'date-fns';
@@ -17,6 +20,7 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
   gradingSessions,
   studentRecords
 }) => {
+  const { user } = useAuthStore();
   const [selectedSubject, setSelectedSubject] = useState(profile.subjects[0]?.id);
   const [selectedSession, setSelectedSession] = useState<GradingSession | null>(null);
   const [activeView, setActiveView] = useState<'sessions' | 'create-exam' | 'manual-entry' | 'bulk-upload'>('sessions');
@@ -132,6 +136,14 @@ export const TeacherGrading: React.FC<TeacherGradingProps> = ({
       ? 'text-green-500 dark:text-green-400'
       : 'text-yellow-500 dark:text-yellow-400';
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

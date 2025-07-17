@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { TrendingUp, Target, Award, AlertTriangle } from 'lucide-react';
 import { CircularProgress } from '../CircularProgress';
 
@@ -46,6 +49,8 @@ interface GradeProjection {
 }
 
 export const StudentProgress: React.FC = () => {
+  const { user } = useAuthStore();
+  const { fetchCourses, courses } = useDataStore();
   const [progressData, setProgressData] = useState<ProgressData[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [subtopicData, setSubtopicData] = useState<SubtopicPerformance[]>([]);
@@ -54,8 +59,11 @@ export const StudentProgress: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProgressData();
-  }, []);
+    if (user) {
+      fetchCourses(user.id, 'student');
+      fetchProgressData();
+    }
+  }, [user, fetchCourses]);
 
   useEffect(() => {
     if (selectedCourse) {
@@ -185,7 +193,7 @@ export const StudentProgress: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="apple-card p-6">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -224,6 +232,19 @@ export const StudentProgress: React.FC = () => {
         
         <div className="flex space-x-2 overflow-x-auto pb-2">
           {progressData.map((course) => (
+            <button
+              key={course.course_id}
+              onClick={() => setSelectedCourse(course.course_id)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                selectedCourse === course.course_id
+                  ? 'bg-apple-blue-500 text-white'
+                  : 'bg-apple-gray-100 dark:bg-apple-gray-600/50 text-apple-gray-600 dark:text-apple-gray-300'
+              }`}
+            >
+              {course.course_name}
+            </button>
+          ))}
+          {courses.map((course) => (
             <button
               key={course.course_id}
               onClick={() => setSelectedCourse(course.course_id)}

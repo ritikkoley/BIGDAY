@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen } from 'lucide-react';
 
 interface AttendanceRecord {
@@ -25,49 +26,38 @@ interface CourseAttendance {
 
 export const Attendance: React.FC = () => {
   const { user } = useAuthStore();
+  const { fetchCourses, courses, fetchAttendance, attendance } = useDataStore();
   const [attendanceData, setAttendanceData] = useState<CourseAttendance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
-      fetchAttendanceData();
+      fetchCourses(user.id, 'student');
+      fetchAttendance(user.id);
     }
-  }, [user]);
+  }, [user, fetchCourses]);
 
-  const fetchAttendanceData = async () => {
+  useEffect(() => {
+    if (courses.length > 0 && attendance.length > 0) {
+      processAttendanceData();
+    }
+  }, [courses, attendance]);
+
+  const processAttendanceData = async () => {
     try {
       setIsLoading(true);
       
-      // Get user's courses
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('group_id')
-        .eq('id', user?.id)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('id, name')
-        .contains('group_ids', [profile?.group_id]);
-      
-      if (coursesError) throw coursesError;
-      
-      // For each course, get attendance records
-      const attendancePromises = courses?.map(async (course) => {
-        const { data: records, error: recordsError } = await supabase
-          .from('attendance')
-          .select('*')
-          .eq('student_id', user?.id)
-          .eq('course_id', course.id);
-        
-        if (recordsError) throw recordsError;
+      // Process attendance data for each course
+      const attendanceResults = courses.map(course => {
+        // Filter attendance records for this course
+        const courseAttendance = attendance.filter(record => record.course_id === course.id);
         
         // Calculate attendance statistics
-        const totalClasses = records?.length || 0;
-        const attendedClasses = records?.filter(r => r.status === 'present' || r.status === 'late').length || 0;
+        const totalClasses = courseAttendance.length || 0;
+        const attendedClasses = courseAttendance.filter(r => 
+          r.status === 'present' || r.status === 'late'
+        ).length || 0;
         const missedClasses = totalClasses - attendedClasses;
         const attendanceRate = totalClasses > 0 ? (attendedClasses / totalClasses) * 100 : 0;
         
@@ -87,7 +77,7 @@ export const Attendance: React.FC = () => {
           ? Math.ceil((0.75 * projectedTotal - attendedClasses) / 0.9)
           : 0;
         
-        return {
+        const result: CourseAttendance = {
           course_id: course.id,
           course_name: course.name,
           total_classes: totalClasses,
@@ -99,9 +89,10 @@ export const Attendance: React.FC = () => {
           is_at_risk: isAtRisk,
           classes_needed: classesNeeded
         };
-      }) || [];
+        return result;
+      });
       
-      const attendanceResults = await Promise.all(attendancePromises);
+      // Set the processed attendance data
       setAttendanceData(attendanceResults);
       
     } catch (err) {
@@ -126,7 +117,7 @@ export const Attendance: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-apple-blue-500"></div>
       </div>
     );

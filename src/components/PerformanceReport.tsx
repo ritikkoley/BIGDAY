@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useDataStore } from '../stores/dataStore';
 import { Trophy, Target, Calendar, AlertTriangle, ChevronDown, ChevronUp, Zap, TrendingUp, CheckCircle2, XCircle as XCircle2, ArrowUp, BookOpen, Star, Brain, Clock, Lightbulb, GraduationCap, BookMarked, History } from 'lucide-react';
 import { PerformanceMetrics, Grade } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
@@ -79,8 +81,16 @@ export const PerformanceReport: React.FC<PerformanceReportProps> = ({
   metrics,
   grades
 }) => {
+  const { user } = useAuthStore();
+  const { fetchGrades } = useDataStore();
   const [activeTab, setActiveTab] = useState<'current' | 'historic'>('current');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchGrades(user.id);
+    }
+  }, [user, fetchGrades]);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);

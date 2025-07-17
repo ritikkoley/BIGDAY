@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { Trophy, Target, Calendar, TrendingUp, ChevronDown, ChevronUp, Brain, Lightbulb, Clock, BookOpen, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -270,6 +271,7 @@ const HistoricTab: React.FC<{
 
 export const Performance: React.FC = () => {
   const { user } = useAuthStore();
+  const { fetchCourses, courses } = useDataStore();
   const [activeTab, setActiveTab] = useState<'current' | 'historic'>('current');
   const [courses, setCourses] = useState<{ id: string; name: string }[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
@@ -287,7 +289,15 @@ export const Performance: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      fetchCourses();
+      fetchCourses(user.id, 'student');
+    }
+  }, [user, fetchCourses]);
+
+  useEffect(() => {
+    if (courses.length > 0) {
+      processCoursesIntoProgressData();
+    }
+  }, [courses]);
     }
   }, [user]);
 
@@ -297,7 +307,7 @@ export const Performance: React.FC = () => {
     }
   }, [selectedCourse]);
 
-  const fetchCourses = async () => {
+  const processCoursesIntoProgressData = async () => {
     try {
       setIsLoading(true);
       
@@ -320,8 +330,8 @@ export const Performance: React.FC = () => {
       
       setCourses(data || []);
       
-      if (data && data.length > 0) {
-        setSelectedCourse(data[0].id);
+      if (courses.length > 0 && !selectedCourse) {
+        setSelectedCourse(courses[0].id);
       }
       
     } catch (err) {
@@ -422,7 +432,7 @@ export const Performance: React.FC = () => {
 
   if (error && courses.length === 0) {
     return (
-      <div className="apple-card p-6">
+      <div className="flex items-center justify-center py-12">
         <div className="flex items-center space-x-2 text-red-500">
           <TrendingUp className="w-5 h-5" />
           <span>Error: {error}</span>
@@ -455,6 +465,19 @@ export const Performance: React.FC = () => {
       {/* Course Selection */}
       <div className="apple-card p-6">
         <div className="flex space-x-2 overflow-x-auto pb-2">
+          {courses.map((course) => (
+            <button
+              key={course.course_id}
+              onClick={() => setSelectedCourse(course.course_id)}
+              className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                selectedCourse === course.course_id
+                  ? 'bg-apple-blue-500 text-white'
+                  : 'bg-apple-gray-100 dark:bg-apple-gray-600/50 text-apple-gray-600 dark:text-apple-gray-300'
+              }`}
+            >
+              {course.course_name}
+            </button>
+          ))}
           {courses.map((course) => (
             <button
               key={course.id}

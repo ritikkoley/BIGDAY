@@ -152,7 +152,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   fetchGrades: async (studentId: string, courseId?: string) => {
     try {
       set({ isLoading: true, error: null });
-      
+
       let query = supabase
         .from('grades')
         .select(`
@@ -168,9 +168,12 @@ export const useDataStore = create<DataState>((set, get) => ({
 
       if (courseId) {
         query = query.eq('assessments.course_id', courseId);
+      } else {
+        // If no courseId is provided, get all grades for the student
+        query = query.order('graded_at', { ascending: false });
       }
       
-      const { data, error } = await query;
+      const { data, error } = await query.limit(50);
       if (error) throw error;
       
       set({ grades: data || [], isLoading: false });
@@ -194,8 +197,9 @@ export const useDataStore = create<DataState>((set, get) => ({
       if (courseId) {
         query = query.eq('course_id', courseId);
       }
+      query = query.order('date', { ascending: false });
       
-      const { data, error } = await query.order('date', { ascending: false });
+      const { data, error } = await query.limit(50);
       if (error) throw error;
       
       set({ attendance: data || [], isLoading: false });
@@ -223,8 +227,9 @@ export const useDataStore = create<DataState>((set, get) => ({
       } else {
         query = query.eq('recipient_id', userId);
       }
+      query = query.order('created_at', { ascending: false });
       
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query.limit(20);
       if (error) throw error;
       
       set({ messages: data || [], isLoading: false });
@@ -240,14 +245,14 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      const { data, error } = await supabase
+      const query = supabase
         .from('resources')
         .select('*')
         .eq('course_id', courseId)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
+        .eq('is_public', true);
 
-      if (error) throw error;
+      const { data, error: resourceError } = await query.order('created_at', { ascending: false }).limit(20);
+      if (resourceError) throw resourceError;
       
       set({ resources: data || [], isLoading: false });
     } catch (error) {
@@ -421,55 +426,187 @@ export const useDataStore = create<DataState>((set, get) => ({
   },
 
   // Analytics
-  getProjectedGrade: async (studentId, courseId) => {
+  getProjectedGrade: async (studentId: string, courseId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('calculate_projected_grade', {
-          stud_id: studentId,
-          crs_id: courseId
-        });
+      // Get all grades for the student in this course
+      const { data: grades, error: gradesError } = await supabase
+        .from('grades')
+        .select(`
+          score,
+          max_score,
+          assessments!inner(
+            weightage,
+            course_id
+          )
+        `)
+        .eq('student_id', studentId)
+        .eq('assessments.course_id', courseId);
 
-      if (error) throw error;
-      return data || 0;
+      if (gradesError) throw gradesError;
+      
+      if (!grades || grades.length === 0) return 0;
+      
+      // Calculate weighted average
+      let totalWeightedScore = 0;
+      let totalWeight = 0;
+      
+      grades.forEach(grade => {
+        const weightage = grade.assessments.weightage || 0;
+        const normalizedScore = (grade.score / grade.max_score) * 100;
+        totalWeightedScore += normalizedScore * weightage;
+        totalWeight += weightage;
+      });
+      
+      // If no weights, use simple average
+      if (totalWeight === 0) {
+        const avgScore = grades.reduce((sum, grade) => sum + (grade.score / grade.max_score) * 100, 0) / grades.length;
+        return avgScore;
+      }
+      
+      return totalWeightedScore / totalWeight;
+
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get projected grade' });
       return 0;
     }
   },
 
-  getAtRiskStudents: async (courseId) => {
+  getAtRiskStudents: async (courseId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_at_risk', { crs_id: courseId });
+      // Get all students in the course
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .select('group_ids')
+        .eq('id', courseId)
+        .single();
+      
+      if (courseError) throw courseError;
+      
+      if (!courseData || !courseData.group_ids || courseData.group_ids.length === 0) {
+        return [];
+      }
+      
+      // Get all students in these groups
+      const { data: students, error: studentsError } = await supabase
+        .from('user_profiles')
+        .select('id, name')
+        .eq('role', 'student')
+        .in('group_id', courseData.group_ids);
+      
+      if (studentsError) throw studentsError;
+      
+      if (!students || students.length === 0) {
+        return [];
+      }
+      
+      // For each student, get their average score in this course
+      const atRiskStudents = [];
+      
+      for (const student of students) {
+        const avgScore = await get().getProjectedGrade(student.id, courseId);
+        
+        // Consider students with score < 70 as at risk
+        if (avgScore < 70) {
+          atRiskStudents.push({
+            student_id: student.id,
+            avg_score: avgScore
+          });
+        }
+      }
+      
+      return atRiskStudents;
 
-      if (error) throw error;
-      return data || [];
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get at-risk students' });
       return [];
     }
   },
 
-  getTopPerformers: async (courseId) => {
+  getTopPerformers: async (courseId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_top_performers', { crs_id: courseId });
+      // Get all students in the course
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .select('group_ids')
+        .eq('id', courseId)
+        .single();
+      
+      if (courseError) throw courseError;
+      
+      if (!courseData || !courseData.group_ids || courseData.group_ids.length === 0) {
+        return [];
+      }
+      
+      // Get all students in these groups
+      const { data: students, error: studentsError } = await supabase
+        .from('user_profiles')
+        .select('id, name')
+        .eq('role', 'student')
+        .in('group_id', courseData.group_ids);
+      
+      if (studentsError) throw studentsError;
+      
+      if (!students || students.length === 0) {
+        return [];
+      }
+      
+      // For each student, get their average score in this course
+      const studentScores = [];
+      
+      for (const student of students) {
+        const avgScore = await get().getProjectedGrade(student.id, courseId);
+        studentScores.push({
+          student_id: student.id,
+          avg_score: avgScore
+        });
+      }
+      
+      // Sort by score and take top 20%
+      studentScores.sort((a, b) => b.avg_score - a.avg_score);
+      const topCount = Math.max(1, Math.ceil(studentScores.length * 0.2));
+      
+      return studentScores.slice(0, topCount);
 
-      if (error) throw error;
-      return data || [];
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get top performers' });
       return [];
     }
   },
 
-  getCourseAverage: async (courseId) => {
+  getCourseAverage: async (courseId: string) => {
     try {
-      const { data, error } = await supabase
-        .rpc('calculate_course_avg', { crs_id: courseId });
+      // Get all grades for this course
+      const { data: assessments, error: assessmentsError } = await supabase
+        .from('assessments')
+        .select('id')
+        .eq('course_id', courseId);
+      
+      if (assessmentsError) throw assessmentsError;
+      
+      if (!assessments || assessments.length === 0) {
+        return 0;
+      }
+      
+      const assessmentIds = assessments.map(a => a.id);
+      
+      const { data: grades, error: gradesError } = await supabase
+        .from('grades')
+        .select('score, max_score')
+        .in('assessment_id', assessmentIds);
+      
+      if (gradesError) throw gradesError;
+      
+      if (!grades || grades.length === 0) {
+        return 0;
+      }
+      
+      // Calculate average as percentage
+      const totalPercentage = grades.reduce((sum, grade) => {
+        return sum + (grade.score / grade.max_score) * 100;
+      }, 0);
+      
+      return totalPercentage / grades.length;
 
-      if (error) throw error;
-      return data || 0;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get course average' });
       return 0;

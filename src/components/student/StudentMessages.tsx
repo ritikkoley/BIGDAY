@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { MessageSquare, Send, User, Clock, AlertTriangle } from 'lucide-react';
 
 interface Message {
@@ -19,69 +22,31 @@ interface Message {
 }
 
 export const StudentMessages: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { user } = useAuthStore();
+  const { fetchMessages, messages, isLoading: messagesLoading, error: messagesError } = useDataStore();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(messagesLoading);
+  const [error, setError] = useState<string | null>(messagesError);
 
   useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  const fetchMessages = async () => {
-    try {
-      setIsLoading(true);
-      // Mock data instead of fetching from Supabase
-      const mockMessages: Message[] = [
-        {
-          id: 'm1',
-          sender_id: 't1',
-          recipient_id: 's1',
-          group_id: null,
-          subject: 'Upcoming Quiz',
-          content: 'Please be prepared for the upcoming quiz on neural networks. Focus on activation functions and gradient descent.',
-          priority: 'high',
-          is_read: false,
-          message_type: 'direct',
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            name: 'Professor Jagdeep Singh Sokhey',
-            role: 'teacher'
-          }
-        },
-        {
-          id: 'm2',
-          sender_id: 't1',
-          recipient_id: 's1',
-          group_id: null,
-          subject: 'Office Hours',
-          content: 'Office hours extended today until 5 PM for Linear Algebra consultation.',
-          priority: 'medium',
-          is_read: true,
-          message_type: 'direct',
-          created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            name: 'Professor Jagdeep Singh Sokhey',
-            role: 'teacher'
-          }
-        }
-      ];
-      setMessages(mockMessages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch messages');
-    } finally {
-      setIsLoading(false);
+    if (user) {
+      fetchMessages(user.id);
     }
-  };
+  }, [user, fetchMessages]);
 
   const markAsRead = async (messageId: string) => {
     try {
-      // Update local state
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId ? { ...msg, is_read: true } : msg
-        )
-      );
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId);
+      
+      if (error) throw error;
+      
+      // Refresh messages
+      if (user) {
+        fetchMessages(user.id);
+      }
     } catch (err) {
       console.error('Error marking message as read:', err);
     }
@@ -132,7 +97,7 @@ export const StudentMessages: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="apple-card p-6">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="space-y-3">
@@ -174,7 +139,7 @@ export const StudentMessages: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Message List */}
           <div className="lg:col-span-1 space-y-3 max-h-96 overflow-y-auto">
-            {messages.map((message) => (
+            {(messages as Message[]).map((message) => (
               <button
                 key={message.id}
                 onClick={() => {
