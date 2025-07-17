@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
 import { MessageSquare, Send, User, Clock, AlertTriangle } from 'lucide-react';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  recipient_id: string | null;
+  group_id: string | null;
+  subject: string;
+  content: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  is_read: boolean;
+  message_type: 'direct' | 'announcement' | 'reminder' | 'alert';
+  created_at: string;
+  sender: {
+    name: string;
+    role: string;
+  };
+}
 
 interface Message {
   id: string;
@@ -28,7 +45,7 @@ export const StudentMessages: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(messagesLoading);
   const [error, setError] = useState<string | null>(messagesError);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (user) {
       fetchMessages(user.id);
     }
