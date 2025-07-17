@@ -298,6 +298,10 @@ export const Performance: React.FC = () => {
       processCoursesIntoProgressData();
     }
   }, [courses]);
+
+  useEffect(() => {
+    if (user) {
+      processCoursesIntoProgressData();
     }
   }, [user]);
 
