@@ -291,6 +291,13 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Check if this is a mock course ID (not a valid UUID)
+      if (!courseId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        // Return empty array for mock course IDs
+        set({ resources: [], isLoading: false });
+        return;
+      }
+      
       const query = supabase
         .from('resources')
         .select('*')
