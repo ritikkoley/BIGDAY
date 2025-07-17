@@ -323,6 +323,25 @@ export const Performance: React.FC = () => {
     try {
       setIsLoading(true);
       
+      // Check if user ID is a mock ID (not a valid UUID)
+      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
+        // Use mock data for demo accounts
+        const mockCourses = [
+          { id: 'course-1', name: 'Mathematics' },
+          { id: 'course-2', name: 'Physics' },
+          { id: 'course-3', name: 'Chemistry' }
+        ];
+        
+        setCoursesData(mockCourses);
+        
+        if (!selectedCourse) {
+          setSelectedCourse(mockCourses[0].id);
+        }
+        
+        setIsLoading(false);
+        return;
+      }
+      
       // Get user's group_id
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
@@ -357,6 +376,37 @@ export const Performance: React.FC = () => {
   const fetchPerformanceData = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if user ID is a mock ID (not a valid UUID)
+      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
+        // Use mock data for demo accounts
+        setProjected(85.5);
+        setNeeded({ current: 82, needed: 88, target: 90, remaining_weight: 0.4 });
+        setPlan({
+          weak_areas: ['Calculus', 'Trigonometry'],
+          specific_recommendations: [
+            {
+              subtopic: 'Derivatives',
+              recommendation: 'Practice more chain rule problems',
+              priority: 'high',
+              estimated_hours: 2
+            }
+          ],
+          general_tips: ['Review notes daily', 'Practice past papers'],
+          total_recommended_hours: 8
+        });
+        
+        // Mock historic data
+        const mockHistoric = [
+          { year: 2022, avg: 78 },
+          { year: 2023, avg: 82 },
+          { year: 2024, avg: 85 }
+        ];
+        setHistoric(mockHistoric);
+        
+        setIsLoading(false);
+        return;
+      }
       
       // Get projected grade
       const { data: projectedData, error: projectedError } = await supabase
