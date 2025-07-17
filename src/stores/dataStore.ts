@@ -178,6 +178,13 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
+      // Check if studentId is a mock ID (not a valid UUID)
+      if (studentId.startsWith('student-') || studentId.startsWith('teacher-') || studentId.startsWith('admin-')) {
+        // Return empty array for mock users
+        set({ grades: [], isLoading: false });
+        return;
+      }
+
       let query = supabase
         .from('grades')
         .select(`
@@ -214,6 +221,13 @@ export const useDataStore = create<DataState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
+      // Check if studentId is a mock ID (not a valid UUID)
+      if (studentId.startsWith('student-') || studentId.startsWith('teacher-') || studentId.startsWith('admin-')) {
+        // Return empty array for mock users
+        set({ attendance: [], isLoading: false });
+        return;
+      }
+      
       let query = supabase
         .from('attendance')
         .select('*')
@@ -239,6 +253,13 @@ export const useDataStore = create<DataState>((set, get) => ({
   fetchMessages: async (userId: string, groupId?: string) => {
     try {
       set({ isLoading: true, error: null });
+      
+      // Check if userId is a mock ID (not a valid UUID)
+      if (userId.startsWith('student-') || userId.startsWith('teacher-') || userId.startsWith('admin-')) {
+        // Return empty array for mock users
+        set({ messages: [], isLoading: false });
+        return;
+      }
       
       let query = supabase
         .from('messages')
