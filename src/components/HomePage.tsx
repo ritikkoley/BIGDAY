@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StudentTimetable } from './student/StudentTimetable';
 import { AttendanceWarnings } from './student/AttendanceWarnings';
 import { UpcomingAssessments } from './student/UpcomingAssessments';
+import { StudentMessages } from './student/StudentMessages';
 import { Clock, Calendar, BookOpen, GraduationCap, MessageSquare, Bell, AlertTriangle, CheckCircle2, ChevronRight, Microscope, FileText } from 'lucide-react';
 
 interface HomePageProps {
@@ -15,7 +16,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   onViewGrades,
   onViewAttendance
 }) => {
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'timetable' | 'attendance'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'timetable' | 'attendance' | 'messages'>('upcoming');
   
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -119,6 +120,20 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
           )}
         </button>
+        <button
+          onClick={() => setActiveTab('messages')}
+          className={`px-4 py-2 text-sm font-medium transition-colors relative flex items-center space-x-2 ${
+            activeTab === 'messages'
+              ? 'text-apple-blue-500'
+              : 'text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>Messages</span>
+          {activeTab === 'messages' && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-apple-blue-500" />
+          )}
+        </button>
       </div>
 
       {/* Content */}
@@ -133,6 +148,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         {activeTab === 'attendance' && (
           <AttendanceWarnings />
+        )}
+        
+        {activeTab === 'messages' && (
+          <StudentMessages />
         )}
       </div>
     </div>
