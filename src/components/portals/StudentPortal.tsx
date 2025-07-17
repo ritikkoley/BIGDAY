@@ -287,7 +287,11 @@ export const StudentPortal: React.FC = () => {
             />
           )}
           {activeTab === 'performance' && (
-            <StudentMessages />
+            <PerformanceReport
+              studentName={profile?.name || "Student"}
+              metrics={performanceMetrics}
+              grades={sampleGrades}
+            />
           )}
         </main>
       </div>
