@@ -329,7 +329,7 @@ export const TeacherPortal: React.FC = () => {
             <TeacherProfile
               profile={displayProfile}
             />
-      <div className="flex items-center justify-center py-12">
+          )}
         </main>
       </div>
 
