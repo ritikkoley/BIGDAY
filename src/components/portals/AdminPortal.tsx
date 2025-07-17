@@ -27,7 +27,7 @@ import {
 
 export const AdminPortal: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuthStore();
+  const { signOut, user } = useAuthStore();
   const { fetchUserProfile, profile } = useDataStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
