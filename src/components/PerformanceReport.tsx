@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
 import { Trophy, Target, Calendar, AlertTriangle, ChevronDown, ChevronUp, Zap, TrendingUp, CheckCircle2, XCircle as XCircle2, ArrowUp, BookOpen, Star, Brain, Clock, Lightbulb, GraduationCap, BookMarked, History } from 'lucide-react';
