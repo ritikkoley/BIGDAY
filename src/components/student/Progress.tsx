@@ -197,10 +197,7 @@ export const Progress: React.FC = () => {
               const demoSubtopic = demoSubtopics[subjectName as keyof typeof demoSubtopics]?.find(s => s.name === subtopic.name);
               const strengths = demoSubtopic?.strengths || ['Good understanding of core concepts'];
               const weaknesses = demoSubtopic?.weaknesses || [];
-            return (
-              <div 
-                key={index} 
-                className={`rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${bgPattern}`}
+              
               return (
                 <div 
                   key={index} 
@@ -209,42 +206,47 @@ export const Progress: React.FC = () => {
                   <button
                     onClick={() => setExpandedSubject(expandedSubject === subtopic.name ? null : subtopic.name)}
                     className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
-                        <div className="text-center">
-                          <span className={`text-2xl font-bold ${getProgressTextColor(subtopicProgress)}`}>
-                            {Math.round(subtopicProgress)}%
-                          </span>
-                        </div>
-                      </CircularProgress>
+                  >
+                    <div className="flex items-center space-x-6">
+                      <div className="w-32">
+                        <CircularProgress progress={subtopicProgress}>
+                          <div className="text-center">
+                            <span className={`text-2xl font-bold ${getProgressTextColor(subtopicProgress)}`}>
+                              {Math.round(subtopicProgress)}%
+                            </span>
+                          </div>
+                        </CircularProgress>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{subtopic.name}</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Weight: {(subtopic.weight * 100).toFixed(0)}% of course
+                        </p>
+                      </div>
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{subtopic.name}</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        Weight: {(subtopic.weight * 100).toFixed(0)}% of course
-                      </p>
+                      {expandedSubject === subtopic.name ? (
+                        <ChevronUp className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                      )}
                     </div>
-                  </div>
-                  <div>
-                    {expandedSubject === subtopic.name ? (
-                      <ChevronUp className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-gray-400 dark:text-gray-500" />
-                    )}
-                  </div>
-                </button>
+                  </button>
 
-                {expandedSubject === subtopic.name && (
-                  <div className="px-6 pb-6 animate-fadeIn">
-                    <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-6">
-                      <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
-                        Performance Analysis
-                      </h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex items-center space-x-2 mb-2">
-                            <BookOpen className="w-4 h-4 text-apple-blue-500" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">
-                              Strengths
-                            </span>
+                  {expandedSubject === subtopic.name && (
+                    <div className="px-6 pb-6 animate-fadeIn">
+                      <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-6">
+                        <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
+                          Performance Analysis
+                        </h3>
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <BookOpen className="w-4 h-4 text-apple-blue-500" />
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                Strengths
+                              </span>
+                            </div>
                             <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-sm">
                               {strengths.map((strength, i) => (
                                 <li key={i} className="flex items-start">
@@ -253,8 +255,7 @@ export const Progress: React.FC = () => {
                                 </li>
                               ))}
                             </ul>
-                          </p>
-                        </div>
+                          </div>
                           {weaknesses.length > 0 && (
                             <div>
                               <div className="flex items-center space-x-2 mb-2">
@@ -314,9 +315,9 @@ export const Progress: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              );
             })
           ) : (
             // If no subtopics are defined in the course, use demo data
