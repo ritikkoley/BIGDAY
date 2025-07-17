@@ -35,19 +35,6 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
     }
   }, [selectedSubject]);
 
-  const fetchResources = async (subjectId: string) => {
-    try {
-      setIsLoading(true);
-      // Use the sample data directly instead of fetching from Supabase
-      setRealResources(resources);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch resources');
-      console.error('Error fetching resources:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
