@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { useDataStore } from '../../stores/dataStore';
+import { useDataStore } from '../../stores/dataStore'; 
 import { Trophy, Target, Calendar, TrendingUp, ChevronDown, ChevronUp, Brain, Lightbulb, Clock, BookOpen, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -271,9 +271,9 @@ const HistoricTab: React.FC<{
 
 export const Performance: React.FC = () => {
   const { user } = useAuthStore();
-  const { fetchCourses, courses } = useDataStore();
+  const { fetchCourses, courses, subscribeToGrades, unsubscribeAll } = useDataStore();
   const [activeTab, setActiveTab] = useState<'current' | 'historic'>('current');
-  const [courses, setCourses] = useState<{ id: string; name: string }[]>([]);
+  const [coursesData, setCoursesData] = useState<{ id: string; name: string }[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [projected, setProjected] = useState<number>(0);
   const [needed, setNeeded] = useState<ProjectedGrade>({ current: 0, needed: 0, target: 90, remaining_weight: 0 });
@@ -290,8 +290,16 @@ export const Performance: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchCourses(user.id, 'student');
+      
+      // Subscribe to real-time grade updates
+      subscribeToGrades(user.id);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [user, fetchCourses]);
+  }, [user, fetchCourses, subscribeToGrades, unsubscribeAll]);
 
   useEffect(() => {
     if (courses.length > 0) {
@@ -325,17 +333,17 @@ export const Performance: React.FC = () => {
       if (profileError) throw profileError;
       
       // Get courses for the user's group
-      const { data, error } = await supabase
+      const { data, error: coursesError } = await supabase
         .from('courses')
         .select('id, name')
         .contains('group_ids', [profile?.group_id]);
       
-      if (error) throw error;
+      if (coursesError) throw coursesError;
       
-      setCourses(data || []);
+      setCoursesData(data || []);
       
-      if (courses.length > 0 && !selectedCourse) {
-        setSelectedCourse(courses[0].id);
+      if (data && data.length > 0 && !selectedCourse) {
+        setSelectedCourse(data[0].id);
       }
       
     } catch (err) {
@@ -471,18 +479,18 @@ export const Performance: React.FC = () => {
         <div className="flex space-x-2 overflow-x-auto pb-2">
           {courses.map((course) => (
             <button
-              key={course.course_id}
-              onClick={() => setSelectedCourse(course.course_id)}
+              key={course.id}
+              onClick={() => setSelectedCourse(course.id)}
               className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                selectedCourse === course.course_id
+                selectedCourse === course.id
                   ? 'bg-apple-blue-500 text-white'
                   : 'bg-apple-gray-100 dark:bg-apple-gray-600/50 text-apple-gray-600 dark:text-apple-gray-300'
               }`}
             >
-              {course.course_name}
+              {course.name}
             </button>
           ))}
-          {courses.map((course) => (
+          {coursesData.map((course) => (
             <button
               key={course.id}
               onClick={() => setSelectedCourse(course.id)}

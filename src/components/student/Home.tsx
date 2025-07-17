@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { Calendar, Clock, MessageSquare, AlertTriangle, BookOpen, User } from 'lucide-react';
-import { useDataStore } from '../../stores/dataStore';
+import { useDataStore } from '../../stores/dataStore'; 
 import { format } from 'date-fns';
 
 interface UpcomingAssessment {
@@ -236,7 +236,14 @@ const MessagesChatComponent: React.FC<{
 
 export const Home: React.FC = () => {
   const { user } = useAuthStore();
-  const { fetchMessages, messages, isLoading: messagesLoading, error: messagesError } = useDataStore();
+  const { 
+    fetchMessages, 
+    messages, 
+    subscribeToMessages, 
+    unsubscribeAll,
+    isLoading: messagesLoading, 
+    error: messagesError 
+  } = useDataStore();
   const [upcoming, setUpcoming] = useState<UpcomingAssessment[]>([]);
   const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -245,9 +252,16 @@ export const Home: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchData();
-      fetchMessages(user.id);
+      fetchMessages(user.id); 
+      // Subscribe to real-time updates for messages
+      subscribeToMessages(user.id);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [user, fetchMessages]);
+  }, [user, fetchMessages, subscribeToMessages, unsubscribeAll]);
 
   const fetchData = async () => {
     try {

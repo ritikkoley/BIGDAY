@@ -3,16 +3,13 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
 
-// Student Components
-import { HomePage } from '../HomePage'; 
-import { ProgressDashboard } from '../ProgressDashboard';
-import GradesView from '../GradesView';
-import { AttendanceView } from '../AttendanceView';
-import { PerformanceReport } from '../PerformanceReport';
-import { StudyVault } from '../StudyVault';
+// Student Components 
+import { Home } from '../student/Home';
 import { StudentProgress } from '../student/StudentProgress';
-import { StudentMessages } from '../student/StudentMessages';
-import { StudentTimetable } from '../student/StudentTimetable';
+import { StudyVault } from '../StudyVault';
+import { GradesView } from '../GradesView';
+import { AttendanceView } from '../AttendanceView';
+import { Performance } from '../student/Performance';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -42,8 +39,14 @@ import {
 
 export const StudentPortal: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut, user } = useAuthStore();
-  const { fetchUserProfile, profile, fetchCourses, courses } = useDataStore();
+  const { signOut, user } = useAuthStore(); 
+  const { 
+    fetchUserProfile, 
+    profile, 
+    fetchCourses, 
+    courses, 
+    unsubscribeAll 
+  } = useDataStore();
   const [activeTab, setActiveTab] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -53,8 +56,13 @@ export const StudentPortal: React.FC = () => {
     if (user) {
       fetchUserProfile(user.id);
       fetchCourses(user.id, 'student');
+      
+      // Cleanup all subscriptions when component unmounts
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [user, fetchUserProfile, fetchCourses]);
+  }, [user, fetchUserProfile, fetchCourses, unsubscribeAll]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -255,11 +263,7 @@ export const StudentPortal: React.FC = () => {
       <div className="min-h-screen pt-16">
         <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
           {activeTab === 'home' && (
-            <HomePage
-              studentName={profile?.name || "Student"}
-              onViewGrades={handleViewGrades}
-              onViewAttendance={handleViewAttendance}
-            />
+            <Home />
           )}
           {activeTab === 'progress' && (
             <StudentProgress />
@@ -282,16 +286,12 @@ export const StudentPortal: React.FC = () => {
           {activeTab === 'attendance' && (
             <AttendanceView
               studentName={profile?.name || "Student"}
-              attendance={sampleAttendance}
+              attendance={sampleAttendance} 
               selectedSubject={selectedSubject}
             />
           )}
           {activeTab === 'performance' && (
-            <PerformanceReport
-              studentName={profile?.name || "Student"}
-              metrics={performanceMetrics}
-              grades={sampleGrades}
-            />
+            <Performance />
           )}
         </main>
       </div>

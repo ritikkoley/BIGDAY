@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
-import { useEffect } from 'react';
+import { useEffect } from 'react'; 
 
 // Teacher Components
 import { TeacherDashboard } from '../teacher/TeacherDashboard';
@@ -52,7 +52,7 @@ import {
 export const TeacherPortal: React.FC = () => {
   const navigate = useNavigate();
   const { signOut } = useAuthStore();
-  const { fetchUserProfile, profile } = useDataStore();
+  const { fetchUserProfile, profile, unsubscribeAll } = useDataStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
@@ -61,7 +61,12 @@ export const TeacherPortal: React.FC = () => {
 
   useEffect(() => {
     fetchTeacherProfile();
-  }, []);
+    
+    // Cleanup all subscriptions when component unmounts
+    return () => {
+      unsubscribeAll();
+    };
+  }, [unsubscribeAll]);
 
   const fetchTeacherProfile = async () => {
     try {

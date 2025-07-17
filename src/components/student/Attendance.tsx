@@ -2,7 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
-import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  Calendar, 
+  CheckCircle2, 
+  Clock, 
+  School, 
+  XCircle, 
+  BookOpen 
+} from 'lucide-react';
 
 interface AttendanceRecord {
   id: string;
@@ -26,7 +34,7 @@ interface CourseAttendance {
 
 export const Attendance: React.FC = () => {
   const { user } = useAuthStore();
-  const { fetchCourses, courses, fetchAttendance, attendance } = useDataStore();
+  const { fetchAttendance, attendance, subscribeToAttendance, unsubscribeAll } = useDataStore();
   const [attendanceData, setAttendanceData] = useState<CourseAttendance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +43,15 @@ export const Attendance: React.FC = () => {
     if (user) {
       fetchCourses(user.id, 'student');
       fetchAttendance(user.id);
+      // Subscribe to real-time attendance updates
+      subscribeToAttendance(user.id);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [user, fetchCourses]);
+  }, [user, fetchAttendance, subscribeToAttendance, unsubscribeAll]);
 
   useEffect(() => {
     if (courses.length > 0 && attendance.length > 0) {

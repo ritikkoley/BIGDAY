@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 type Tables = Database['public']['Tables'];
 type UserProfile = Tables['user_profiles']['Row'];
@@ -21,6 +22,13 @@ interface DataState {
   messages: Message[];
   resources: Resource[];
   
+  // Realtime subscriptions
+  subscriptions: {
+    messages?: RealtimeChannel;
+    grades?: RealtimeChannel;
+    attendance?: RealtimeChannel;
+  };
+  
   // Loading states
   isLoading: boolean;
   error: string | null;
@@ -33,6 +41,12 @@ interface DataState {
   fetchAttendance: (studentId: string, courseId?: string) => Promise<void>;
   fetchMessages: (userId: string, groupId?: string) => Promise<void>;
   fetchResources: (courseId: string) => Promise<void>;
+
+  // Realtime subscriptions
+  subscribeToMessages: (userId: string) => void;
+  subscribeToGrades: (studentId: string) => void;
+  subscribeToAttendance: (studentId: string) => void;
+  unsubscribeAll: () => void;
   
   // CRUD operations
   createGrade: (grade: Tables['grades']['Insert']) => Promise<void>;
@@ -70,6 +84,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   attendance: [],
   messages: [],
   resources: [],
+  subscriptions: {},
   isLoading: false,
   error: null,
 
@@ -280,11 +295,129 @@ export const useDataStore = create<DataState>((set, get) => ({
       
       set({ messages: data || [], isLoading: false });
     } catch (error) {
+      console.error('Error fetching messages:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Failed to fetch messages', 
         isLoading: false 
       });
     }
+  },
+
+  // Realtime subscriptions
+  subscribeToMessages: (userId: string) => {
+    try {
+      // Unsubscribe from any existing subscription
+      const { subscriptions } = get();
+      if (subscriptions.messages) {
+        subscriptions.messages.unsubscribe();
+      }
+      
+      // Create a new subscription
+      const messagesSubscription = supabase
+        .channel('messages-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${userId}`
+        }, (payload) => {
+          // Refresh messages when a new one arrives
+          get().fetchMessages(userId);
+        })
+        .subscribe();
+      
+      // Update subscriptions
+      set({ 
+        subscriptions: { 
+          ...subscriptions, 
+          messages: messagesSubscription 
+        } 
+      });
+    } catch (error) {
+      console.error('Error subscribing to messages:', error);
+    }
+  },
+  
+  subscribeToGrades: (studentId: string) => {
+    try {
+      // Unsubscribe from any existing subscription
+      const { subscriptions } = get();
+      if (subscriptions.grades) {
+        subscriptions.grades.unsubscribe();
+      }
+      
+      // Create a new subscription
+      const gradesSubscription = supabase
+        .channel('grades-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'grades',
+          filter: `student_id=eq.${studentId}`
+        }, (payload) => {
+          // Refresh grades when a new one arrives
+          get().fetchGrades(studentId);
+        })
+        .subscribe();
+      
+      // Update subscriptions
+      set({ 
+        subscriptions: { 
+          ...subscriptions, 
+          grades: gradesSubscription 
+        } 
+      });
+    } catch (error) {
+      console.error('Error subscribing to grades:', error);
+    }
+  },
+  
+  subscribeToAttendance: (studentId: string) => {
+    try {
+      // Unsubscribe from any existing subscription
+      const { subscriptions } = get();
+      if (subscriptions.attendance) {
+        subscriptions.attendance.unsubscribe();
+      }
+      
+      // Create a new subscription
+      const attendanceSubscription = supabase
+        .channel('attendance-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'attendance',
+          filter: `student_id=eq.${studentId}`
+        }, (payload) => {
+          // Refresh attendance when a new one arrives
+          get().fetchAttendance(studentId);
+        })
+        .subscribe();
+      
+      // Update subscriptions
+      set({ 
+        subscriptions: { 
+          ...subscriptions, 
+          attendance: attendanceSubscription 
+        } 
+      });
+    } catch (error) {
+      console.error('Error subscribing to attendance:', error);
+    }
+  },
+  
+  unsubscribeAll: () => {
+    const { subscriptions } = get();
+    
+    // Unsubscribe from all channels
+    Object.values(subscriptions).forEach(subscription => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    });
+    
+    // Clear subscriptions
+    set({ subscriptions: {} });
   },
 
   fetchResources: async (courseId: string) => {
@@ -675,7 +808,11 @@ export const useDataStore = create<DataState>((set, get) => ({
       attendance: [],
       messages: [],
       resources: [],
+      subscriptions: {},
       error: null
     });
+    
+    // Unsubscribe from all channels
+    get().unsubscribeAll();
   }
 }));

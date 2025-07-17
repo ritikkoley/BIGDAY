@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
-import { MessageSquare, Send, User, Clock, AlertTriangle } from 'lucide-react';
+import { MessageSquare, Send, User, Clock, AlertTriangle, Check } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -40,7 +40,14 @@ interface Message {
 
 export const StudentMessages: React.FC = () => {
   const { user } = useAuthStore();
-  const { fetchMessages, messages, isLoading: messagesLoading, error: messagesError } = useDataStore();
+  const { 
+    fetchMessages, 
+    messages, 
+    subscribeToMessages,
+    unsubscribeAll,
+    isLoading: messagesLoading, 
+    error: messagesError 
+  } = useDataStore();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(messagesLoading);
   const [error, setError] = useState<string | null>(messagesError);
@@ -48,8 +55,15 @@ export const StudentMessages: React.FC = () => {
   React.useEffect(() => {
     if (user) {
       fetchMessages(user.id);
+      // Subscribe to real-time message updates
+      subscribeToMessages(user.id);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [user, fetchMessages]);
+  }, [user, fetchMessages, subscribeToMessages, unsubscribeAll]);
 
   const markAsRead = async (messageId: string) => {
     try {
@@ -217,10 +231,16 @@ export const StudentMessages: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <User className="w-8 h-8 text-apple-blue-500" />
-                    <div>
+                    <div className="flex items-center space-x-2">
                       <h3 className="font-medium text-apple-gray-600 dark:text-white">
                         {selectedMessage.sender.name}
                       </h3>
+                      {selectedMessage.is_read && (
+                        <span className="flex items-center text-xs text-green-500">
+                          <Check className="w-3 h-3 mr-1" />
+                          Read
+                        </span>
+                      )}
                       <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300 capitalize">
                         {selectedMessage.sender.role}
                       </p>

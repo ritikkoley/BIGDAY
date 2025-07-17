@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
-import { TrendingUp, Target, Award, AlertTriangle } from 'lucide-react';
+import { TrendingUp, Target, Award, AlertTriangle, BookOpen } from 'lucide-react';
 import { CircularProgress } from '../CircularProgress';
 
 interface ProgressData {
@@ -50,7 +50,7 @@ interface GradeProjection {
 
 export const StudentProgress: React.FC = () => {
   const { user } = useAuthStore();
-  const { fetchCourses, courses } = useDataStore();
+  const { fetchCourses, courses, subscribeToGrades, unsubscribeAll } = useDataStore();
   const [progressData, setProgressData] = useState<ProgressData[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [subtopicData, setSubtopicData] = useState<SubtopicPerformance[]>([]);
@@ -61,16 +61,27 @@ export const StudentProgress: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchCourses(user.id, 'student');
+      
+      // Return cleanup function
+      return () => {
+        // Clean up any subscriptions when component unmounts
+        unsubscribeAll();
+      };
       fetchProgressData();
     }
-  }, [user, fetchCourses]);
+  }, [user, fetchCourses, unsubscribeAll]);
 
   useEffect(() => {
     if (selectedCourse) {
       fetchSubtopicData(selectedCourse);
-      fetchGradeProjection(selectedCourse);
+      fetchGradeProjection(selectedCourse); 
+      
+      if (user) {
+        // Subscribe to real-time grade updates
+        subscribeToGrades(user.id);
+      }
     }
-  }, [selectedCourse]);
+  }, [selectedCourse, user, subscribeToGrades]);
 
   const fetchProgressData = async () => {
     try {
