@@ -312,8 +312,6 @@ export const Home: React.FC = () => {
       
       // Update local state
       fetchMessages(user?.id || '');
-        )
-      );
     } catch (err) {
       console.error('Error marking message as read:', err);
     }
