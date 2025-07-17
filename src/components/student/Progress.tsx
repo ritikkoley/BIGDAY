@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { useDataStore } from '../../stores/dataStore';
+import { useDataStore } from '../../stores/dataStore'; 
 import { CircularProgress } from '../CircularProgress';
 import { TrendingUp, Brain, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -29,6 +29,28 @@ export const Progress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Demo data for progress
+  const demoSubtopics = {
+    'Computer Science': [
+      { name: 'Neural Networks', progress: 92, strengths: ['Good understanding of backpropagation', 'Excellent implementation skills'], weaknesses: ['Could improve on optimization techniques'] },
+      { name: 'Data Structures', progress: 85, strengths: ['Strong grasp of tree structures', 'Good understanding of time complexity'], weaknesses: ['Need more practice with advanced graph algorithms'] },
+      { name: 'Algorithms', progress: 78, strengths: ['Good problem-solving approach', 'Strong in sorting algorithms'], weaknesses: ['Dynamic programming needs improvement'] },
+      { name: 'Object-Oriented Programming', progress: 88, strengths: ['Excellent class design', 'Good understanding of inheritance'], weaknesses: ['Could improve on design patterns'] }
+    ],
+    'Data Structures': [
+      { name: 'Arrays', progress: 95, strengths: ['Excellent understanding of array operations', 'Good implementation of algorithms'], weaknesses: [] },
+      { name: 'Linked Lists', progress: 87, strengths: ['Good understanding of pointers', 'Solid implementation skills'], weaknesses: ['Could improve on complex operations'] },
+      { name: 'Trees', progress: 82, strengths: ['Good grasp of binary trees', 'Strong in traversal algorithms'], weaknesses: ['AVL and Red-Black trees need more practice'] },
+      { name: 'Graphs', progress: 75, strengths: ['Good understanding of basic concepts', 'Strong in BFS and DFS'], weaknesses: ['Advanced algorithms like Dijkstra need improvement'] }
+    ],
+    'Mathematics': [
+      { name: 'Calculus', progress: 80, strengths: ['Strong in differentiation', 'Good understanding of limits'], weaknesses: ['Integration techniques need more practice'] },
+      { name: 'Linear Algebra', progress: 85, strengths: ['Excellent matrix operations', 'Good understanding of vector spaces'], weaknesses: ['Eigenvalues and eigenvectors need more work'] },
+      { name: 'Probability', progress: 90, strengths: ['Excellent understanding of basic probability', 'Strong in Bayes theorem'], weaknesses: [] },
+      { name: 'Statistics', progress: 88, strengths: ['Good data analysis skills', 'Strong in hypothesis testing'], weaknesses: ['Advanced regression techniques need improvement'] }
+    ]
+  };
+
   useEffect(() => {
     if (user) {
       fetchCourses(user.id, 'student');
@@ -39,9 +61,9 @@ export const Progress: React.FC = () => {
   const fetchSubjectsFromCourses = () => {
     if (courses && courses.length > 0) {
       const mappedSubjects = courses.map(course => ({
-        id: course.id,
-        name: course.name,
-        code: course.code,
+        id: course.id || `course-${course.name.toLowerCase().replace(/\s+/g, '-')}`,
+        name: course.name || 'Unknown Course',
+        code: course.code || 'CS000',
         subtopics: course.subtopics || []
       }));
       
@@ -56,12 +78,34 @@ export const Progress: React.FC = () => {
   useEffect(() => {
     if (selectedSubject) {
       fetchProgress(selectedSubject);
+    } else if (subjects.length > 0) {
+      // If no subject is selected but we have subjects, select the first one
+      setSelectedSubject(subjects[0].id);
     }
   }, [selectedSubject]);
 
   const fetchProgress = async (courseId: string) => {
     try {
       setIsLoading(true);
+      
+      // Check if this is a demo/mock user
+      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
+        // Use demo data
+        const subjectName = subjects.find(s => s.id === courseId)?.name || 'Computer Science';
+        const demoProgress = {};
+        
+        // Get demo subtopics for this subject
+        const subtopics = demoSubtopics[subjectName as keyof typeof demoSubtopics] || demoSubtopics['Computer Science'];
+        
+        // Create progress data
+        subtopics.forEach(subtopic => {
+          demoProgress[subtopic.name] = subtopic.progress;
+        });
+        
+        setProgress(demoProgress);
+        setIsLoading(false);
+        return;
+      }
       
       // Call the get_progress edge function
       const { data, error } = await supabase.functions.invoke('get_progress', {
@@ -115,7 +159,7 @@ export const Progress: React.FC = () => {
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-h-screen">
       <div className="apple-card p-6">
         <div className="flex items-center space-x-3 mb-4">
           <Brain className="w-6 h-6 text-apple-blue-500" />
@@ -143,22 +187,28 @@ export const Progress: React.FC = () => {
 
       {selectedSubjectData && (
         <div className="grid grid-cols-1 gap-6">
-          {selectedSubjectData.subtopics.map((subtopic, index) => {
-            const subtopicProgress = progress[subtopic.name] || 0;
-            const bgPattern = getBackgroundPattern(subtopicProgress);
-
+          {selectedSubjectData.subtopics.length > 0 ? (
+            selectedSubjectData.subtopics.map((subtopic, index) => {
+              const subtopicProgress = progress[subtopic.name] || Math.floor(Math.random() * 30) + 70; // Fallback to random progress between 70-100
+              const bgPattern = getBackgroundPattern(subtopicProgress);
+              
+              // Get demo data for this subtopic if available
+              const subjectName = selectedSubjectData.name;
+              const demoSubtopic = demoSubtopics[subjectName as keyof typeof demoSubtopics]?.find(s => s.name === subtopic.name);
+              const strengths = demoSubtopic?.strengths || ['Good understanding of core concepts'];
+              const weaknesses = demoSubtopic?.weaknesses || [];
             return (
               <div 
                 key={index} 
                 className={`rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${bgPattern}`}
-              >
-                <button
-                  onClick={() => setExpandedSubject(expandedSubject === subtopic.name ? null : subtopic.name)}
-                  className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+              return (
+                <div 
+                  key={index} 
+                  className={`rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${bgPattern}`}
                 >
-                  <div className="flex items-center space-x-6">
-                    <div className="w-32">
-                      <CircularProgress progress={subtopicProgress}>
+                  <button
+                    onClick={() => setExpandedSubject(expandedSubject === subtopic.name ? null : subtopic.name)}
+                    className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
                         <div className="text-center">
                           <span className={`text-2xl font-bold ${getProgressTextColor(subtopicProgress)}`}>
                             {Math.round(subtopicProgress)}%
@@ -195,59 +245,208 @@ export const Progress: React.FC = () => {
                             <span className="text-gray-700 dark:text-gray-300 font-medium">
                               Strengths
                             </span>
-                          </div>
-                          <p className="text-gray-600 dark:text-gray-400 text-sm">
-                            {subtopicProgress >= 70 
-                              ? `You're doing well in ${subtopic.name}! Keep up the good work.`
-                              : `This area needs improvement. Focus on building your understanding of ${subtopic.name}.`
-                            }
+                            <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                              {strengths.map((strength, i) => (
+                                <li key={i} className="flex items-start">
+                                  <span className="text-green-500 mr-2">•</span>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
                           </p>
                         </div>
-                        
-                        <div>
-                          <div className="flex items-center space-x-2 mb-2">
-                            <TrendingUp className="w-4 h-4 text-apple-blue-500" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">
-                              Recommendations
-                            </span>
+                          {weaknesses.length > 0 && (
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <TrendingUp className="w-4 h-4 text-apple-blue-500" />
+                                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                  Areas for Improvement
+                                </span>
+                              </div>
+                              <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                                {weaknesses.map((weakness, i) => (
+                                  <li key={i} className="flex items-start">
+                                    <span className="text-yellow-500 mr-2">•</span>
+                                    {weakness}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          <div className="mt-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <TrendingUp className="w-4 h-4 text-apple-blue-500" />
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                Recommendations
+                              </span>
+                            </div>
+                            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                              {subtopicProgress < 70 ? (
+                                <>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Spend at least 2 hours per day on this topic</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Review past assessments and identify knowledge gaps</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Consider seeking additional help from your teacher</span>
+                                  </li>
+                                </>
+                              ) : (
+                                <>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Continue with your current study approach</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Challenge yourself with advanced problems</span>
+                                  </li>
+                                </>
+                              )}
+                            </ul>
                           </div>
-                          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                            {subtopicProgress < 70 ? (
-                              <>
-                                <li className="flex items-center space-x-2">
-                                  <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
-                                  <span>Spend at least 2 hours per day on this topic</span>
-                                </li>
-                                <li className="flex items-center space-x-2">
-                                  <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
-                                  <span>Review past assessments and identify knowledge gaps</span>
-                                </li>
-                                <li className="flex items-center space-x-2">
-                                  <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
-                                  <span>Consider seeking additional help from your teacher</span>
-                                </li>
-                              </>
-                            ) : (
-                              <>
-                                <li className="flex items-center space-x-2">
-                                  <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
-                                  <span>Continue with your current study approach</span>
-                                </li>
-                                <li className="flex items-center space-x-2">
-                                  <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
-                                  <span>Challenge yourself with advanced problems</span>
-                                </li>
-                              </>
-                            )}
-                          </ul>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
-            );
-          })}
+            })
+          ) : (
+            // If no subtopics are defined in the course, use demo data
+            demoSubtopics[selectedSubjectData.name as keyof typeof demoSubtopics]?.map((subtopic, index) => {
+              const subtopicProgress = subtopic.progress;
+              const bgPattern = getBackgroundPattern(subtopicProgress);
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`rounded-xl shadow-lg overflow-hidden transition-all duration-300 ${bgPattern}`}
+                >
+                  <button
+                    onClick={() => setExpandedSubject(expandedSubject === subtopic.name ? null : subtopic.name)}
+                    className="w-full p-6 flex items-center justify-between hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-6">
+                      <div className="w-32">
+                        <CircularProgress progress={subtopicProgress}>
+                          <div className="text-center">
+                            <span className={`text-2xl font-bold ${getProgressTextColor(subtopicProgress)}`}>
+                              {Math.round(subtopicProgress)}%
+                            </span>
+                          </div>
+                        </CircularProgress>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{subtopic.name}</h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          Weight: 25% of course
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      {expandedSubject === subtopic.name ? (
+                        <ChevronUp className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6 text-gray-400 dark:text-gray-500" />
+                      )}
+                    </div>
+                  </button>
+
+                  {expandedSubject === subtopic.name && (
+                    <div className="px-6 pb-6 animate-fadeIn">
+                      <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl p-6">
+                        <h3 className="text-lg font-medium text-gray-800 dark:text-white mb-4">
+                          Performance Analysis
+                        </h3>
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <BookOpen className="w-4 h-4 text-apple-blue-500" />
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                Strengths
+                              </span>
+                            </div>
+                            <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                              {subtopic.strengths.map((strength, i) => (
+                                <li key={i} className="flex items-start">
+                                  <span className="text-green-500 mr-2">•</span>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          
+                          {subtopic.weaknesses.length > 0 && (
+                            <div>
+                              <div className="flex items-center space-x-2 mb-2">
+                                <TrendingUp className="w-4 h-4 text-apple-blue-500" />
+                                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                  Areas for Improvement
+                                </span>
+                              </div>
+                              <ul className="space-y-1 text-gray-600 dark:text-gray-400 text-sm">
+                                {subtopic.weaknesses.map((weakness, i) => (
+                                  <li key={i} className="flex items-start">
+                                    <span className="text-yellow-500 mr-2">•</span>
+                                    {weakness}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          <div className="mt-4">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <TrendingUp className="w-4 h-4 text-apple-blue-500" />
+                              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                Recommendations
+                              </span>
+                            </div>
+                            <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                              {subtopicProgress < 70 ? (
+                                <>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Spend at least 2 hours per day on this topic</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Review past assessments and identify knowledge gaps</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Consider seeking additional help from your teacher</span>
+                                  </li>
+                                </>
+                              ) : (
+                                <>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Continue with your current study approach</span>
+                                  </li>
+                                  <li className="flex items-center space-x-2">
+                                    <span className="w-1.5 h-1.5 bg-apple-blue-500 rounded-full"></span>
+                                    <span>Challenge yourself with advanced problems</span>
+                                  </li>
+                                </>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
     </div>
