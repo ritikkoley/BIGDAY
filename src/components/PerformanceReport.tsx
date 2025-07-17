@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
-import { Trophy, Target, Calendar, AlertTriangle, ChevronDown, ChevronUp, Zap, TrendingUp, CheckCircle2, XCircle as XCircle2, ArrowUp, BookOpen, Star, Brain, Clock, Lightbulb, GraduationCap, BookMarked, History } from 'lucide-react';
+import { Trophy, Target, Calendar, AlertTriangle, ChevronDown, ChevronUp, TrendingUp, CheckCircle2, BookOpen, Brain, Clock, Lightbulb, GraduationCap, BookMarked, History } from 'lucide-react';
 import { PerformanceMetrics, Grade } from '../types';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { HistoricPerformance } from './performance/HistoricPerformance';
@@ -99,34 +99,32 @@ export const PerformanceReport: React.FC<PerformanceReportProps> = ({
   // Generate personalized study plan based on weak areas
   const generateStudyPlan = () => {
     const weakAreas = metrics.aiInsights?.personalizedPlan.focusAreas || [];
-    const studyTechniques = metrics.aiInsights?.personalizedPlan.studyTechniques || [];
     const peakHours = metrics.aiInsights?.behavioralInsights.studyPatterns.optimal || [];
     
     return {
       weakAreas,
-      studyTechniques,
       peakHours,
       dailySchedule: [
         {
           subject: 'Physics',
-          topics: ['Quantum Mechanics', 'Wave Functions'],
-          duration: '2 hours',
-          time: '9:00 AM - 11:00 AM',
-          approach: 'Focus on theoretical concepts and problem-solving'
+          topics: ['Quantum Mechanics Fundamentals'],
+          duration: '1 hour',
+          time: '9:00 AM - 10:00 AM',
+          approach: 'Review lecture notes and solve practice problems'
         },
         {
           subject: 'Mathematics',
-          topics: ['Complex Analysis', 'Integration'],
-          duration: '1.5 hours',
-          time: '2:00 PM - 3:30 PM',
-          approach: 'Practice numerical problems and derivations'
+          topics: ['Advanced Calculus Problems'],
+          duration: '1 hour',
+          time: '2:00 PM - 3:00 PM',
+          approach: 'Work through example problems from textbook'
         },
         {
           subject: 'Computer Science',
-          topics: ['Data Structures', 'Algorithm Analysis'],
-          duration: '2 hours',
-          time: '4:00 PM - 6:00 PM',
-          approach: 'Implement algorithms and analyze complexity'
+          topics: ['Data Structures Implementation'],
+          duration: '1 hour',
+          time: '4:00 PM - 5:00 PM',
+          approach: 'Practice coding exercises and review concepts'
         }
       ]
     };
@@ -188,121 +186,28 @@ export const PerformanceReport: React.FC<PerformanceReportProps> = ({
       <div className="space-y-6">
         {activeTab === 'current' ? (
           <>
-            {/* Personalized Study Plan */}
-            <div className="apple-card p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <Brain className="w-5 h-5 text-apple-blue-500" />
-                <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white">
-                  Personalized Study Plan
-                </h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Focus Areas */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2">
-                    <Lightbulb className="w-4 h-4 text-yellow-500" />
-                    <span>Focus Areas</span>
-                  </h4>
-                  <div className="space-y-2">
-                    {studyPlan.weakAreas.map((area, index) => (
-                      <div
-                        key={index}
-                        className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center space-x-2"
-                      >
-                        <BookOpen className="w-4 h-4 text-apple-blue-500" />
-                        <span className="text-apple-gray-600 dark:text-white">{area}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Optimal Study Times */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-purple-500" />
-                    <span>Peak Study Hours</span>
-                  </h4>
-                  <div className="space-y-2">
-                    {studyPlan.peakHours.map((hour, index) => (
-                      <div
-                        key={index}
-                        className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center space-x-2"
-                      >
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        <span className="text-apple-gray-600 dark:text-white">{hour}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Daily Schedule */}
-              <div className="mt-6">
-                <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2 mb-4">
-                  <Calendar className="w-4 h-4 text-green-500" />
-                  <span>Recommended Daily Schedule</span>
-                </h4>
-                <div className="space-y-4">
-                  {studyPlan.dailySchedule.map((session, index) => (
-                    <div
-                      key={index}
-                      className="bg-white dark:bg-gray-800 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <GraduationCap className="w-4 h-4 text-apple-blue-500" />
-                          <span className="font-medium text-apple-gray-600 dark:text-white">
-                            {session.subject}
-                          </span>
-                        </div>
-                        <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                          {session.time}
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-sm text-apple-gray-500 dark:text-apple-gray-400">
-                          <BookMarked className="w-4 h-4" />
-                          <span>Topics: {session.topics.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm text-apple-gray-500 dark:text-apple-gray-400">
-                          <Clock className="w-4 h-4" />
-                          <span>Duration: {session.duration}</span>
-                        </div>
-                        <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">
-                          <p className="mt-1">{session.approach}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Study Techniques */}
-              <div className="mt-6">
-                <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2 mb-4">
-                  <Brain className="w-4 h-4 text-indigo-500" />
-                  <span>Recommended Study Techniques</span>
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {studyPlan.studyTechniques.map((technique, index) => (
-                    <div
-                      key={index}
-                      className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center space-x-2"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-apple-gray-600 dark:text-white">{technique}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Current Performance Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="apple-card p-6">
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-apple-gray-400 dark:text-apple-gray-300">
+                  <div className="flex items-center space-x-2 text-apple-gray-400 dark:text-apple-gray-300 mb-2">
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Current Standing</span>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-apple-gray-600 dark:text-white mb-2">
+                      {metrics.currentGrade}
+                    </div>
+                    <div className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
+                      Next Grade: {metrics.nextGrade}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="apple-card p-6">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-apple-gray-400 dark:text-apple-gray-300 mb-2">
                     <Target className="w-4 h-4" />
                     <span>Required Scores</span>
                   </div>
@@ -334,23 +239,6 @@ export const PerformanceReport: React.FC<PerformanceReportProps> = ({
                           style={{ width: `${metrics.requiredScores.final}%` }}
                         />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="apple-card p-6">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-apple-gray-400 dark:text-apple-gray-300">
-                    <GraduationCap className="w-4 h-4" />
-                    <span>Current Standing</span>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-apple-gray-600 dark:text-white mb-2">
-                      {metrics.currentGrade}
-                    </div>
-                    <div className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                      Next Grade: {metrics.nextGrade}
                     </div>
                   </div>
                 </div>
@@ -394,6 +282,97 @@ export const PerformanceReport: React.FC<PerformanceReportProps> = ({
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          
+            {/* Personalized Study Plan */}
+            <div className="apple-card p-6 mt-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <Brain className="w-5 h-5 text-apple-blue-500" />
+                <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white">
+                  Personalized Study Plan
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Focus Areas */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2">
+                    <Lightbulb className="w-4 h-4 text-yellow-500" />
+                    <span>Focus Areas</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {studyPlan.weakAreas.map((area, index) => (
+                      <div
+                        key={index}
+                        className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center space-x-2"
+                      >
+                        <BookOpen className="w-4 h-4 text-apple-blue-500" />
+                        <span className="text-apple-gray-600 dark:text-white">{area}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Optimal Study Times */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-purple-500" />
+                    <span>Peak Study Hours</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {studyPlan.peakHours.map((hour, index) => (
+                      <div
+                        key={index}
+                        className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center space-x-2"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <span className="text-apple-gray-600 dark:text-white">{hour}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Daily Schedule */}
+              <div className="mt-6">
+                <h4 className="font-medium text-apple-gray-600 dark:text-white flex items-center space-x-2 mb-4">
+                  <Calendar className="w-4 h-4 text-green-500" />
+                  <span>Recommended Study Schedule</span>
+                </h4>
+                <div className="space-y-4">
+                  {studyPlan.dailySchedule.map((session, index) => (
+                    <div
+                      key={index}
+                      className="bg-white dark:bg-gray-800 rounded-lg p-4"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <GraduationCap className="w-4 h-4 text-apple-blue-500" />
+                          <span className="font-medium text-apple-gray-600 dark:text-white">
+                            {session.subject}
+                          </span>
+                        </div>
+                        <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
+                          {session.time}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                          <BookMarked className="w-4 h-4" />
+                          <span>Topics: {session.topics.join(', ')}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                          <Clock className="w-4 h-4" />
+                          <span>Duration: {session.duration}</span>
+                        </div>
+                        <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                          <p className="mt-1">{session.approach}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
