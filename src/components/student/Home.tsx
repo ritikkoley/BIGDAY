@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { Calendar, Clock, MessageSquare, AlertTriangle, BookOpen, User } from 'lucide-react';
 import { useDataStore } from '../../stores/dataStore'; 
+import { demoUpcoming, demoTimetable, demoMessages } from '../../data/demoData';
 import { format } from 'date-fns';
 import { sampleHomeData } from '../../data/sampleData';
 
@@ -271,8 +272,8 @@ export const Home: React.FC = () => {
       // Check if this is a mock/demo user ID
       if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
         // Use mock data for demo accounts
-        setUpcoming(sampleHomeData.upcoming || []);
-        setTimetable(sampleHomeData.timetable || []);
+        setUpcoming(demoUpcoming || []);
+        setTimetable(demoTimetable || []);
         setIsLoading(false);
         return;
       }

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { TrendingUp, Users } from 'lucide-react';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
 import { PerformanceReport } from '../PerformanceReport';
+import { demoStudentPerformance, demoUsers } from '../../data/demoData';
 import { sampleTeacherPerformanceMetrics, samplePerformanceAnalytics } from '../../data/sampleAdminData';
 import { sampleGrades, performanceMetrics } from '../../data/sampleData';
 
@@ -82,9 +83,7 @@ export const PerformanceView: React.FC = () => {
           />
         ) : (
           <PerformanceReport
-            studentName={selectedStudentId === 'student-1' ? 'Ritik Koley' : 
-                         selectedStudentId === 'student-2' ? 'Alex Johnson' : 
-                         selectedStudentId === 'student-3' ? 'Sarah Williams' : 'Student'}
+            studentName={demoUsers.find(u => u.id === selectedStudentId)?.name || 'Student'}
             metrics={performanceMetrics}
             grades={sampleGrades}
           />

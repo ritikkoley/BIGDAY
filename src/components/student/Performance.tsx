@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore'; 
+import { demoStudentPerformance } from '../../data/demoData';
 import { Trophy, Target, Calendar, TrendingUp, ChevronDown, ChevronUp, Brain, Lightbulb, Clock, BookOpen, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -380,8 +381,14 @@ export const Performance: React.FC = () => {
       // Check if user ID is a mock ID (not a valid UUID)
       if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
         // Use mock data for demo accounts
-        setProjected(85.5);
-        setNeeded({ current: 82, needed: 88, target: 90, remaining_weight: 0.4 });
+        const studentData = demoStudentPerformance[user.id as keyof typeof demoStudentPerformance] || demoStudentPerformance['student-1'];
+        setProjected(studentData.averageScore);
+        setNeeded({ 
+          current: studentData.averageScore - 5, 
+          needed: studentData.averageScore + 3, 
+          target: 90, 
+          remaining_weight: 0.4 
+        });
         setPlan({
           weak_areas: ['Calculus', 'Trigonometry'],
           specific_recommendations: [
@@ -397,12 +404,7 @@ export const Performance: React.FC = () => {
         });
         
         // Mock historic data
-        const mockHistoric = [
-          { year: 2022, avg: 78 },
-          { year: 2023, avg: 82 },
-          { year: 2024, avg: 85 }
-        ];
-        setHistoric(mockHistoric);
+        setHistoric(studentData.historicData);
         
         setIsLoading(false);
         return;

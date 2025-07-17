@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { demoUsers, demoCourses } from '../data/demoData';
 
 type SearchResult = {
   id: string;
@@ -21,26 +22,37 @@ interface SearchState {
 
 // Mock search results
 const mockStudents: SearchResult[] = [
-  { id: 'student-1', name: 'Ritik Koley', type: 'student', identifier: 'S-123456', email: 'student@dpsb.edu' },
-  { id: 'student-2', name: 'Alex Johnson', type: 'student', identifier: 'S-123457', email: 'alex.johnson@dpsb.edu' },
-  { id: 'student-3', name: 'Sarah Williams', type: 'student', identifier: 'S-123458', email: 'sarah.williams@dpsb.edu' },
-  { id: 'student-4', name: 'Raj Patel', type: 'student', identifier: 'S-123459', email: 'raj.patel@dpsb.edu' },
-  { id: 'student-5', name: 'Priya Sharma', type: 'student', identifier: 'S-123460', email: 'priya.sharma@dpsb.edu' }
+  ...demoUsers
+    .filter(user => user.role === 'student')
+    .map(user => ({
+      id: user.id,
+      name: user.name,
+      type: 'student' as const,
+      identifier: user.id.replace('student-', 'S-'),
+      email: user.email
+    }))
 ];
 
 const mockTeachers: SearchResult[] = [
-  { id: 'teacher-1', name: 'Jagdeep Singh Sokhey', type: 'teacher', identifier: 'T-001', email: 'teacher@dpsb.edu' },
-  { id: 'teacher-2', name: 'Michael Zhang', type: 'teacher', identifier: 'T-002', email: 'michael.zhang@dpsb.edu' },
-  { id: 'teacher-3', name: 'Emily Brown', type: 'teacher', identifier: 'T-003', email: 'emily.brown@dpsb.edu' }
+  ...demoUsers
+    .filter(user => user.role === 'teacher')
+    .map(user => ({
+      id: user.id,
+      name: user.name,
+      type: 'teacher' as const,
+      identifier: user.id.replace('teacher-', 'T-'),
+      email: user.email
+    }))
 ];
 
 const mockCourses: SearchResult[] = [
-  { id: 'cs101', name: 'Computer Science Fundamentals', type: 'course', identifier: 'CS101', code: 'CS101' },
-  { id: 'cs102', name: 'Advanced Programming', type: 'course', identifier: 'CS102', code: 'CS102' },
-  { id: 'math101', name: 'Mathematics', type: 'course', identifier: 'MATH101', code: 'MATH101' },
-  { id: 'math201', name: 'Advanced Mathematics', type: 'course', identifier: 'MATH201', code: 'MATH201' },
-  { id: 'phy101', name: 'Physics', type: 'course', identifier: 'PHY101', code: 'PHY101' },
-  { id: 'phy201', name: 'Advanced Physics', type: 'course', identifier: 'PHY201', code: 'PHY201' }
+  ...demoCourses.map(course => ({
+    id: course.id,
+    name: course.name,
+    type: 'course' as const,
+    identifier: course.code,
+    code: course.code
+  }))
 ];
 
 export const useSearchStore = create<SearchState>((set, get) => ({

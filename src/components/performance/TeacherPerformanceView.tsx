@@ -7,6 +7,7 @@ import { PeerBenchmarking } from './tabs/PeerBenchmarking';
 import { ExtracurricularContributions } from './tabs/ExtracurricularContributions';
 import { DisciplinaryMarkers } from './tabs/DisciplinaryMarkers';
 import { ValueScore } from './tabs/ValueScore';
+import { demoStudentPerformance, demoTeacherPerformance } from '../../data/demoData';
 import {
   LayoutDashboard,
   GraduationCap,
@@ -124,7 +125,8 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
   // If viewing a student's performance, render the student performance component
   if (studentId) {
     // Import and use the appropriate student performance component
-    // For now, we'll just show a placeholder
+    const studentData = demoStudentPerformance[studentId as keyof typeof demoStudentPerformance] || demoStudentPerformance['student-1'];
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -142,27 +144,21 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="font-medium text-apple-gray-600 dark:text-white mb-2">Overall Grade</h3>
                 <p className="text-3xl font-bold text-apple-blue-500">
-                  {studentId === 'student-1' ? '92%' : 
-                   studentId === 'student-2' ? '85%' : 
-                   studentId === 'student-3' ? '96%' : '88%'}
+                  {studentData.averageScore}%
                 </p>
               </div>
               
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="font-medium text-apple-gray-600 dark:text-white mb-2">Attendance</h3>
                 <p className="text-3xl font-bold text-green-500">
-                  {studentId === 'student-1' ? '85%' : 
-                   studentId === 'student-2' ? '90%' : 
-                   studentId === 'student-3' ? '95%' : '88%'}
+                  {studentData.attendanceRate}%
                 </p>
               </div>
               
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
                 <h3 className="font-medium text-apple-gray-600 dark:text-white mb-2">Class Rank</h3>
                 <p className="text-3xl font-bold text-purple-500">
-                  {studentId === 'student-1' ? '#2' : 
-                   studentId === 'student-2' ? '#5' : 
-                   studentId === 'student-3' ? '#1' : '#3'}
+                  #{studentData.classRank}
                 </p>
               </div>
             </div>
@@ -174,18 +170,14 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
                   <div className="flex justify-between mb-1">
                     <span className="text-apple-gray-600 dark:text-white">Computer Science</span>
                     <span className="font-medium text-apple-blue-500">
-                      {studentId === 'student-1' ? '95%' : 
-                       studentId === 'student-2' ? '82%' : 
-                       studentId === 'student-3' ? '98%' : '85%'}
+                      {studentData.subjects.find(s => s.name === 'Computer Science')?.score || 85}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                     <div 
                       className="h-full bg-apple-blue-500 rounded-full" 
                       style={{ 
-                        width: studentId === 'student-1' ? '95%' : 
-                               studentId === 'student-2' ? '82%' : 
-                               studentId === 'student-3' ? '98%' : '85%' 
+                        width: `${studentData.subjects.find(s => s.name === 'Computer Science')?.score || 85}%`
                       }}
                     ></div>
                   </div>
@@ -195,18 +187,14 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
                   <div className="flex justify-between mb-1">
                     <span className="text-apple-gray-600 dark:text-white">Mathematics</span>
                     <span className="font-medium text-apple-blue-500">
-                      {studentId === 'student-1' ? '88%' : 
-                       studentId === 'student-2' ? '75%' : 
-                       studentId === 'student-3' ? '92%' : '80%'}
+                      {studentData.subjects.find(s => s.name === 'Mathematics')?.score || 80}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                     <div 
                       className="h-full bg-apple-blue-500 rounded-full" 
                       style={{ 
-                        width: studentId === 'student-1' ? '88%' : 
-                               studentId === 'student-2' ? '75%' : 
-                               studentId === 'student-3' ? '92%' : '80%' 
+                        width: `${studentData.subjects.find(s => s.name === 'Mathematics')?.score || 80}%`
                       }}
                     ></div>
                   </div>
@@ -216,18 +204,14 @@ export const TeacherPerformanceView: React.FC<TeacherPerformanceViewProps> = ({
                   <div className="flex justify-between mb-1">
                     <span className="text-apple-gray-600 dark:text-white">Physics</span>
                     <span className="font-medium text-apple-blue-500">
-                      {studentId === 'student-1' ? '78%' : 
-                       studentId === 'student-2' ? '90%' : 
-                       studentId === 'student-3' ? '85%' : '82%'}
+                      {studentData.subjects.find(s => s.name === 'Data Structures')?.score || 82}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                     <div 
                       className="h-full bg-apple-blue-500 rounded-full" 
                       style={{ 
-                        width: studentId === 'student-1' ? '78%' : 
-                               studentId === 'student-2' ? '90%' : 
-                               studentId === 'student-3' ? '85%' : '82%' 
+                        width: `${studentData.subjects.find(s => s.name === 'Data Structures')?.score || 82}%`
                       }}
                     ></div>
                   </div>

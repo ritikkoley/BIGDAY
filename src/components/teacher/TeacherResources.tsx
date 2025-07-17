@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
 import { TeacherProfile, Resource } from '../../types/teacher';
 import { BookOpen, Download, Upload, Clock, Users, Eye, EyeOff } from 'lucide-react';
+import { demoResources } from '../../data/demoData';
 import { format } from 'date-fns';
 
 interface TeacherResourcesProps {
@@ -32,6 +33,11 @@ export const TeacherResources: React.FC<TeacherResourcesProps> = ({
   useEffect(() => {
     if (selectedSubject) {
       if (user) fetchResources(selectedSubject);
+      
+      // For demo accounts, use demo resources
+      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
+        setRealResources(demoResources);
+      }
     }
   }, [selectedSubject]);
 

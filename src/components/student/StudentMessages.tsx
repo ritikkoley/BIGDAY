@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDataStore } from '../../stores/dataStore';
+import { demoMessages } from '../../data/demoData';
 import { MessageSquare, Send, User, Clock, AlertTriangle, Check } from 'lucide-react';
 
 interface Message {
@@ -55,6 +56,12 @@ export const StudentMessages: React.FC = () => {
   React.useEffect(() => {
     if (user) {
       fetchMessages(user.id);
+      
+      // For demo accounts, use demo messages
+      if (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-')) {
+        setMessages(demoMessages);
+      }
+      
       // Subscribe to real-time message updates
       subscribeToMessages(user.id);
       
