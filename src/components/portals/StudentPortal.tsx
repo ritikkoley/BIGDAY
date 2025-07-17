@@ -18,7 +18,7 @@ import { Logo } from '../Logo';
 import { 
   Menu, 
   X, 
-  Home, 
+  Home as HomeIcon, 
   TrendingUp, 
   GraduationCap, 
   Calendar, 
@@ -307,7 +307,7 @@ export const StudentPortal: React.FC = () => {
                 : 'text-apple-gray-400 dark:text-apple-gray-300'
             }`}
           >
-            <Home className="mobile-nav-icon" />
+            <HomeIcon className="mobile-nav-icon" />
             <span className="mobile-nav-text">Home</span>
           </button>
           <button
