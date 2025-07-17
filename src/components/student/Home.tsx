@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { Calendar, Clock, MessageSquare, AlertTriangle, BookOpen, User } from 'lucide-react';
 import { useDataStore } from '../../stores/dataStore'; 
 import { format } from 'date-fns';
+import { sampleHomeData } from '../../data/sampleData';
 
 interface UpcomingAssessment {
   id: string;
@@ -266,6 +267,15 @@ export const Home: React.FC = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if this is a mock/demo user ID
+      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
+        // Use mock data for demo accounts
+        setUpcoming(sampleHomeData.upcoming || []);
+        setTimetable(sampleHomeData.timetable || []);
+        setIsLoading(false);
+        return;
+      }
       
       // Fetch upcoming assessments
       const { data: upcomingData, error: upcomingError } = await supabase
