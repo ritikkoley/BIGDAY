@@ -82,11 +82,38 @@ export const PerformanceView: React.FC = () => {
             analytics={samplePerformanceAnalytics}
           />
         ) : (
-          <PerformanceReport
-            studentName={demoUsers.find(u => u.id === selectedStudentId)?.name || 'Student'}
-            metrics={performanceMetrics}
-            grades={sampleGrades}
-          />
+          <div className="space-y-6">
+            {/* Student Selection */}
+            <div className="apple-card p-6">
+              <div className="flex items-center space-x-4 mb-4">
+                <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white">
+                  Student Performance Analysis
+                </h2>
+              </div>
+              <div className="flex space-x-2 overflow-x-auto pb-2">
+                {demoUsers.filter(u => u.role === 'student').map((student) => (
+                  <button
+                    key={student.id}
+                    onClick={() => setSelectedStudentId(student.id)}
+                    className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                      selectedStudentId === student.id
+                        ? 'bg-apple-blue-500 text-white'
+                        : 'bg-apple-gray-100 dark:bg-apple-gray-600/50 text-apple-gray-600 dark:text-apple-gray-300'
+                    }`}
+                  >
+                    {student.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Student Performance Component */}
+            <PerformanceReport
+              studentName={demoUsers.find(u => u.id === selectedStudentId)?.name || 'Student'}
+              metrics={performanceMetrics}
+              grades={sampleGrades}
+            />
+          </div>
         )}
       </div>
     </div>
