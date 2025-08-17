@@ -220,7 +220,7 @@ export const sampleHomeData: HomeData = {
       startTime: "10:30 AM",
       endTime: "11:45 AM",
       room: "CS-301",
-      professor: "Professor Jagdeep Singh Sokhey",
+      professor: "Professor Anil Kumar Jangir",
       agenda: [
         "Application of Integrals",
         "Matrices",
@@ -283,14 +283,14 @@ export const sampleHomeData: HomeData = {
   ],
   teacherMessages: [
     {
-      professor: "Professor Jagdeep Singh Sokhey",
+      professor: "Professor Anil Kumar Jangir",
       subject: "Computer Science",
       message: "Please review the neural network architectures before tomorrow's quiz. Focus on activation functions and gradient descent.",
       timestamp: "2 hours ago",
       priority: "high"
     },
     {
-      professor: "Professor Jagdeep Singh Sokhey",
+      professor: "Professor Anil Kumar Jangir",
       subject: "Mathematics",
       message: "Office hours extended today until 5 PM for Linear Algebra consultation.",
       timestamp: "4 hours ago",

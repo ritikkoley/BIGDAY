@@ -36,7 +36,7 @@ export const demoUsers = [
   },
   {
     id: 'teacher-1',
-    name: 'Jagdeep Singh Sokhey',
+    name: 'Anil Kumar Jangir',
     email: 'teacher@dpsb.edu',
     role: 'teacher',
     department: 'Computer Science',

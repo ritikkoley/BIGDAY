@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>()(
           // Demo accounts for testing
           const demoAccounts = {
             'student@dpsb.edu': { role: 'student', name: 'Ritik Koley', id: 'student-1' },
-            'teacher@dpsb.edu': { role: 'teacher', name: 'Jagdeep Singh Sokhey', id: 'teacher-1' },
+            'teacher@dpsb.edu': { role: 'teacher', name: 'Anil Kumar Jangir', id: 'teacher-1' },
             'admin@dpsb.edu': { role: 'admin', name: 'Admin User', id: 'admin-1' }
           };
           

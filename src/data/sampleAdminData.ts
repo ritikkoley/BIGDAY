@@ -2,7 +2,7 @@ import { TeacherPerformanceMetrics, PerformanceAnalytics } from '../types/perfor
 
 export const sampleTeacherPerformanceMetrics: TeacherPerformanceMetrics = {
   id: "t-001",
-  name: "Professor Jagdeep Singh Sokhey",
+  name: "Professor Anil Kumar Jangir",
   department: "Computer Science",
   role: "Professor",
   yearsOfExperience: 8,
