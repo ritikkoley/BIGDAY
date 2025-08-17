@@ -294,7 +294,7 @@ export const demoMessages = [
     message_type: 'direct',
     created_at: getRelativeDate(-2),
     sender: {
-      name: 'Professor Jagdeep Singh Sokhey',
+      name: 'Professor Anil Kumar Jangir',
       role: 'teacher'
     }
   },
@@ -309,7 +309,7 @@ export const demoMessages = [
     message_type: 'direct',
     created_at: getRelativeDate(-4),
     sender: {
-      name: 'Professor Jagdeep Singh Sokhey',
+      name: 'Professor Anil Kumar Jangir',
       role: 'teacher'
     }
   },
