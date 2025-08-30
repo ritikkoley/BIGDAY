@@ -536,7 +536,8 @@ export const UserManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       {/* Header */}
       <div className="apple-card p-6">
         <div className="flex items-center justify-between">
@@ -1017,7 +1018,7 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
       )}
-
+      
       {/* Users Table */}
       <div className="apple-card overflow-hidden">
         <div className="p-6 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
@@ -1098,10 +1099,10 @@ export const UserManagement: React.FC = () => {
             </select>
           </div>
         </div>
-      </div>
-
-      {/* User Form Modal */}
-      {showUserForm && (
+      )}
+      
+      {/* Bulk Operations Modal */}
+      {showBulkModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
@@ -1528,6 +1529,6 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
