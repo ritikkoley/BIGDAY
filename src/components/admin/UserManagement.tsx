@@ -71,6 +71,7 @@ export const UserManagement: React.FC = () => {
   // UI State
   const [showUserForm, setShowUserForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -1044,7 +1045,163 @@ export const UserManagement: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-apple-gray-50 dark:bg-apple-gray-700/50">
+              <tr>
+                <th className="px-6 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={getCurrentPageUsers().length > 0 && getCurrentPageUsers().every(user => selectedUsers.has(user.id))}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
+                  />
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  <button
+                    onClick={() => handleSort('full_name')}
+                    className="flex items-center space-x-1 hover:text-apple-gray-700 dark:hover:text-white"
+                  >
+                    <span>Name</span>
+                    <ArrowUpDown className="w-3 h-3" />
+                  </button>
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  Details
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-apple-gray-500 dark:text-apple-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-apple-gray-200 dark:divide-apple-gray-600">
+              {getCurrentPageUsers().map((user) => (
+                <tr key={user.id} className="hover:bg-apple-gray-50 dark:hover:bg-apple-gray-700/50">
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.has(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
+                      className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-apple-blue-100 dark:bg-apple-blue-900/30 rounded-full flex items-center justify-center">
+                          {getRoleIcon(user.role)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-apple-gray-900 dark:text-white">
+                          {user.full_name}
+                        </div>
+                        <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                          {user.email}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2">
+                      {getRoleIcon(user.role)}
+                      <span className="text-sm text-apple-gray-900 dark:text-white capitalize">
+                        {user.role}
+                      </span>
+                    </div>
+                    <div className="text-xs text-apple-gray-500 dark:text-apple-gray-400 capitalize">
+                      {user.peer_group?.replace('_', ' ')}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-apple-gray-900 dark:text-white">
+                      {user.contact_number || 'N/A'}
+                    </div>
+                    <div className="text-xs text-apple-gray-500 dark:text-apple-gray-400">
+                      {user.admission_number || user.employee_id || 'N/A'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                    {user.role === 'student' ? (
+                      <div>
+                        <div>Class: {user.current_standard || 'N/A'}</div>
+                        <div>Section: {user.section || 'N/A'}</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div>Dept: {user.department || 'N/A'}</div>
+                        <div>Designation: {user.designation || 'N/A'}</div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm font-medium">
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="text-apple-blue-600 hover:text-apple-blue-900 dark:text-apple-blue-400 dark:hover:text-apple-blue-300"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="px-6 py-3 border-t border-apple-gray-200 dark:border-apple-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-apple-gray-700 dark:text-apple-gray-300">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} results
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-sm text-apple-gray-700 dark:text-apple-gray-300">
+                Page {currentPage} of {getTotalPages()}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, getTotalPages()))}
+                disabled={currentPage === getTotalPages()}
+                className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Current Standard Filter */}
+      <div>
             <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
               Current Standard
             </label>
@@ -1529,6 +1686,7 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
     </>
   );
 };
