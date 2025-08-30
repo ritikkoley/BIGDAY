@@ -1256,7 +1256,6 @@ export const UserManagement: React.FC = () => {
             </select>
           </div>
         </div>
-      )}
       
       {/* Bulk Operations Modal */}
       {showBulkModal && (
