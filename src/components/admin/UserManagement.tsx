@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { UserProfile, FilterCriteria, BulkOperation } from '../../types/admin';
+import { mockUserData, getDataStatistics } from '../../data/mockUserData';
 import { 
   Plus, 
   Search, 
@@ -65,6 +66,7 @@ export const UserManagement: React.FC = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [useMockData, setUseMockData] = useState(true);
   
   // UI State
   const [showUserForm, setShowUserForm] = useState(false);
@@ -99,6 +101,67 @@ export const UserManagement: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
+      
+      if (useMockData) {
+        // Use mock data for demonstration
+        let filteredUsers = [...mockUserData];
+        
+        // Apply filters
+        if (filters.role && filters.role.length > 0) {
+          filteredUsers = filteredUsers.filter(user => filters.role!.includes(user.role));
+        }
+        
+        if (filters.peer_group && filters.peer_group.length > 0) {
+          filteredUsers = filteredUsers.filter(user => filters.peer_group!.includes(user.peer_group));
+        }
+        
+        if (filters.status && filters.status.length > 0) {
+          filteredUsers = filteredUsers.filter(user => filters.status!.includes(user.status));
+        }
+        
+        if (filters.accommodation_type && filters.accommodation_type.length > 0) {
+          filteredUsers = filteredUsers.filter(user => filters.accommodation_type!.includes(user.accommodation_type));
+        }
+        
+        if (filters.search_term) {
+          const searchTerm = filters.search_term.toLowerCase();
+          filteredUsers = filteredUsers.filter(user =>
+            user.full_name.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm) ||
+            (user.admission_number && user.admission_number.toLowerCase().includes(searchTerm)) ||
+            (user.employee_id && user.employee_id.toLowerCase().includes(searchTerm)) ||
+            (user.contact_number && user.contact_number.includes(searchTerm))
+          );
+        }
+        
+        // Apply sorting
+        if (sortField) {
+          filteredUsers.sort((a, b) => {
+            const aValue = a[sortField as keyof UserProfile] || '';
+            const bValue = b[sortField as keyof UserProfile] || '';
+            
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+              return sortDirection === 'asc' 
+                ? aValue.localeCompare(bValue)
+                : bValue.localeCompare(aValue);
+            }
+            
+            return sortDirection === 'asc' 
+              ? (aValue < bValue ? -1 : 1)
+              : (aValue > bValue ? -1 : 1);
+          });
+        }
+        
+        setTotalUsers(filteredUsers.length);
+        
+        // Apply pagination
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+        
+        setUsers(paginatedUsers as UserProfile[]);
+        setIsLoading(false);
+        return;
+      }
       
       const { data, error: fetchError } = await supabase
         .from('user_profiles')
@@ -453,6 +516,18 @@ export const UserManagement: React.FC = () => {
       <div className="apple-card p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="use-mock-data"
+                checked={useMockData}
+                onChange={(e) => setUseMockData(e.target.checked)}
+                className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
+              />
+              <label htmlFor="use-mock-data" className="text-sm text-apple-gray-600 dark:text-white">
+                Use Demo Data (500 records)
+              </label>
+            </div>
             <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
               <Users className="w-6 h-6 text-apple-blue-500" />
             </div>
@@ -461,7 +536,7 @@ export const UserManagement: React.FC = () => {
                 User Management System
               </h1>
               <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-                Comprehensive user data management and reporting
+                {useMockData ? `Demo: ${totalUsers} users loaded` : 'Manage institutional users and their information'}
               </p>
             </div>
           </div>
@@ -486,6 +561,32 @@ export const UserManagement: React.FC = () => {
             </button>
           </div>
         </div>
+        
+        {useMockData && (
+          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+              Demo Data Statistics:
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-blue-600 dark:text-blue-400">Students:</span>
+                <span className="ml-2 font-medium">{getDataStatistics().byRole.student || 0}</span>
+              </div>
+              <div>
+                <span className="text-blue-600 dark:text-blue-400">Teachers:</span>
+                <span className="ml-2 font-medium">{getDataStatistics().byRole.teacher || 0}</span>
+              </div>
+              <div>
+                <span className="text-blue-600 dark:text-blue-400">Staff:</span>
+                <span className="ml-2 font-medium">{getDataStatistics().byRole.staff || 0}</span>
+              </div>
+              <div>
+                <span className="text-blue-600 dark:text-blue-400">Admin:</span>
+                <span className="ml-2 font-medium">{getDataStatistics().byRole.admin || 0}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Advanced Filters */}
