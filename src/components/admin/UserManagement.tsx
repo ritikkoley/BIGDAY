@@ -1027,196 +1027,203 @@ export const UserManagement: React.FC = () => {
             </h2>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => handleExportUsers('csv')}
-                className="flex items-center space-x-2 px-3 py-2 bg-apple-gray-100 dark:bg-apple-gray-700 text-apple-gray-600 dark:text-apple-gray-300 rounded-lg hover:bg-apple-gray-200 dark:hover:bg-apple-gray-600 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                <span>Export All</span>
-              </button>
-            </div>
+      <div className="apple-card p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white">
+            Filter Users
+          </h2>
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-lg transition-colors"
+          >
+            Clear All Filters
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Search Users
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, admission number, or employee ID..."
+              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+            />
           </div>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
-                <th className="px-6 py-4 text-left">
-                  <input
-                    type="checkbox"
-                    checked={getCurrentPageUsers().length > 0 && getCurrentPageUsers().every(user => selectedUsers.has(user.id))}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort('full_name')}
-                    className="flex items-center space-x-1 text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300 hover:text-apple-gray-600 dark:hover:text-apple-gray-100"
-                  >
-                    <span>Name</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort('role')}
-                    className="flex items-center space-x-1 text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300 hover:text-apple-gray-600 dark:hover:text-apple-gray-100"
-                  >
-                    <span>Role</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
-                  Contact Info
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
-                  Academic Info
-                </th>
-                <th className="px-6 py-4 text-left">
-                  <button
-                    onClick={() => handleSort('status')}
-                    className="flex items-center space-x-1 text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300 hover:text-apple-gray-600 dark:hover:text-apple-gray-100"
-                  >
-                    <span>Status</span>
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-apple-gray-400 dark:text-apple-gray-300">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-apple-gray-200/50 dark:divide-apple-gray-500/20">
-              {getCurrentPageUsers().map((user) => (
-                <tr key={user.id} className="hover:bg-apple-gray-50 dark:hover:bg-apple-gray-700/30 transition-colors">
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.has(user.id)}
-                      onChange={() => handleSelectUser(user.id)}
-                      className="w-4 h-4 text-apple-blue-500 border-apple-gray-300 rounded focus:ring-apple-blue-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-apple-gray-100 dark:bg-apple-gray-700 rounded-lg">
-                        {getRoleIcon(user.role)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-apple-gray-600 dark:text-white">
-                          {user.full_name}
-                        </div>
-                        <div className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                          {user.email}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                        user.role === 'student' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                        user.role === 'teacher' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                        user.role === 'admin' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                      }`}>
-                        {user.role}
-                      </span>
-                      <span className="text-xs text-apple-gray-400 dark:text-apple-gray-300 capitalize">
-                        {user.peer_group?.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      {user.contact_number && (
-                        <div className="flex items-center space-x-2 text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                          <Phone className="w-3 h-3" />
-                          <span>{user.contact_number}</span>
-                        </div>
-                      )}
-                      {user.residential_address && (
-                        <div className="flex items-center space-x-2 text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate max-w-32">{user.residential_address}</span>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      {(user.admission_number || user.employee_id) && (
-                        <div className="text-sm font-medium text-apple-gray-600 dark:text-white">
-                          {user.admission_number || user.employee_id}
-                        </div>
-                      )}
-                      {user.current_standard && (
-                        <div className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                          Class {user.current_standard} {user.section && `- ${user.section}`}
-                        </div>
-                      )}
-                      {user.department && (
-                        <div className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                          {user.department}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                      {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="p-2 text-apple-gray-400 hover:text-apple-blue-500 transition-colors"
-                        title="Edit User"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="p-2 text-apple-gray-400 hover:text-red-500 transition-colors"
-                        title="Delete User"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          {/* Role Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Role
+            </label>
+            <select
+              multiple
+              value={filters.role || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                role: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={4}
+            >
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-apple-gray-200/50 dark:border-apple-gray-500/20">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-apple-gray-600 dark:text-apple-gray-300">
-              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} users
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="px-3 py-1 bg-apple-gray-100 dark:bg-apple-gray-700 rounded text-sm text-apple-gray-600 dark:text-apple-gray-300">
-                {currentPage} of {getTotalPages()}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(getTotalPages(), prev + 1))}
-                disabled={currentPage === getTotalPages()}
-                className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Status
+            </label>
+            <select
+              multiple
+              value={filters.status || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                status: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={5}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+              <option value="graduated">Graduated</option>
+              <option value="transferred">Transferred</option>
+            </select>
+          </div>
+
+          {/* Peer Group Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Peer Group
+            </label>
+            <select
+              multiple
+              value={filters.peer_group || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                peer_group: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={5}
+            >
+              <option value="pre_primary">Pre Primary</option>
+              <option value="primary">Primary</option>
+              <option value="secondary">Secondary</option>
+              <option value="higher_secondary">Higher Secondary</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+
+          {/* Accommodation Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Accommodation Type
+            </label>
+            <select
+              multiple
+              value={filters.accommodation_type || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                accommodation_type: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={2}
+            >
+              <option value="day_boarder">Day Boarder</option>
+              <option value="hosteller">Hosteller</option>
+            </select>
+          </div>
+
+          {/* Department Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Department
+            </label>
+            <select
+              multiple
+              value={filters.department || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                department: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={6}
+            >
+              <option value="Mathematics">Mathematics</option>
+              <option value="Science">Science</option>
+              <option value="English">English</option>
+              <option value="Hindi">Hindi</option>
+              <option value="Social Studies">Social Studies</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Physical Education">Physical Education</option>
+              <option value="Arts">Arts</option>
+              <option value="Administration">Administration</option>
+            </select>
+          </div>
+
+          {/* Current Standard Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Current Standard
+            </label>
+            <select
+              multiple
+              value={filters.current_standard || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                current_standard: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={8}
+            >
+              <option value="Nursery">Nursery</option>
+              <option value="LKG">LKG</option>
+              <option value="UKG">UKG</option>
+              <option value="1">Class 1</option>
+              <option value="2">Class 2</option>
+              <option value="3">Class 3</option>
+              <option value="4">Class 4</option>
+              <option value="5">Class 5</option>
+              <option value="6">Class 6</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+              <option value="9">Class 9</option>
+              <option value="10">Class 10</option>
+              <option value="11">Class 11</option>
+              <option value="12">Class 12</option>
+            </select>
+          </div>
+
+          {/* Section Filter */}
+          <div>
+            <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+              Section
+            </label>
+            <select
+              multiple
+              value={filters.section || []}
+              onChange={(e) => setFilters(prev => ({
+                ...prev,
+                section: Array.from(e.target.selectedOptions, option => option.value)
+              }))}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              size={5}
+            >
+              <option value="A">Section A</option>
+              <option value="B">Section B</option>
+              <option value="C">Section C</option>
+              <option value="D">Section D</option>
+              <option value="E">Section E</option>
+            </select>
           </div>
         </div>
       </div>
