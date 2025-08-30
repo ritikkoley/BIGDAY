@@ -29,9 +29,13 @@ export interface Database {
       user_profiles: {
         Row: {
           id: string;
-          name: string;
+          full_name: string;
           role: 'student' | 'teacher' | 'admin';
           group_id: string | null;
+          class_teacher_of: string | null;
+          timezone: string;
+          max_daily_periods: number | null;
+          availability_pref: any;
           department: string | null;
           profile_data: any;
           status: 'active' | 'inactive';
@@ -40,82 +44,220 @@ export interface Database {
         };
         Insert: {
           id: string;
-          name: string;
+          full_name: string;
           role: 'student' | 'teacher' | 'admin';
           group_id?: string | null;
+          class_teacher_of?: string | null;
+          timezone?: string;
+          max_daily_periods?: number | null;
+          availability_pref?: any;
           department?: string | null;
           profile_data?: any;
           status?: 'active' | 'inactive';
         };
         Update: {
-          name?: string;
+          full_name?: string;
           role?: 'student' | 'teacher' | 'admin';
           group_id?: string | null;
+          class_teacher_of?: string | null;
+          timezone?: string;
+          max_daily_periods?: number | null;
+          availability_pref?: any;
           department?: string | null;
           profile_data?: any;
           status?: 'active' | 'inactive';
+        };
+      };
+      academic_terms: {
+        Row: {
+          id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          frozen: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          name: string;
+          start_date: string;
+          end_date: string;
+          frozen?: boolean;
+        };
+        Update: {
+          name?: string;
+          start_date?: string;
+          end_date?: string;
+          frozen?: boolean;
         };
       };
       groups: {
         Row: {
           id: string;
           name: string;
-          type: 'class' | 'department';
-          description: string | null;
+          academic_term_id: string;
+          period_length_minutes: number;
+          days_per_week: number;
+          periods_per_day: number;
+          max_daily_periods: number;
+          lab_block_size: number;
+          business_hours: any;
+          holiday_calendar: any;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           name: string;
-          type: 'class' | 'department';
-          description?: string | null;
+          academic_term_id: string;
+          period_length_minutes?: number;
+          days_per_week?: number;
+          periods_per_day?: number;
+          max_daily_periods?: number;
+          lab_block_size?: number;
+          business_hours?: any;
+          holiday_calendar?: any;
         };
         Update: {
           name?: string;
-          type?: 'class' | 'department';
-          description?: string | null;
+          academic_term_id?: string;
+          period_length_minutes?: number;
+          days_per_week?: number;
+          periods_per_day?: number;
+          max_daily_periods?: number;
+          lab_block_size?: number;
+          business_hours?: any;
+          holiday_calendar?: any;
         };
       };
       courses: {
         Row: {
           id: string;
-          name: string;
           code: string;
-          teacher_id: string;
-          group_ids: string[];
-          subtopics: any[];
-          timetable: any[];
-          holidays: any[];
-          type: 'theory' | 'lab';
-          semester: number | null;
-          academic_year: string | null;
-          allow_quizzes: boolean;
+          title: string;
+          description: string | null;
+          weekly_theory_periods: number;
+          weekly_lab_periods: number;
+          lab_block_size: number;
+          constraints: any;
+          active: boolean;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
-          name: string;
           code: string;
-          teacher_id: string;
-          group_ids?: string[];
-          subtopics?: any[];
-          timetable?: any[];
-          holidays?: any[];
-          type?: 'theory' | 'lab';
-          semester?: number | null;
-          academic_year?: string | null;
-          allow_quizzes?: boolean;
+          title: string;
+          description?: string | null;
+          weekly_theory_periods?: number;
+          weekly_lab_periods?: number;
+          lab_block_size?: number;
+          constraints?: any;
+          active?: boolean;
         };
         Update: {
-          name?: string;
           code?: string;
-          teacher_id?: string;
-          group_ids?: string[];
-          subtopics?: any[];
-          timetable?: any[];
-          holidays?: any[];
+          title?: string;
+          description?: string | null;
+          weekly_theory_periods?: number;
+          weekly_lab_periods?: number;
+          lab_block_size?: number;
+          constraints?: any;
+          active?: boolean;
+        };
+      };
+      group_courses: {
+        Row: {
+          id: string;
+          group_id: string;
+          course_id: string;
+          teacher_id: string | null;
+          weekly_theory_periods: number | null;
+          weekly_lab_periods: number | null;
+          lab_block_size: number | null;
+          priority: number;
+          effective_from: string;
+          effective_to: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          group_id: string;
+          course_id: string;
+          teacher_id?: string | null;
+          weekly_theory_periods?: number | null;
+          weekly_lab_periods?: number | null;
+          lab_block_size?: number | null;
+          priority?: number;
+          effective_from?: string;
+          effective_to?: string | null;
+        };
+        Update: {
+          teacher_id?: string | null;
+          weekly_theory_periods?: number | null;
+          weekly_lab_periods?: number | null;
+          lab_block_size?: number | null;
+          priority?: number;
+          effective_from?: string;
+          effective_to?: string | null;
+        };
+      };
+      timetables: {
+        Row: {
+          id: string;
+          group_id: string;
+          academic_term_id: string;
+          status: 'draft' | 'published' | 'archived';
+          version: number;
+          generated_at: string;
+          published_at: string | null;
+          published_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          group_id: string;
+          academic_term_id: string;
+          status?: 'draft' | 'published' | 'archived';
+          version?: number;
+        };
+        Update: {
+          status?: 'draft' | 'published' | 'archived';
+          published_at?: string | null;
+          published_by?: string | null;
+        };
+      };
+      timetable_sessions: {
+        Row: {
+          id: string;
+          timetable_id: string;
+          group_id: string;
+          course_id: string;
+          teacher_id: string | null;
+          day_of_week: number;
+          period_start_index: number;
+          duration_periods: number;
+          type: 'theory' | 'lab';
+          locked: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          timetable_id: string;
+          group_id: string;
+          course_id: string;
+          teacher_id?: string | null;
+          day_of_week: number;
+          period_start_index: number;
+          duration_periods?: number;
           type?: 'theory' | 'lab';
-          semester?: number | null;
-          academic_year?: string | null;
-          allow_quizzes?: boolean;
+          locked?: boolean;
+        };
+        Update: {
+          teacher_id?: string | null;
+          day_of_week?: number;
+          period_start_index?: number;
+          duration_periods?: number;
+          type?: 'theory' | 'lab';
+          locked?: boolean;
         };
       };
       assessments: {
