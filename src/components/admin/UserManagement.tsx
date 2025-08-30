@@ -78,7 +78,6 @@ export const UserManagement: React.FC = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   
   // Calculate total users from filtered data
-  const totalUsers = filteredUsers.length;
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Form State
