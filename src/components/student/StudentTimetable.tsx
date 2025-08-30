@@ -14,15 +14,7 @@ interface TimetableItem {
   urgency_status: 'overdue' | 'upcoming' | 'future';
 }
 
-interface StudentTimetableProps {
-  onViewGrades: (subject: string) => void;
-  onViewAttendance: (subject: string) => void;
-}
-
-export const StudentTimetable: React.FC<StudentTimetableProps> = ({
-  onViewGrades,
-  onViewAttendance
-}) => {
+export const StudentTimetable: React.FC = () => {
   const [timetable, setTimetable] = useState<TimetableItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

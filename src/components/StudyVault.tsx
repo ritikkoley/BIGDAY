@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { useDataStore } from '../stores/dataStore';
+import React, { useState } from 'react';
 import { StudyVaultData, CourseDocument } from '../types';
 import { 
   Download, 
@@ -28,21 +26,9 @@ export const StudyVault: React.FC<StudyVaultProps> = ({
   onUploadAssignment,
   onDownloadMaterial
 }) => {
-  const { user } = useAuthStore();
-  const { fetchResources, resources } = useDataStore();
   const [selectedSubject, setSelectedSubject] = useState<string>(data.subjects[0]?.name || '');
   const [activeTab, setActiveTab] = useState<'uploads' | 'downloads'>('downloads');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user && selectedSubject) {
-      // Find course ID for the selected subject
-      const courseId = data.subjects.find(s => s.name === selectedSubject)?.id;
-      if (courseId) {
-        fetchResources(courseId);
-      }
-    }
-  }, [user, selectedSubject, fetchResources]);
 
   const handleFileUpload = async (subject: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -75,7 +61,7 @@ export const StudyVault: React.FC<StudyVaultProps> = ({
   const currentSubject = data.subjects.find(s => s.name === selectedSubject);
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-8">

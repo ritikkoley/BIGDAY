@@ -1,32 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
 import { TrendingUp, Users } from 'lucide-react';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
 import { PerformanceReport } from '../PerformanceReport';
-import { demoStudentPerformance, demoUsers } from '../../data/demoData';
 import { sampleTeacherPerformanceMetrics, samplePerformanceAnalytics } from '../../data/sampleAdminData';
 import { sampleGrades, performanceMetrics } from '../../data/sampleData';
 
 export const PerformanceView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'teachers' | 'students'>('teachers');
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('teacher-1');
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('student-1');
-  const location = useLocation();
-  
-  useEffect(() => {
-    // Check URL parameters for teacherId or studentId
-    const params = new URLSearchParams(location.search);
-    const teacherId = params.get('teacherId');
-    const studentId = params.get('studentId');
-    
-    if (teacherId) {
-      setSelectedTeacherId(teacherId);
-      setActiveTab('teachers');
-    } else if (studentId) {
-      setSelectedStudentId(studentId);
-      setActiveTab('students');
-    }
-  }, [location]);
 
   return (
     <div className="space-y-6">
@@ -77,43 +57,16 @@ export const PerformanceView: React.FC = () => {
       <div>
         {activeTab === 'teachers' ? (
           <TeacherPerformanceView
-            teacherId={selectedTeacherId}
+            teacherId="t-001"
             metrics={sampleTeacherPerformanceMetrics}
             analytics={samplePerformanceAnalytics}
           />
         ) : (
-          <div className="space-y-6">
-            {/* Student Selection */}
-            <div className="apple-card p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white">
-                  Student Performance Analysis
-                </h2>
-              </div>
-              <div className="flex space-x-2 overflow-x-auto pb-2">
-                {demoUsers.filter(u => u.role === 'student').map((student) => (
-                  <button
-                    key={student.id}
-                    onClick={() => setSelectedStudentId(student.id)}
-                    className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                      selectedStudentId === student.id
-                        ? 'bg-apple-blue-500 text-white'
-                        : 'bg-apple-gray-100 dark:bg-apple-gray-600/50 text-apple-gray-600 dark:text-apple-gray-300'
-                    }`}
-                  >
-                    {student.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Student Performance Component */}
-            <PerformanceReport
-              studentName={demoUsers.find(u => u.id === selectedStudentId)?.name || 'Student'}
-              metrics={performanceMetrics}
-              grades={sampleGrades}
-            />
-          </div>
+          <PerformanceReport
+            studentName="Ritik Koley"
+            metrics={performanceMetrics}
+            grades={sampleGrades}
+          />
         )}
       </div>
     </div>

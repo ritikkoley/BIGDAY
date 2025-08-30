@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { useDataStore } from '../stores/dataStore';
 import { Grade } from '../types';
 import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen, Microscope, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 
@@ -15,16 +13,8 @@ const GradesView: React.FC<GradesViewProps> = ({
   grades,
   selectedSubject
 }) => {
-  const { user } = useAuthStore();
-  const { fetchGrades } = useDataStore();
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const subjectRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  useEffect(() => {
-    if (user) {
-      fetchGrades(user.id, selectedSubject || undefined);
-    }
-  }, [user, selectedSubject, fetchGrades]);
 
   useEffect(() => {
     if (selectedSubject && subjectRefs.current[selectedSubject]) {
@@ -138,7 +128,7 @@ const GradesView: React.FC<GradesViewProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-slate-50 to-red-50 dark:from-gray-900 dark:via-slate-900 dark:to-red-950 p-8 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-red-50 dark:from-gray-900 dark:via-slate-900 dark:to-red-950 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/20 dark:to-rose-900/20 rounded-full transform translate-x-48 -translate-y-48 opacity-50" />

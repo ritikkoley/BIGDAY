@@ -1,5 +1,5 @@
 import React from 'react';
-import { TeacherProfile, TeacherDashboardData } from '../../types/teacher'; 
+import { TeacherProfile, TeacherDashboardData } from '../../types/teacher';
 import { 
   LayoutDashboard, 
   Clock, 
@@ -9,10 +9,8 @@ import {
   TrendingUp,
   BookOpen,
   GraduationCap
-} from 'lucide-react'; 
-import { useEffect, useState } from 'react'; 
-import { useDataStore } from '../../stores/dataStore';
-import { useAuthStore } from '../../stores/authStore';
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 
 interface TeacherDashboardProps {
@@ -23,30 +21,14 @@ interface TeacherDashboardProps {
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   profile,
   dashboardData
-}) => { 
-  const { user } = useAuthStore();
-  const { subscribeToGrades, unsubscribeAll } = useDataStore();
+}) => {
   const [realDashboardData, setRealDashboardData] = useState<TeacherDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
-    
-    if (user) {
-      // Subscribe to real-time grade updates for teacher courses
-      profile.subjects.forEach(subject => {
-        // In a real implementation, we would subscribe to grades for each course
-        // For now, we'll just use the user ID
-        subscribeToGrades(user.id);
-      });
-      
-      // Cleanup subscription on unmount
-      return () => {
-        unsubscribeAll();
-      };
-    }
-  }, [user, profile.subjects, subscribeToGrades, unsubscribeAll]);
+  }, []);
 
   const fetchDashboardData = async () => {
     try {

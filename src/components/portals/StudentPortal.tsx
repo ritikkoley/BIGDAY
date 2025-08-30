@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { useDataStore } from '../../stores/dataStore';
 
-// Student Components 
-import { Home } from '../student/Home';
-import { StudentProgress } from '../student/StudentProgress';
-import { StudyVault } from '../StudyVault';
-import { GradesView } from '../GradesView';
+// Student Components
+import { HomePage } from '../HomePage';
+import { ProgressDashboard } from '../ProgressDashboard';
+import GradesView from '../GradesView';
 import { AttendanceView } from '../AttendanceView';
-import { Performance } from '../student/Performance';
+import { PerformanceReport } from '../PerformanceReport';
+import { StudyVault } from '../StudyVault';
+import { StudentProgress } from '../student/StudentProgress';
+import { StudentMessages } from '../student/StudentMessages';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -18,7 +19,7 @@ import { Logo } from '../Logo';
 import { 
   Menu, 
   X, 
-  Home as HomeIcon, 
+  Home, 
   TrendingUp, 
   GraduationCap, 
   Calendar, 
@@ -39,30 +40,11 @@ import {
 
 export const StudentPortal: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut, user } = useAuthStore(); 
-  const { 
-    fetchUserProfile, 
-    profile, 
-    fetchCourses, 
-    courses, 
-    unsubscribeAll 
-  } = useDataStore();
+  const { signOut, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    if (user) {
-      fetchUserProfile(user.id);
-      fetchCourses(user.id, 'student');
-      
-      // Cleanup all subscriptions when component unmounts
-      return () => {
-        unsubscribeAll();
-      };
-    }
-  }, [user, fetchUserProfile, fetchCourses, unsubscribeAll]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -263,14 +245,18 @@ export const StudentPortal: React.FC = () => {
       <div className="min-h-screen pt-16">
         <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
           {activeTab === 'home' && (
-            <Home />
+            <HomePage
+              studentName="Ritik Koley"
+              onViewGrades={handleViewGrades}
+              onViewAttendance={handleViewAttendance}
+            />
           )}
           {activeTab === 'progress' && (
             <StudentProgress />
           )}
           {activeTab === 'study-vault' && (
             <StudyVault
-              studentName={profile?.name || "Student"}
+              studentName="Ritik Koley"
               data={sampleStudyVaultData}
               onUploadAssignment={async () => {}}
               onDownloadMaterial={async () => {}}
@@ -278,20 +264,20 @@ export const StudentPortal: React.FC = () => {
           )}
           {activeTab === 'grades' && (
             <GradesView
-              studentName={profile?.name || "Student"}
+              studentName="Ritik Koley"
               grades={sampleGrades}
               selectedSubject={selectedSubject}
             />
           )}
           {activeTab === 'attendance' && (
             <AttendanceView
-              studentName={profile?.name || "Student"}
-              attendance={sampleAttendance} 
+              studentName="Ritik Koley"
+              attendance={sampleAttendance}
               selectedSubject={selectedSubject}
             />
           )}
           {activeTab === 'performance' && (
-            <Performance />
+            <StudentMessages />
           )}
         </main>
       </div>
@@ -307,7 +293,7 @@ export const StudentPortal: React.FC = () => {
                 : 'text-apple-gray-400 dark:text-apple-gray-300'
             }`}
           >
-            <HomeIcon className="mobile-nav-icon" />
+            <Home className="mobile-nav-icon" />
             <span className="mobile-nav-text">Home</span>
           </button>
           <button

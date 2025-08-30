@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { demoUsers, demoCourses } from '../data/demoData';
 
 type SearchResult = {
   id: string;
@@ -22,37 +21,21 @@ interface SearchState {
 
 // Mock search results
 const mockStudents: SearchResult[] = [
-  ...demoUsers
-    .filter(user => user.role === 'student')
-    .map(user => ({
-      id: user.id,
-      name: user.name,
-      type: 'student' as const,
-      identifier: user.id.replace('student-', 'S-'),
-      email: user.email
-    }))
+  { id: 's1', name: 'Ritik Koley', type: 'student', identifier: 'S-123456', email: 'ritik.koley@example.com' },
+  { id: 's2', name: 'Alex Johnson', type: 'student', identifier: 'S-123457', email: 'alex.johnson@example.com' },
+  { id: 's3', name: 'Sarah Williams', type: 'student', identifier: 'S-123458', email: 'sarah.williams@example.com' }
 ];
 
 const mockTeachers: SearchResult[] = [
-  ...demoUsers
-    .filter(user => user.role === 'teacher')
-    .map(user => ({
-      id: user.id,
-      name: user.name,
-      type: 'teacher' as const,
-      identifier: user.id.replace('teacher-', 'T-'),
-      email: user.email
-    }))
+  { id: 't1', name: 'Jagdeep Singh Sokhey', type: 'teacher', identifier: 'T-001', email: 'jagdeep.singh@example.com' },
+  { id: 't2', name: 'Michael Zhang', type: 'teacher', identifier: 'T-002', email: 'michael.zhang@example.com' },
+  { id: 't3', name: 'Emily Brown', type: 'teacher', identifier: 'T-003', email: 'emily.brown@example.com' }
 ];
 
 const mockCourses: SearchResult[] = [
-  ...demoCourses.map(course => ({
-    id: course.id,
-    name: course.name,
-    type: 'course' as const,
-    identifier: course.code,
-    code: course.code
-  }))
+  { id: 'c1', name: 'Computer Science', type: 'course', identifier: 'CS101', code: 'CS101' },
+  { id: 'c2', name: 'Data Structures', type: 'course', identifier: 'CS102', code: 'CS102' },
+  { id: 'c3', name: 'Physics', type: 'course', identifier: 'PHY101', code: 'PHY101' }
 ];
 
 export const useSearchStore = create<SearchState>((set, get) => ({

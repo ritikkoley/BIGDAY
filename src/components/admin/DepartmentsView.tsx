@@ -5,7 +5,7 @@ export const DepartmentsView: React.FC = () => {
   const departments = [
     {
       name: 'Mathematics',
-      head: 'Professor Anil Kumar Jangir',
+      head: 'Professor Jagdeep Singh Sokhey',
       teachers: 18,
       performance: 92,
       trend: 'up'

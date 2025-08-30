@@ -11,7 +11,7 @@ import {
 
 export const sampleTeacherProfile: TeacherProfile = {
   id: "t-001",
-  name: "Anil Kumar Jangir",
+  name: "Jagdeep Singh Sokhey",
   email: "sarah.chen@university.edu",
   department: "Computer Science",
   role: "professor",
