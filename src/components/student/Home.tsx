@@ -269,15 +269,6 @@ export const Home: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Check if this is a mock/demo user ID
-      if (user?.id && (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-'))) {
-        // Use mock data for demo accounts
-        setUpcoming(demoUpcoming || []);
-        setTimetable(demoTimetable || []);
-        setIsLoading(false);
-        return;
-      }
-      
       // Fetch upcoming assessments
       const { data: upcomingData, error: upcomingError } = await supabase
         .from('student_upcoming')
