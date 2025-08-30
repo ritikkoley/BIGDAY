@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Settings, Bell, Shield, Users, Mail } from 'lucide-react';
+import { Settings, Bell, Shield, Users, Mail, Calendar, BookOpen, Clock } from 'lucide-react';
 import { UserManagement } from './UserManagement';
+import { CoursesManagement } from './CoursesManagement';
+import { GroupsManagement } from './GroupsManagement';
+import { TimetablesManagement } from './TimetablesManagement';
 
 export const SettingsView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'notifications' | 'security' | 'email'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'groups' | 'timetables' | 'notifications' | 'security' | 'email'>('users');
 
   return (
     <div className="space-y-6">
@@ -36,6 +39,39 @@ export const SettingsView: React.FC = () => {
         >
           <Users className="w-4 h-4" />
           <span>Users</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('courses')}
+          className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+            activeTab === 'courses'
+              ? 'border-apple-blue-500 text-apple-blue-500'
+              : 'border-transparent text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>Courses</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('groups')}
+          className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+            activeTab === 'groups'
+              ? 'border-apple-blue-500 text-apple-blue-500'
+              : 'border-transparent text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Groups</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('timetables')}
+          className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+            activeTab === 'timetables'
+              ? 'border-apple-blue-500 text-apple-blue-500'
+              : 'border-transparent text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>Timetables</span>
         </button>
         <button
           onClick={() => setActiveTab('notifications')}
@@ -75,6 +111,9 @@ export const SettingsView: React.FC = () => {
       {/* Tab Content */}
       <div>
         {activeTab === 'users' && <UserManagement />}
+        {activeTab === 'courses' && <CoursesManagement />}
+        {activeTab === 'groups' && <GroupsManagement />}
+        {activeTab === 'timetables' && <TimetablesManagement />}
         {activeTab === 'notifications' && (
           <div className="apple-card p-6">
             <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">
