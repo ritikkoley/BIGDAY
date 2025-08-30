@@ -1686,7 +1686,6 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
     </>
   );
 };
