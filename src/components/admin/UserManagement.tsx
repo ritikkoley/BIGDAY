@@ -79,6 +79,7 @@ export const UserManagement: React.FC = () => {
   
   // Calculate total users from filtered data
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [itemsPerPage] = useState(20);
   
   // Form State
   const [formData, setFormData] = useState<Partial<UserProfile>>({
