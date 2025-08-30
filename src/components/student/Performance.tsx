@@ -497,7 +497,15 @@ export const Performance: React.FC = () => {
   }, [user, fetchCourses, subscribeToGrades, unsubscribeAll]);
 
   useEffect(() => {
+    if (user) {
+      analyzePerformance();
+    }
+  }, [user]);
+
+  const analyzePerformance = async () => {
     try {
+      setIsLoading(true);
+      
       // Calculate current performance based on sample grades
       const subjectAverages = sampleGrades.map(grade => {
         const average = grade.exams.reduce((sum, exam) => sum + exam.score, 0) / grade.exams.length;
@@ -648,7 +656,7 @@ export const Performance: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  };
 
   if (isLoading) {
     return (
