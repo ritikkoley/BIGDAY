@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore'; 
 
 // Administrator Components
 import { AdminOverview } from '../admin/AdminOverview';
@@ -26,9 +27,21 @@ import {
 
 export const AdminPortal: React.FC = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuthStore();
+  const { signOut, user } = useAuthStore();
+  const { fetchUserProfile, profile, unsubscribeAll } = useDataStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile(user.id);
+      
+      // Cleanup all subscriptions when component unmounts
+      return () => {
+        unsubscribeAll();
+      };
+    }
+  }, [user, fetchUserProfile, unsubscribeAll]);
 
   const handleSearch = async (query: string, filters: any) => {
     console.log('Searching:', query, filters);

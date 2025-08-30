@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { LoginPage } from './components/auth/LoginPage';
@@ -8,7 +8,12 @@ import { TeacherPortal } from './components/portals/TeacherPortal';
 import { AdminPortal } from './components/portals/AdminPortal';
 
 function App() {
-  const { user, role, isLoading } = useAuthStore();
+  const { user, role, isLoading, initialize } = useAuthStore();
+  
+  // Initialize auth on component mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
 
   if (isLoading) {
     return (

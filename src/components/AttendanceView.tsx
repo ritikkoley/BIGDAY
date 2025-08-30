@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useDataStore } from '../stores/dataStore';
 import { AttendanceRecord } from '../types';
 import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen, Microscope, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 
@@ -13,8 +15,16 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   attendance,
   selectedSubject
 }) => {
+  const { user } = useAuthStore();
+  const { fetchAttendance } = useDataStore();
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const subjectRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    if (user) {
+      fetchAttendance(user.id, selectedSubject || undefined);
+    }
+  }, [user, selectedSubject, fetchAttendance]);
 
   useEffect(() => {
     if (selectedSubject && subjectRefs.current[selectedSubject]) {
@@ -66,7 +76,7 @@ export const AttendanceView: React.FC<AttendanceViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
+    <div className="bg-gradient-to-br from-gray-50 via-slate-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950 p-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex items-center space-x-4">

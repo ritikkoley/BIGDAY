@@ -1,5 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, User, Clock, AlertTriangle } from 'lucide-react';
+import React, { useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
+import { demoMessages } from '../../data/demoData';
+import { MessageSquare, Send, User, Clock, AlertTriangle, Check } from 'lucide-react';
+
+interface Message {
+  id: string;
+  sender_id: string;
+  recipient_id: string | null;
+  group_id: string | null;
+  subject: string;
+  content: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  is_read: boolean;
+  message_type: 'direct' | 'announcement' | 'reminder' | 'alert';
+  created_at: string;
+  sender: {
+    name: string;
+    role: string;
+  };
+}
 
 interface Message {
   id: string;
@@ -19,69 +40,51 @@ interface Message {
 }
 
 export const StudentMessages: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { user } = useAuthStore();
+  const { 
+    fetchMessages, 
+    messages, 
+    subscribeToMessages,
+    unsubscribeAll,
+    isLoading: messagesLoading, 
+    error: messagesError 
+  } = useDataStore();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(messagesLoading);
+  const [error, setError] = useState<string | null>(messagesError);
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  const fetchMessages = async () => {
-    try {
-      setIsLoading(true);
-      // Mock data instead of fetching from Supabase
-      const mockMessages: Message[] = [
-        {
-          id: 'm1',
-          sender_id: 't1',
-          recipient_id: 's1',
-          group_id: null,
-          subject: 'Upcoming Quiz',
-          content: 'Please be prepared for the upcoming quiz on neural networks. Focus on activation functions and gradient descent.',
-          priority: 'high',
-          is_read: false,
-          message_type: 'direct',
-          created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            name: 'Professor Jagdeep Singh Sokhey',
-            role: 'teacher'
-          }
-        },
-        {
-          id: 'm2',
-          sender_id: 't1',
-          recipient_id: 's1',
-          group_id: null,
-          subject: 'Office Hours',
-          content: 'Office hours extended today until 5 PM for Linear Algebra consultation.',
-          priority: 'medium',
-          is_read: true,
-          message_type: 'direct',
-          created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          sender: {
-            name: 'Professor Jagdeep Singh Sokhey',
-            role: 'teacher'
-          }
-        }
-      ];
-      setMessages(mockMessages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch messages');
-    } finally {
-      setIsLoading(false);
+  React.useEffect(() => {
+    if (user) {
+      fetchMessages(user.id);
+      
+      // For demo accounts, use demo messages
+      if (user.id.startsWith('student-') || user.id.startsWith('teacher-') || user.id.startsWith('admin-')) {
+        setMessages(demoMessages);
+      }
+      
+      // Subscribe to real-time message updates
+      subscribeToMessages(user.id);
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  };
+  }, [user, fetchMessages, subscribeToMessages, unsubscribeAll]);
 
   const markAsRead = async (messageId: string) => {
     try {
-      // Update local state
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId ? { ...msg, is_read: true } : msg
-        )
-      );
+      const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('id', messageId);
+      
+      if (error) throw error;
+      
+      // Refresh messages
+      if (user) {
+        fetchMessages(user.id);
+      }
     } catch (err) {
       console.error('Error marking message as read:', err);
     }
@@ -132,7 +135,7 @@ export const StudentMessages: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="apple-card p-6">
+      <div className="flex items-center justify-center py-12">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="space-y-3">
@@ -174,7 +177,7 @@ export const StudentMessages: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Message List */}
           <div className="lg:col-span-1 space-y-3 max-h-96 overflow-y-auto">
-            {messages.map((message) => (
+            {(messages as Message[]).map((message) => (
               <button
                 key={message.id}
                 onClick={() => {
@@ -235,10 +238,16 @@ export const StudentMessages: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <User className="w-8 h-8 text-apple-blue-500" />
-                    <div>
+                    <div className="flex items-center space-x-2">
                       <h3 className="font-medium text-apple-gray-600 dark:text-white">
                         {selectedMessage.sender.name}
                       </h3>
+                      {selectedMessage.is_read && (
+                        <span className="flex items-center text-xs text-green-500">
+                          <Check className="w-3 h-3 mr-1" />
+                          Read
+                        </span>
+                      )}
                       <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300 capitalize">
                         {selectedMessage.sender.role}
                       </p>

@@ -11,9 +11,11 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "type-check": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "db:reset": "supabase db reset"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.51.0",
     "date-fns": "^3.3.1",
     "lucide-react": "^0.344.0",
     "react": "^18.2.0",

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '../../stores/authStore';
+import { useDataStore } from '../../stores/dataStore';
 import { TeacherProfile, MessageTemplate, StudentRecord } from '../../types/teacher';
-import { MessageSquare, Clock, AlertTriangle, Send, Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { MessageSquare, Clock, AlertTriangle, Send, Loader2, Check } from 'lucide-react';
+import { useEffect } from 'react'; 
 
 interface TeacherMessagesProps {
   profile: TeacherProfile;
@@ -14,6 +16,8 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
   messageTemplates,
   studentRecords
 }) => {
+  const { user } = useAuthStore();
+  const { subscribeToMessages, unsubscribeAll } = useDataStore();
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
   const [messageContent, setMessageContent] = useState('');
   const [messageSubject, setMessageSubject] = useState('');
@@ -27,9 +31,19 @@ export const TeacherMessages: React.FC<TeacherMessagesProps> = ({
     if (selectedTemplate) {
       setMessageSubject(selectedTemplate.title);
       setMessageContent(selectedTemplate.content);
-      setPriority(selectedTemplate.priority);
+      setPriority(selectedTemplate.priority); 
+      
+      if (user) {
+        // Subscribe to real-time message updates
+        subscribeToMessages(user.id);
+      }
+      
+      // Cleanup subscription on unmount
+      return () => {
+        unsubscribeAll();
+      };
     }
-  }, [selectedTemplate]);
+  }, [selectedTemplate, user, subscribeToMessages, unsubscribeAll]);
 
   const handleSelectAllStudents = () => {
     const newSelectedStudents: Record<string, boolean> = {};
