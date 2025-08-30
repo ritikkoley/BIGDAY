@@ -75,6 +75,9 @@ export const UserManagement: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof UserProfile>('full_name');
+  
+  // Calculate total users from filtered data
+  const totalUsers = filteredUsers.length;
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Form State
