@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, Bell, Shield, Users, Mail } from 'lucide-react';
-import { UserManagement } from './UserManagement';
+import UserManagement from './UserManagement';
 
 export const SettingsView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'notifications' | 'security' | 'email'>('users');
