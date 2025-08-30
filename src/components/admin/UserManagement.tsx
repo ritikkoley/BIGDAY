@@ -248,6 +248,27 @@ export const UserManagement: React.FC = () => {
     setCurrentPage(1); // Reset to first page when filters change
   };
 
+  const clearFilters = () => {
+    setFilters({
+      role: [],
+      peer_group: [],
+      accommodation_type: [],
+      status: [],
+      department: [],
+      current_standard: [],
+      section: [],
+      search_term: ''
+    });
+    setSearchTerm('');
+  };
+
+  const handleFilterChange = (key: keyof FilterCriteria, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
   const handleCreateUser = async () => {
     try {
       setIsLoading(true);
@@ -765,6 +786,196 @@ export const UserManagement: React.FC = () => {
                   className="px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="apple-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white">
+              Filters
+            </h3>
+            <button
+              onClick={clearFilters}
+              className="text-sm text-apple-blue-500 hover:text-apple-blue-600"
+            >
+              Clear All Filters
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Role Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Role
+              </label>
+              <select
+                multiple
+                value={filters.role || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('role', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={4}
+              >
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+
+            {/* Peer Group Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Peer Group
+              </label>
+              <select
+                multiple
+                value={filters.peer_group || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('peer_group', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={5}
+              >
+                <option value="pre_primary">Pre Primary</option>
+                <option value="primary">Primary</option>
+                <option value="secondary">Secondary</option>
+                <option value="higher_secondary">Higher Secondary</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Status
+              </label>
+              <select
+                multiple
+                value={filters.status || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('status', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={5}
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+                <option value="graduated">Graduated</option>
+                <option value="transferred">Transferred</option>
+              </select>
+            </div>
+
+            {/* Accommodation Type Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Accommodation Type
+              </label>
+              <select
+                multiple
+                value={filters.accommodation_type || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('accommodation_type', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={2}
+              >
+                <option value="day_boarder">Day Boarder</option>
+                <option value="hosteller">Hosteller</option>
+              </select>
+            </div>
+
+            {/* Department Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Department
+              </label>
+              <select
+                multiple
+                value={filters.department || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('department', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={4}
+              >
+                <option value="Mathematics">Mathematics</option>
+                <option value="Science">Science</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Social Studies">Social Studies</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Physical Education">Physical Education</option>
+                <option value="Arts">Arts</option>
+                <option value="Administration">Administration</option>
+              </select>
+            </div>
+
+            {/* Current Standard Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Current Standard
+              </label>
+              <select
+                multiple
+                value={filters.current_standard || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('current_standard', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={6}
+              >
+                <option value="Nursery">Nursery</option>
+                <option value="LKG">LKG</option>
+                <option value="UKG">UKG</option>
+                <option value="1">Class 1</option>
+                <option value="2">Class 2</option>
+                <option value="3">Class 3</option>
+                <option value="4">Class 4</option>
+                <option value="5">Class 5</option>
+                <option value="6">Class 6</option>
+                <option value="7">Class 7</option>
+                <option value="8">Class 8</option>
+                <option value="9">Class 9</option>
+                <option value="10">Class 10</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+              </select>
+            </div>
+
+            {/* Section Filter */}
+            <div>
+              <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                Section
+              </label>
+              <select
+                multiple
+                value={filters.section || []}
+                onChange={(e) => {
+                  const selectedValues = Array.from(e.target.selectedOptions, option => option.value);
+                  handleFilterChange('section', selectedValues);
+                }}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                size={5}
+              >
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+                <option value="C">Section C</option>
+                <option value="D">Section D</option>
+                <option value="E">Section E</option>
+              </select>
             </div>
           </div>
         </div>
