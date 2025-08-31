@@ -33,18 +33,7 @@ export const academicTermsApi = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.warn('Academic terms table not found, using fallback data');
-      return [
-        {
-          id: 'fallback-term-1',
-          name: '2025 Term 1',
-          start_date: '2025-01-01',
-          end_date: '2025-06-30',
-          frozen: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      throw new Error('Database migration required: academic_terms table not found');
     }
   },
 
@@ -127,36 +116,7 @@ export const cohortsApi = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.warn('Cohorts table not found, using fallback data');
-      return [
-        {
-          id: 'fallback-cohort-1',
-          academic_term_id: 'fallback-term-1',
-          stream: 'Science',
-          grade: '8',
-          boarding_type: 'day_scholar',
-          periods_per_day: 8,
-          days_per_week: 5,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          academic_term: {
-            id: 'fallback-term-1',
-            name: '2025 Term 1',
-            start_date: '2025-01-01',
-            end_date: '2025-06-30',
-            frozen: false
-          },
-          sections: [
-            {
-              id: 'fallback-section-1',
-              cohort_id: 'fallback-cohort-1',
-              name: '8A',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ]
-        }
-      ];
+      throw new Error('Database migration required: cohorts table not found');
     }
   },
 
@@ -176,46 +136,47 @@ export const cohortsApi = {
   },
 
   create: async (cohort: Omit<Cohort, 'id' | 'created_at' | 'updated_at'>): Promise<Cohort> => {
-    // Create mock cohort for demo purposes (tables don't exist yet)
-    const mockCohort: Cohort = {
-      id: `cohort-${Date.now()}`,
-      institution_id: 'mock-institution-id',
-      academic_term_id: cohort.academic_term_id,
-      stream: cohort.stream,
-      grade: cohort.grade,
-      boarding_type: cohort.boarding_type,
-      periods_per_day: cohort.periods_per_day || 8,
-      days_per_week: cohort.days_per_week || 5,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Created mock cohort:', mockCohort);
-    return mockCohort;
+    try {
+      const { data, error } = await supabase
+        .from('cohorts')
+        .insert(cohort)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw new Error('Database migration required: cohorts table not found');
+    }
   },
 
   update: async (id: string, updates: Partial<Cohort>): Promise<Cohort> => {
-    // Return mock updated cohort (tables don't exist yet)
-    const mockCohort: Cohort = {
-      id: id,
-      institution_id: 'mock-institution-id',
-      academic_term_id: updates.academic_term_id || 'fallback-term-1',
-      stream: updates.stream || 'Mock Stream',
-      grade: updates.grade || '8',
-      boarding_type: updates.boarding_type || 'day_scholar',
-      periods_per_day: updates.periods_per_day || 8,
-      days_per_week: updates.days_per_week || 5,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Updated mock cohort:', mockCohort);
-    return mockCohort;
+    try {
+      const { data, error } = await supabase
+        .from('cohorts')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw new Error('Database migration required: cohorts table not found');
+    }
   },
 
   delete: async (id: string): Promise<void> => {
-    // Silently succeed for demo purposes (tables don't exist yet)
-    console.log('Cohort deletion simulated (table not available):', id);
+    try {
+      const { error } = await supabase
+        .from('cohorts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      throw new Error('Database migration required: cohorts table not found');
+    }
   }
 };
 
@@ -327,35 +288,7 @@ export const coursesApi = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.warn('Courses table not found, using fallback data');
-      return [
-        {
-          id: 'fallback-course-1',
-          code: 'MATH101',
-          title: 'Mathematics',
-          subject_type: 'theory',
-          weekly_theory_periods: 4,
-          weekly_lab_periods: 0,
-          lab_block_size: 2,
-          constraints: {},
-          active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'fallback-course-2',
-          code: 'PHY101',
-          title: 'Physics',
-          subject_type: 'mixed',
-          weekly_theory_periods: 3,
-          weekly_lab_periods: 1,
-          lab_block_size: 2,
-          constraints: {},
-          active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      throw new Error('Database migration required: courses table not found');
     }
   },
 
@@ -381,7 +314,7 @@ export const coursesApi = {
       if (error) throw error;
       return data;
     } catch (error) {
-      throw new Error('Database migration required. Please apply the allocation system migration.');
+      throw new Error('Database migration required: courses table not found');
     }
   },
 
@@ -655,27 +588,7 @@ export const slotTemplatesApi = {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.warn('Slot templates table not found, using fallback data');
-      return [
-        {
-          id: 'fallback-template-1',
-          name: 'Standard 8-Period Day',
-          days_per_week: 5,
-          periods_per_day: 8,
-          bells: {
-            '1': '08:00-08:45',
-            '2': '08:45-09:30',
-            '3': '09:30-10:15',
-            '4': '10:35-11:20',
-            '5': '11:20-12:05',
-            '6': '12:05-12:50',
-            '7': '13:30-14:15',
-            '8': '14:15-15:00'
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      throw new Error('Database migration required: slot_templates table not found');
     }
   },
 
