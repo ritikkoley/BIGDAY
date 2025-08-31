@@ -873,3 +873,6 @@ export const {
   system_reports,
   user_permissions
 } = demoData;
+
+// Export the demo teacher eligibility function
+export { getDemoTeacherEligibilityMatrix } from '../data/generateDemoData';
