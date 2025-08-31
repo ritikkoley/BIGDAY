@@ -225,19 +225,7 @@ export const cohortsApi = {
         ];
         return demoCohorts;
       }
-      
-      if (error) {
-        console.warn('Cohorts table error, using demo data:', error);
-        return demoData.cohorts;
-      }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Cohorts table empty, using demo data');
-        return demoData.cohorts;
-      }
-      
-      return data;
+      return data || [];
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
       // Create proper demo cohorts
@@ -506,17 +494,69 @@ export const coursesApi = {
         .order('code', { ascending: true });
       
       if (error) {
-        console.warn('Courses table error, using demo data:', error);
-        return demoData.courses;
+        console.warn('Courses table not found, using demo data');
+        // Create proper demo courses with required fields
+        const demoCourses = [
+          {
+            id: 'course-math',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'MATH',
+            title: 'Mathematics',
+            subject_type: 'theory' as const,
+            weekly_theory_periods: 5,
+            weekly_lab_periods: 0,
+            lab_block_size: 1,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-sci',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'SCI',
+            title: 'Science',
+            subject_type: 'mixed' as const,
+            weekly_theory_periods: 3,
+            weekly_lab_periods: 2,
+            lab_block_size: 2,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-eng',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'ENG',
+            title: 'English',
+            subject_type: 'theory' as const,
+            weekly_theory_periods: 4,
+            weekly_lab_periods: 0,
+            lab_block_size: 1,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-cs',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'CS',
+            title: 'Computer Science',
+            subject_type: 'mixed' as const,
+            weekly_theory_periods: 2,
+            weekly_lab_periods: 2,
+            lab_block_size: 2,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        return demoCourses;
       }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Courses table empty, using demo data');
-        return demoData.courses;
-      }
-      
-      return data;
+      return data || demoData.courses;
     } catch (error) {
       console.warn('Courses table not found, using demo data');
       // Create proper demo courses with required fields
@@ -740,16 +780,7 @@ export const teacherEligibilityApi = {
         .eq('role', 'teacher')
         .order('full_name');
 
-      if (teachersError) {
-        console.warn('Teachers table error, using demo data:', teachersError);
-        return demoData.teacherEligibilityMatrix;
-      }
-
-      // If table exists but is empty, use demo data
-      if (!teachers || teachers.length === 0) {
-        console.log('Teachers table empty, using demo data');
-        return demoData.teacherEligibilityMatrix;
-      }
+      if (teachersError) throw teachersError;
 
       // Get all courses
       const { data: courses, error: coursesError } = await supabase
@@ -758,10 +789,7 @@ export const teacherEligibilityApi = {
         .eq('active', true)
         .order('title');
 
-      if (coursesError) {
-        console.warn('Courses table error for eligibility, using demo data:', coursesError);
-        return demoData.teacherEligibilityMatrix;
-      }
+      if (coursesError) throw coursesError;
 
       // Get subject eligibility
       const { data: subjectEligibility, error: subjectError } = await supabase
