@@ -31,8 +31,11 @@ export const academicTermsApi = {
         .select('*')
         .order('start_date', { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.warn('Academic terms table not found, using demo data');
+        return demoData.academic_terms;
+      }
+      return data || demoData.academic_terms;
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
       return demoData.academic_terms;
@@ -115,7 +118,32 @@ export const cohortsApi = {
         .select('*, academic_term:academic_terms(*), sections:sections(*)')
         .order('grade', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Cohorts table not found, using demo data');
+        // Transform demo data to match expected structure
+        return demoData.user_groups
+          .filter(group => group.type === 'class')
+          .map(group => ({
+            id: group.id,
+            institution_id: demoData.institutions[0].id,
+            academic_term_id: demoData.academic_terms[0].id,
+            stream: group.name.includes('Grade') ? 'General' : 'Science',
+            grade: group.name.split(' ')[1]?.split('-')[0] || '6',
+            boarding_type: 'day_scholar' as const,
+            periods_per_day: 8,
+            days_per_week: 5,
+            created_at: group.created_at,
+            updated_at: group.updated_at,
+            academic_term: demoData.academic_terms[0],
+            sections: [{
+              id: `section-${group.id}`,
+              cohort_id: group.id,
+              name: group.name.split('-')[1] || 'A',
+              created_at: group.created_at,
+              updated_at: group.updated_at
+            }]
+          }));
+      }
       return data || [];
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
@@ -313,8 +341,11 @@ export const coursesApi = {
         .eq('active', true)
         .order('code', { ascending: true });
       
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.warn('Courses table not found, using demo data');
+        return demoData.courses;
+      }
+      return data || demoData.courses;
     } catch (error) {
       console.warn('Courses table not found, using demo data');
       return demoData.courses;
@@ -674,7 +705,28 @@ export const slotTemplatesApi = {
         .select('*')
         .order('name', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Slot templates table not found, using demo data');
+        return [{
+          id: 'demo-template-1',
+          institution_id: demoData.institutions[0].id,
+          name: 'Standard 8 Period Schedule',
+          days_per_week: 5,
+          periods_per_day: 8,
+          bells: {
+            '1': '08:00-08:45',
+            '2': '08:45-09:30',
+            '3': '09:30-10:15',
+            '4': '10:35-11:20',
+            '5': '11:20-12:05',
+            '6': '12:05-12:50',
+            '7': '13:30-14:15',
+            '8': '14:15-15:00'
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }];
+      }
       return data || [];
     } catch (error) {
       console.warn('Slot templates table not found, using demo data');
@@ -755,7 +807,39 @@ export const slotTemplatesApi = {
           section:sections(*)
         `);
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Slot template assignments table not found, using demo data');
+        // Create demo assignments
+        const cohorts = await cohortsApi.getAll();
+        return cohorts.map(cohort => ({
+          id: `assignment-${cohort.id}`,
+          slot_template_id: 'demo-template-1',
+          cohort_id: cohort.id,
+          section_id: undefined,
+          created_at: new Date().toISOString(),
+          slot_template: {
+            id: 'demo-template-1',
+            institution_id: demoData.institutions[0].id,
+            name: 'Standard 8 Period Schedule',
+            days_per_week: 5,
+            periods_per_day: 8,
+            bells: {
+              '1': '08:00-08:45',
+              '2': '08:45-09:30',
+              '3': '09:30-10:15',
+              '4': '10:35-11:20',
+              '5': '11:20-12:05',
+              '6': '12:05-12:50',
+              '7': '13:30-14:15',
+              '8': '14:15-15:00'
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          cohort,
+          section: undefined
+        }));
+      }
       return data || [];
     } catch (error) {
       console.warn('Slot template assignments table not found, using demo data');
@@ -1022,7 +1106,18 @@ export const allocationSettingsApi = {
         .select('*')
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Allocation settings table not found, using demo data');
+        return {
+          id: 'demo-settings',
+          institution_id: demoData.institutions[0].id,
+          teacher_max_periods_per_day: 6,
+          class_periods_per_day: 8,
+          days_per_week: 5,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+      }
       return data;
     } catch (error) {
       console.warn('Allocation settings table not found, using demo data');
