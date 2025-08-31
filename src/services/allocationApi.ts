@@ -43,12 +43,6 @@ export const academicTermsApi = {
       }
       
       return data;
-        return demoData.academic_terms.map(term => ({
-          ...term,
-          institution_id: term.institution_id || demoData.institutions[0]?.id || 'demo-institution'
-        }));
-      }
-      return data || demoData.academic_terms;
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
       return demoData.academic_terms.map(term => ({
@@ -138,18 +132,8 @@ export const cohortsApi = {
         console.warn('Cohorts table not found, using demo data');
         // Create proper demo cohorts with sections
         const demoCohorts = [
-      if (error) {
-        console.warn('Cohorts table error, using demo data:', error);
-        return demoData.cohorts;
-      }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Cohorts table empty, using demo data');
-        return demoData.cohorts;
-      }
-      
-      return data;
+          {
+            id: 'cohort-6a',
             institution_id: demoData.institutions[0]?.id || 'demo-institution',
             academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
             stream: 'Science',
@@ -241,7 +225,19 @@ export const cohortsApi = {
         ];
         return demoCohorts;
       }
-      return data || [];
+      
+      if (error) {
+        console.warn('Cohorts table error, using demo data:', error);
+        return demoData.cohorts;
+      }
+      
+      // If table exists but is empty, use demo data
+      if (!data || data.length === 0) {
+        console.log('Cohorts table empty, using demo data');
+        return demoData.cohorts;
+      }
+      
+      return data;
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
       // Create proper demo cohorts
@@ -521,68 +517,6 @@ export const coursesApi = {
       }
       
       return data;
-        // Create proper demo courses with required fields
-        const demoCourses = [
-          {
-            id: 'course-math',
-            institution_id: demoData.institutions[0]?.id || 'demo-institution',
-            code: 'MATH',
-            title: 'Mathematics',
-            subject_type: 'theory' as const,
-            weekly_theory_periods: 5,
-            weekly_lab_periods: 0,
-            lab_block_size: 1,
-            constraints: {},
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 'course-sci',
-            institution_id: demoData.institutions[0]?.id || 'demo-institution',
-            code: 'SCI',
-            title: 'Science',
-            subject_type: 'mixed' as const,
-            weekly_theory_periods: 3,
-            weekly_lab_periods: 2,
-            lab_block_size: 2,
-            constraints: {},
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 'course-eng',
-            institution_id: demoData.institutions[0]?.id || 'demo-institution',
-            code: 'ENG',
-            title: 'English',
-            subject_type: 'theory' as const,
-            weekly_theory_periods: 4,
-            weekly_lab_periods: 0,
-            lab_block_size: 1,
-            constraints: {},
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: 'course-cs',
-            institution_id: demoData.institutions[0]?.id || 'demo-institution',
-            code: 'CS',
-            title: 'Computer Science',
-            subject_type: 'mixed' as const,
-            weekly_theory_periods: 2,
-            weekly_lab_periods: 2,
-            lab_block_size: 2,
-            constraints: {},
-            active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-        return demoCourses;
-      }
-      return data || demoData.courses;
     } catch (error) {
       console.warn('Courses table not found, using demo data');
       // Create proper demo courses with required fields
@@ -808,10 +742,14 @@ export const teacherEligibilityApi = {
 
       if (teachersError) {
         console.warn('Teachers table error, using demo data:', teachersError);
+        return demoData.teacherEligibilityMatrix;
+      }
+
       // If table exists but is empty, use demo data
       if (!teachers || teachers.length === 0) {
         console.log('Teachers table empty, using demo data');
         return demoData.teacherEligibilityMatrix;
+      }
 
       // Get all courses
       const { data: courses, error: coursesError } = await supabase
@@ -1066,17 +1004,7 @@ export const slotTemplatesApi = {
         .order('name', { ascending: true });
       
       if (error) {
-        console.warn('Slot templates table error, using demo data:', error);
-        return demoData.slotTemplates;
-      }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Slot templates table empty, using demo data');
-        return demoData.slotTemplates;
-      }
-      
-      return data;
+        console.warn('Slot templates table not found, using demo data');
         return [{
           id: 'demo-template-1',
           institution_id: demoData.institutions[0].id,
@@ -1178,17 +1106,7 @@ export const slotTemplatesApi = {
         `);
 
       if (error) {
-        console.warn('Slot template assignments table error, using demo data:', error);
-        return demoData.slotTemplateAssignments;
-      }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Slot template assignments table empty, using demo data');
-        return demoData.slotTemplateAssignments;
-      }
-      
-      return data;
+        console.warn('Slot template assignments table not found, using demo data');
         // Create demo assignments without async call
         return [
           {
@@ -1328,18 +1246,8 @@ export const timetablesApi = {
         `)
         .order('generated_at', { ascending: false });
       
-      if (error) {
-        console.warn('Timetables table error, using demo data:', error);
-        return demoData.timetables;
-      }
-      
-      // If table exists but is empty, use demo data
-      if (!data || data.length === 0) {
-        console.log('Timetables table empty, using demo data');
-        return demoData.timetables;
-      }
-      
-      return data;
+      if (error) throw error;
+      return data || [];
     } catch (error) {
       console.warn('Timetables table not found, using demo data');
       return demoData.timetables.map(timetable => ({
