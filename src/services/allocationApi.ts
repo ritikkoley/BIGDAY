@@ -37,7 +37,10 @@ export const academicTermsApi = {
       return data || demoData.academic_terms;
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
-      return demoData.academic_terms;
+      return demoData.academic_terms.map(term => ({
+        ...term,
+        institution_id: term.institution_id || demoData.institutions[0]?.id || 'demo-institution'
+      }));
     }
   },
 
@@ -123,29 +126,100 @@ export const cohortsApi = {
       return data || [];
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
-      // Transform demo data to match expected structure
-      return demoData.user_groups
-        .filter(group => group.type === 'class')
-        .map(group => ({
-          id: group.id,
-          institution_id: demoData.institutions[0].id,
-          academic_term_id: demoData.academic_terms[0].id,
-          stream: group.name.includes('Grade') ? 'General' : 'Science',
-          grade: group.name.split(' ')[1]?.split('-')[0] || '6',
+      // Create proper demo cohorts
+      const demoCohorts = [
+        {
+          id: 'cohort-6a',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+          stream: 'Science',
+          grade: '6',
           boarding_type: 'day_scholar' as const,
           periods_per_day: 8,
           days_per_week: 5,
-          created_at: group.created_at,
-          updated_at: group.updated_at,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           academic_term: demoData.academic_terms[0],
-          sections: [{
-            id: `section-${group.id}`,
-            cohort_id: group.id,
-            name: group.name.split('-')[1] || 'A',
-            created_at: group.created_at,
-            updated_at: group.updated_at
-          }]
-        }));
+          sections: [
+            {
+              id: 'section-6a-a',
+              cohort_id: 'cohort-6a',
+              name: 'A',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              students: [],
+              courses: []
+            },
+            {
+              id: 'section-6a-b',
+              cohort_id: 'cohort-6a',
+              name: 'B',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              students: [],
+              courses: []
+            }
+          ]
+        },
+        {
+          id: 'cohort-7a',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+          stream: 'Commerce',
+          grade: '7',
+          boarding_type: 'day_scholar' as const,
+          periods_per_day: 8,
+          days_per_week: 5,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          academic_term: demoData.academic_terms[0],
+          sections: [
+            {
+              id: 'section-7a-a',
+              cohort_id: 'cohort-7a',
+              name: 'A',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              students: [],
+              courses: []
+            }
+          ]
+        },
+        {
+          id: 'cohort-8a',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+          stream: 'Arts',
+          grade: '8',
+          boarding_type: 'hosteller' as const,
+          periods_per_day: 8,
+          days_per_week: 6,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          academic_term: demoData.academic_terms[0],
+          sections: [
+            {
+              id: 'section-8a-a',
+              cohort_id: 'cohort-8a',
+              name: 'A',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              students: [],
+              courses: []
+            },
+            {
+              id: 'section-8a-b',
+              cohort_id: 'cohort-8a',
+              name: 'B',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              students: [],
+              courses: []
+            }
+          ]
+        }
+      ];
+      return demoCohorts;
     }
   },
 
@@ -324,7 +398,66 @@ export const coursesApi = {
       return data || demoData.courses;
     } catch (error) {
       console.warn('Courses table not found, using demo data');
-      return demoData.courses;
+      // Create proper demo courses with required fields
+      const demoCourses = [
+        {
+          id: 'course-math',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          code: 'MATH',
+          title: 'Mathematics',
+          subject_type: 'theory' as const,
+          weekly_theory_periods: 5,
+          weekly_lab_periods: 0,
+          lab_block_size: 1,
+          constraints: {},
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'course-sci',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          code: 'SCI',
+          title: 'Science',
+          subject_type: 'mixed' as const,
+          weekly_theory_periods: 3,
+          weekly_lab_periods: 2,
+          lab_block_size: 2,
+          constraints: {},
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'course-eng',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          code: 'ENG',
+          title: 'English',
+          subject_type: 'theory' as const,
+          weekly_theory_periods: 4,
+          weekly_lab_periods: 0,
+          lab_block_size: 1,
+          constraints: {},
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'course-cs',
+          institution_id: demoData.institutions[0]?.id || 'demo-institution',
+          code: 'CS',
+          title: 'Computer Science',
+          subject_type: 'mixed' as const,
+          weekly_theory_periods: 2,
+          weekly_lab_periods: 2,
+          lab_block_size: 2,
+          constraints: {},
+          active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      return demoCourses;
     }
   },
 
@@ -544,43 +677,99 @@ export const teacherEligibilityApi = {
     } catch (error) {
       console.warn('Teacher eligibility tables not found, using demo data');
       // Create demo teacher eligibility matrix
-      const teachers = demoData.user_profiles.filter(u => u.role === 'teacher');
-      const courses = demoData.courses;
-      
-      return teachers.map(teacher => ({
-        teacher_id: teacher.id,
-        teacher_name: teacher.full_name,
-        subjects: courses.map(course => ({
-          course_id: course.id,
-          course_title: course.title,
-          eligible: teacher.department === course.title || 
-                   (teacher.department === 'Mathematics' && course.code === 'MATH') ||
-                   (teacher.department === 'Science' && course.code === 'SCI') ||
-                   (teacher.department === 'English' && course.code === 'ENG') ||
-                   (teacher.department === 'Social Studies' && ['HIST', 'CIV'].includes(course.code)) ||
-                   (teacher.department === 'Computer Science' && course.code === 'CS') ||
-                   (teacher.department === 'Arts' && ['ART', 'MUS', 'PE'].includes(course.code))
-        })),
-        grades: ['6', '7', '8'].map(grade => ({
-          grade,
-          eligible: true // All demo teachers can teach all grades
-        })),
-        load_rules: {
-          id: `load-${teacher.id}`,
-          teacher_id: teacher.id,
-          max_periods_per_day: 6,
-          max_periods_per_week: 30,
-          availability: {
-            monday: [1,2,3,4,5,6,7,8],
-            tuesday: [1,2,3,4,5,6,7,8],
-            wednesday: [1,2,3,4,5,6,7,8],
-            thursday: [1,2,3,4,5,6,7,8],
-            friday: [1,2,3,4,5,6,7,8]
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+      const demoTeachers = [
+        {
+          teacher_id: 'teacher-math',
+          teacher_name: 'Dr. Rajesh Gupta (Mathematics)',
+          subjects: [
+            { course_id: 'course-math', course_title: 'Mathematics', eligible: true },
+            { course_id: 'course-sci', course_title: 'Science', eligible: false },
+            { course_id: 'course-eng', course_title: 'English', eligible: false },
+            { course_id: 'course-cs', course_title: 'Computer Science', eligible: false }
+          ],
+          grades: [
+            { grade: '6', eligible: true },
+            { grade: '7', eligible: true },
+            { grade: '8', eligible: true }
+          ],
+          load_rules: {
+            id: 'load-teacher-math',
+            teacher_id: 'teacher-math',
+            max_periods_per_day: 6,
+            max_periods_per_week: 30,
+            availability: {
+              monday: [1,2,3,4,5,6,7,8],
+              tuesday: [1,2,3,4,5,6,7,8],
+              wednesday: [1,2,3,4,5,6,7,8],
+              thursday: [1,2,3,4,5,6,7,8],
+              friday: [1,2,3,4,5,6,7,8]
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        },
+        {
+          teacher_id: 'teacher-sci',
+          teacher_name: 'Dr. Priya Sharma (Science)',
+          subjects: [
+            { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+            { course_id: 'course-sci', course_title: 'Science', eligible: true },
+            { course_id: 'course-eng', course_title: 'English', eligible: false },
+            { course_id: 'course-cs', course_title: 'Computer Science', eligible: true }
+          ],
+          grades: [
+            { grade: '6', eligible: true },
+            { grade: '7', eligible: true },
+            { grade: '8', eligible: true }
+          ],
+          load_rules: {
+            id: 'load-teacher-sci',
+            teacher_id: 'teacher-sci',
+            max_periods_per_day: 6,
+            max_periods_per_week: 30,
+            availability: {
+              monday: [1,2,3,4,5,6,7,8],
+              tuesday: [1,2,3,4,5,6,7,8],
+              wednesday: [1,2,3,4,5,6,7,8],
+              thursday: [1,2,3,4,5,6,7,8],
+              friday: [1,2,3,4,5,6,7,8]
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        },
+        {
+          teacher_id: 'teacher-eng',
+          teacher_name: 'Ms. Maria Fernandez (English)',
+          subjects: [
+            { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+            { course_id: 'course-sci', course_title: 'Science', eligible: false },
+            { course_id: 'course-eng', course_title: 'English', eligible: true },
+            { course_id: 'course-cs', course_title: 'Computer Science', eligible: false }
+          ],
+          grades: [
+            { grade: '6', eligible: true },
+            { grade: '7', eligible: true },
+            { grade: '8', eligible: true }
+          ],
+          load_rules: {
+            id: 'load-teacher-eng',
+            teacher_id: 'teacher-eng',
+            max_periods_per_day: 6,
+            max_periods_per_week: 30,
+            availability: {
+              monday: [1,2,3,4,5,6,7,8],
+              tuesday: [1,2,3,4,5,6,7,8],
+              wednesday: [1,2,3,4,5,6,7,8],
+              thursday: [1,2,3,4,5,6,7,8],
+              friday: [1,2,3,4,5,6,7,8]
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
         }
-      }));
+      ];
+      return demoTeachers;
     }
   },
 
@@ -785,17 +974,63 @@ export const slotTemplatesApi = {
 
       if (error) {
         console.warn('Slot template assignments table not found, using demo data');
-        // Create demo assignments
-        const cohorts = await cohortsApi.getAll();
-        return cohorts.map(cohort => ({
-          id: `assignment-${cohort.id}`,
+        // Create demo assignments without async call
+        return [
+          {
+            id: 'assignment-demo-1',
+            slot_template_id: 'demo-template-1',
+            cohort_id: 'cohort-6a',
+            section_id: undefined,
+            created_at: new Date().toISOString(),
+            slot_template: {
+              id: 'demo-template-1',
+              institution_id: demoData.institutions[0]?.id || 'demo-institution',
+              name: 'Standard 8 Period Schedule',
+              days_per_week: 5,
+              periods_per_day: 8,
+              bells: {
+                '1': '08:00-08:45',
+                '2': '08:45-09:30',
+                '3': '09:30-10:15',
+                '4': '10:35-11:20',
+                '5': '11:20-12:05',
+                '6': '12:05-12:50',
+                '7': '13:30-14:15',
+                '8': '14:15-15:00'
+              },
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            cohort: {
+              id: 'cohort-6a',
+              institution_id: demoData.institutions[0]?.id || 'demo-institution',
+              academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+              stream: 'Science',
+              grade: '6',
+              boarding_type: 'day_scholar' as const,
+              periods_per_day: 8,
+              days_per_week: 5,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            section: undefined
+          }
+        ];
+      }
+      return data || [];
+    } catch (error) {
+      console.warn('Slot template assignments table not found, using demo data');
+      // Create demo assignments without async call
+      return [
+        {
+          id: 'assignment-demo-1',
           slot_template_id: 'demo-template-1',
-          cohort_id: cohort.id,
+          cohort_id: 'cohort-6a',
           section_id: undefined,
           created_at: new Date().toISOString(),
           slot_template: {
             id: 'demo-template-1',
-            institution_id: demoData.institutions[0].id,
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
             name: 'Standard 8 Period Schedule',
             days_per_week: 5,
             periods_per_day: 8,
@@ -812,43 +1047,21 @@ export const slotTemplatesApi = {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           },
-          cohort,
-          section: undefined
-        }));
-      }
-      return data || [];
-    } catch (error) {
-      console.warn('Slot template assignments table not found, using demo data');
-      // Create demo assignments
-      const cohorts = await cohortsApi.getAll();
-      return cohorts.map(cohort => ({
-        id: `assignment-${cohort.id}`,
-        slot_template_id: 'demo-template-1',
-        cohort_id: cohort.id,
-        section_id: undefined,
-        created_at: new Date().toISOString(),
-        slot_template: {
-          id: 'demo-template-1',
-          institution_id: demoData.institutions[0].id,
-          name: 'Standard 8 Period Schedule',
-          days_per_week: 5,
-          periods_per_day: 8,
-          bells: {
-            '1': '08:00-08:45',
-            '2': '08:45-09:30',
-            '3': '09:30-10:15',
-            '4': '10:35-11:20',
-            '5': '11:20-12:05',
-            '6': '12:05-12:50',
-            '7': '13:30-14:15',
-            '8': '14:15-15:00'
+          cohort: {
+            id: 'cohort-6a',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+            stream: 'Science',
+            grade: '6',
+            boarding_type: 'day_scholar' as const,
+            periods_per_day: 8,
+            days_per_week: 5,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        cohort,
-        section: undefined
-      }));
+          section: undefined
+        }
+      ];
     }
   },
 
