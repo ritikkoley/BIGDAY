@@ -515,7 +515,7 @@ export const GeneratePage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      )}
 
       {error && (
         <div className="apple-card p-4">
