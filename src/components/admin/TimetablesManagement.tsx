@@ -32,7 +32,8 @@ export const TimetablesManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchInitialData();
+    // Don't fetch until tables exist
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -57,6 +58,26 @@ export const TimetablesManagement: React.FC = () => {
       setTimetableGrid(grid);
     }
   }, [sessions, selectedGroup]);
+
+  const fetchGroups = async () => {
+    try {
+      const data = await groupsApi.getAll();
+      setGroups(data);
+    } catch (err) {
+      console.warn('Groups not available:', err);
+      setGroups([]);
+    }
+  };
+
+  const fetchAcademicTerms = async () => {
+    try {
+      const data = await academicTermsApi.getAll();
+      setAcademicTerms(data);
+    } catch (err) {
+      console.warn('Academic terms not available:', err);
+      setAcademicTerms([]);
+    }
+  };
 
   const fetchInitialData = async () => {
     try {
