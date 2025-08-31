@@ -371,50 +371,47 @@ export const coursesApi = {
   },
 
   create: async (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>): Promise<Course> => {
-    // Create mock course for demo purposes (tables don't exist yet)
-    const mockCourse: Course = {
-      id: `course-${Date.now()}`,
-      institution_id: 'mock-institution-id',
-      code: course.code,
-      title: course.title,
-      subject_type: course.subject_type,
-      weekly_theory_periods: course.weekly_theory_periods || 0,
-      weekly_lab_periods: course.weekly_lab_periods || 0,
-      lab_block_size: course.lab_block_size || 2,
-      constraints: course.constraints || {},
-      active: course.active !== false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Created mock course:', mockCourse);
-    return mockCourse;
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .insert(course)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw new Error('Database migration required. Please apply the allocation system migration.');
+    }
   },
 
   update: async (id: string, updates: Partial<Course>): Promise<Course> => {
-    // Return mock updated course (tables don't exist yet)
-    const mockCourse: Course = {
-      id: id,
-      institution_id: 'mock-institution-id',
-      code: updates.code || 'MOCK101',
-      title: updates.title || 'Mock Course',
-      subject_type: updates.subject_type || 'theory',
-      weekly_theory_periods: updates.weekly_theory_periods || 0,
-      weekly_lab_periods: updates.weekly_lab_periods || 0,
-      lab_block_size: updates.lab_block_size || 2,
-      constraints: updates.constraints || {},
-      active: updates.active !== false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Updated mock course:', mockCourse);
-    return mockCourse;
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      throw new Error('Database migration required. Please apply the allocation system migration.');
+    }
   },
 
   delete: async (id: string): Promise<void> => {
-    // Silently succeed for demo purposes (tables don't exist yet)
-    console.log('Course deletion simulated (table not available):', id);
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    } catch (error) {
+      throw new Error('Database migration required. Please apply the allocation system migration.');
+    }
   }
 };
 
