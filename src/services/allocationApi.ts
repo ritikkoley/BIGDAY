@@ -179,7 +179,7 @@ export const cohortsApi = {
     // Create mock cohort for demo purposes (tables don't exist yet)
     const mockCohort: Cohort = {
       id: `cohort-${Date.now()}`,
-      institution_id: cohort.institution_id,
+      institution_id: 'mock-institution-id',
       academic_term_id: cohort.academic_term_id,
       stream: cohort.stream,
       grade: cohort.grade,
@@ -198,7 +198,7 @@ export const cohortsApi = {
     // Return mock updated cohort (tables don't exist yet)
     const mockCohort: Cohort = {
       id: id,
-      institution_id: 'mock-institution',
+      institution_id: 'mock-institution-id',
       academic_term_id: updates.academic_term_id || 'fallback-term-1',
       stream: updates.stream || 'Mock Stream',
       grade: updates.grade || '8',
@@ -374,28 +374,17 @@ export const coursesApi = {
     // Create mock course for demo purposes (tables don't exist yet)
     const mockCourse: Course = {
       id: `course-${Date.now()}`,
-      institution_id: 'mock-institution',
+      institution_id: 'mock-institution-id',
       code: course.code,
       title: course.title,
       subject_type: course.subject_type,
       weekly_theory_periods: course.weekly_theory_periods || 0,
       weekly_lab_periods: course.weekly_lab_periods || 0,
       lab_block_size: course.lab_block_size || 2,
-      constraints: course.constraints || {},
-      active: course.active !== false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    console.log('Created mock course:', mockCourse);
-    return mockCourse;
-  },
-
-  update: async (id: string, updates: Partial<Course>): Promise<Course> => {
     // Return mock updated course (tables don't exist yet)
     const mockCourse: Course = {
       id: id,
-      institution_id: 'mock-institution',
+      institution_id: 'mock-institution-id',
       code: updates.code || 'MOCK101',
       title: updates.title || 'Mock Course',
       subject_type: updates.subject_type || 'theory',

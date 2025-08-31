@@ -77,21 +77,11 @@ export const CohortsSectionsPage: React.FC = () => {
     try {
       setError(null);
       
-      // Get institution ID (assuming first institution)
-      const { data: institutions } = await supabase
-        .from('institutions')
-        .select('id')
-        .limit(1);
-      
-      const institutionId = institutions?.[0]?.id;
-      if (!institutionId) throw new Error('No institution found');
-
       if (editingCohort) {
         await cohortsApi.update(editingCohort.id, cohortForm);
       } else {
         await cohortsApi.create({
-          ...cohortForm,
-          institution_id: institutionId
+          ...cohortForm
         });
       }
       

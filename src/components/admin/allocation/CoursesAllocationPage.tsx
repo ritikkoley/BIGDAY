@@ -59,21 +59,11 @@ export const CoursesAllocationPage: React.FC = () => {
     try {
       setError(null);
       
-      // Get institution ID
-      const { data: institutions } = await supabase
-        .from('institutions')
-        .select('id')
-        .limit(1);
-      
-      const institutionId = institutions?.[0]?.id;
-      if (!institutionId) throw new Error('No institution found');
-      
       if (editingCourse) {
         await coursesApi.update(editingCourse.id, formData);
       } else {
         await coursesApi.create({
-          ...formData,
-          institution_id: institutionId
+          ...formData
         });
       }
       
