@@ -49,7 +49,8 @@ export const GroupsManagement: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchData();
+    // Don't fetch until tables exist
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -87,6 +88,30 @@ export const GroupsManagement: React.FC = () => {
       setGroupCourses(data);
     } catch (err) {
       console.error('Error fetching group courses:', err);
+    }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      setIsLoading(true);
+      const data = await groupsApi.getAll();
+      setGroups(data);
+    } catch (err) {
+      console.warn('Groups not available:', err);
+      setError('Groups management will be available after database migration');
+      setGroups([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAcademicTerms = async () => {
+    try {
+      const data = await academicTermsApi.getAll();
+      setAcademicTerms(data);
+    } catch (err) {
+      console.warn('Academic terms not available:', err);
+      setAcademicTerms([]);
     }
   };
 
@@ -259,6 +284,18 @@ export const GroupsManagement: React.FC = () => {
                   </div>
                 </button>
               ))}
+              
+              {filteredGroups.length === 0 && (
+                <div className="p-12 text-center">
+                  <Users className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
+                    Groups Management Not Available
+                  </h3>
+                  <p className="text-apple-gray-400 dark:text-apple-gray-300">
+                    Database migration required to enable group management
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
