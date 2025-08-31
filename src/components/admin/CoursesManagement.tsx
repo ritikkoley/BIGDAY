@@ -35,7 +35,8 @@ export const CoursesManagement: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchCourses();
+    // Don't fetch courses until table exists
+    setIsLoading(false);
   }, []);
 
   const fetchCourses = async () => {
@@ -44,7 +45,9 @@ export const CoursesManagement: React.FC = () => {
       const data = await coursesApi.getAll();
       setCourses(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch courses');
+      console.warn('Courses not available:', err);
+      setError('Courses management will be available after database migration');
+      setCourses([]);
     } finally {
       setIsLoading(false);
     }
@@ -238,10 +241,10 @@ export const CoursesManagement: React.FC = () => {
             <div className="p-12 text-center">
               <BookOpen className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
-                No Courses Found
+                Courses Management Not Available
               </h3>
               <p className="text-apple-gray-400 dark:text-apple-gray-300">
-                {searchTerm ? 'Try adjusting your search terms' : 'Create your first course to get started'}
+                Database migration required to enable course management
               </p>
             </div>
           )}
