@@ -381,24 +381,13 @@ export const coursesApi = {
       weekly_theory_periods: course.weekly_theory_periods || 0,
       weekly_lab_periods: course.weekly_lab_periods || 0,
       lab_block_size: course.lab_block_size || 2,
-    }
-    // Return mock updated course (tables don't exist yet)
-    const mockCourse: Course = {
-      id: id,
-      institution_id: 'mock-institution-id',
-      code: updates.code || 'MOCK101',
-      title: updates.title || 'Mock Course',
-      subject_type: updates.subject_type || 'theory',
-      weekly_theory_periods: updates.weekly_theory_periods || 0,
-      weekly_lab_periods: updates.weekly_lab_periods || 0,
-      lab_block_size: updates.lab_block_size || 2,
-      constraints: updates.constraints || {},
-      active: updates.active !== false,
+      constraints: course.constraints || {},
+      active: course.active !== false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
     
-    console.log('Updated mock course:', mockCourse);
+    console.log('Created mock course:', mockCourse);
     return mockCourse;
   },
 
