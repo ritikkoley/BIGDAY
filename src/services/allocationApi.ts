@@ -31,10 +31,7 @@ export const academicTermsApi = {
         .select('*')
         .order('start_date', { ascending: false });
       
-      if (error) {
-        console.warn('Academic terms table not found, using demo data');
-        return demoData.academic_terms;
-      }
+      if (error) throw error;
       return data || [];
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
@@ -118,32 +115,7 @@ export const cohortsApi = {
         .select('*, academic_term:academic_terms(*), sections:sections(*)')
         .order('grade', { ascending: true });
       
-      if (error) {
-        console.warn('Cohorts table not found, using demo data');
-        // Transform demo data to match expected structure
-        return demoData.user_groups
-          .filter(group => group.type === 'class')
-          .map(group => ({
-            id: group.id,
-            institution_id: demoData.institutions[0].id,
-            academic_term_id: demoData.academic_terms[0].id,
-            stream: group.name.includes('Grade') ? 'General' : 'Science',
-            grade: group.name.split(' ')[1]?.split('-')[0] || '6',
-            boarding_type: 'day_scholar' as const,
-            periods_per_day: 8,
-            days_per_week: 5,
-            created_at: group.created_at,
-            updated_at: group.updated_at,
-            academic_term: demoData.academic_terms[0],
-            sections: [{
-              id: `section-${group.id}`,
-              cohort_id: group.id,
-              name: group.name.split('-')[1] || 'A',
-              created_at: group.created_at,
-              updated_at: group.updated_at
-            }]
-          }));
-      }
+      if (error) throw error;
       return data || [];
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
@@ -343,9 +315,6 @@ export const coursesApi = {
       
       if (error) throw error;
       return data || [];
-    } catch (error) {
-      console.warn('Courses table not found, using demo data');
-      return demoData.courses;
     }
   },
 
@@ -704,28 +673,6 @@ export const slotTemplatesApi = {
       
       if (error) throw error;
       return data || [];
-    } catch (error) {
-      console.warn('Slot templates table not found, using demo data');
-      // Create demo slot template
-      return [{
-        id: 'demo-template-1',
-        institution_id: demoData.institutions[0].id,
-        name: 'Standard 8 Period Schedule',
-        days_per_week: 5,
-        periods_per_day: 8,
-        bells: {
-          '1': '08:00-08:45',
-          '2': '08:45-09:30',
-          '3': '09:30-10:15',
-          '4': '10:35-11:20',
-          '5': '11:20-12:05',
-          '6': '12:05-12:50',
-          '7': '13:30-14:15',
-          '8': '14:15-15:00'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }];
     }
   },
 

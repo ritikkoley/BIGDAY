@@ -35,12 +35,10 @@ export const AllocationView: React.FC = () => {
       if (terms.length > 0 && !selectedTerm) {
         setSelectedTerm(terms[0].id);
       }
-      
-      // Show migration required only if we get empty data
-      setMigrationRequired(terms.length === 0);
+      setMigrationRequired(false);
     } catch (error) {
       console.error('Failed to load academic terms:', error);
-      setMigrationRequired(true);
+      setMigrationRequired(false);
     }
   };
 
