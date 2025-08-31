@@ -176,74 +176,46 @@ export const cohortsApi = {
   },
 
   create: async (cohort: Omit<Cohort, 'id' | 'created_at' | 'updated_at'>): Promise<Cohort> => {
-    try {
-      const { data, error } = await supabase
-        .from('cohorts')
-        .insert(cohort)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      // Create mock cohort for demo purposes
-      const mockCohort: Cohort = {
-        id: `cohort-${Date.now()}`,
-        institution_id: cohort.institution_id,
-        academic_term_id: cohort.academic_term_id,
-        stream: cohort.stream,
-        grade: cohort.grade,
-        boarding_type: cohort.boarding_type,
-        periods_per_day: cohort.periods_per_day || 8,
-        days_per_week: cohort.days_per_week || 5,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      return mockCohort;
-    }
+    // Create mock cohort for demo purposes (tables don't exist yet)
+    const mockCohort: Cohort = {
+      id: `cohort-${Date.now()}`,
+      institution_id: cohort.institution_id,
+      academic_term_id: cohort.academic_term_id,
+      stream: cohort.stream,
+      grade: cohort.grade,
+      boarding_type: cohort.boarding_type,
+      periods_per_day: cohort.periods_per_day || 8,
+      days_per_week: cohort.days_per_week || 5,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Created mock cohort:', mockCohort);
+    return mockCohort;
   },
 
   update: async (id: string, updates: Partial<Cohort>): Promise<Cohort> => {
-    try {
-      const { data, error } = await supabase
-        .from('cohorts')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      // Return mock updated cohort when table doesn't exist
-      const mockCohort: Cohort = {
-        id: id,
-        institution_id: 'mock-institution',
-        academic_term_id: updates.academic_term_id || 'fallback-term-1',
-        stream: updates.stream || 'Mock Stream',
-        grade: updates.grade || '8',
-        boarding_type: updates.boarding_type || 'day_scholar',
-        periods_per_day: updates.periods_per_day || 8,
-        days_per_week: updates.days_per_week || 5,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      return mockCohort;
-    }
+    // Return mock updated cohort (tables don't exist yet)
+    const mockCohort: Cohort = {
+      id: id,
+      institution_id: 'mock-institution',
+      academic_term_id: updates.academic_term_id || 'fallback-term-1',
+      stream: updates.stream || 'Mock Stream',
+      grade: updates.grade || '8',
+      boarding_type: updates.boarding_type || 'day_scholar',
+      periods_per_day: updates.periods_per_day || 8,
+      days_per_week: updates.days_per_week || 5,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Updated mock cohort:', mockCohort);
+    return mockCohort;
   },
 
   delete: async (id: string): Promise<void> => {
-    try {
-      const { error } = await supabase
-        .from('cohorts')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    } catch (error) {
-      // Silently succeed for demo purposes when table doesn't exist
-      console.log('Cohort deletion simulated (table not available)');
-    }
+    // Silently succeed for demo purposes (tables don't exist yet)
+    console.log('Cohort deletion simulated (table not available):', id);
   }
 };
 
@@ -399,107 +371,50 @@ export const coursesApi = {
   },
 
   create: async (course: Omit<Course, 'id' | 'created_at' | 'updated_at'>): Promise<Course> => {
-    try {
-      // Get institution ID
-      const { data: institutions } = await supabase
-        .from('institutions')
-        .select('id')
-        .limit(1);
-      
-      const institutionId = institutions?.[0]?.id;
-      if (!institutionId) {
-        // Create mock course for demo purposes
-        const mockCourse: Course = {
-          id: `course-${Date.now()}`,
-          institution_id: 'mock-institution',
-          code: course.code,
-          title: course.title,
-          subject_type: course.subject_type,
-          weekly_theory_periods: course.weekly_theory_periods || 0,
-          weekly_lab_periods: course.weekly_lab_periods || 0,
-          lab_block_size: course.lab_block_size || 2,
-          constraints: course.constraints || {},
-          active: course.active !== false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        return mockCourse;
-      }
-
-      const { data, error } = await supabase
-        .from('courses')
-        .insert({
-          ...course,
-          institution_id: institutionId
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      // Create mock course for demo purposes when table doesn't exist
-      const mockCourse: Course = {
-        id: `course-${Date.now()}`,
-        institution_id: 'mock-institution',
-        code: course.code,
-        title: course.title,
-        subject_type: course.subject_type,
-        weekly_theory_periods: course.weekly_theory_periods || 0,
-        weekly_lab_periods: course.weekly_lab_periods || 0,
-        lab_block_size: course.lab_block_size || 2,
-        constraints: course.constraints || {},
-        active: course.active !== false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      return mockCourse;
-    }
+    // Create mock course for demo purposes (tables don't exist yet)
+    const mockCourse: Course = {
+      id: `course-${Date.now()}`,
+      institution_id: 'mock-institution',
+      code: course.code,
+      title: course.title,
+      subject_type: course.subject_type,
+      weekly_theory_periods: course.weekly_theory_periods || 0,
+      weekly_lab_periods: course.weekly_lab_periods || 0,
+      lab_block_size: course.lab_block_size || 2,
+      constraints: course.constraints || {},
+      active: course.active !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Created mock course:', mockCourse);
+    return mockCourse;
   },
 
   update: async (id: string, updates: Partial<Course>): Promise<Course> => {
-    try {
-      const { data, error } = await supabase
-        .from('courses')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      // Return mock updated course when table doesn't exist
-      const mockCourse: Course = {
-        id: id,
-        institution_id: 'mock-institution',
-        code: updates.code || 'MOCK101',
-        title: updates.title || 'Mock Course',
-        subject_type: updates.subject_type || 'theory',
-        weekly_theory_periods: updates.weekly_theory_periods || 0,
-        weekly_lab_periods: updates.weekly_lab_periods || 0,
-        lab_block_size: updates.lab_block_size || 2,
-        constraints: updates.constraints || {},
-        active: updates.active !== false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      return mockCourse;
-    }
+    // Return mock updated course (tables don't exist yet)
+    const mockCourse: Course = {
+      id: id,
+      institution_id: 'mock-institution',
+      code: updates.code || 'MOCK101',
+      title: updates.title || 'Mock Course',
+      subject_type: updates.subject_type || 'theory',
+      weekly_theory_periods: updates.weekly_theory_periods || 0,
+      weekly_lab_periods: updates.weekly_lab_periods || 0,
+      lab_block_size: updates.lab_block_size || 2,
+      constraints: updates.constraints || {},
+      active: updates.active !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log('Updated mock course:', mockCourse);
+    return mockCourse;
   },
 
   delete: async (id: string): Promise<void> => {
-    try {
-      const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-    } catch (error) {
-      // Silently succeed for demo purposes when table doesn't exist
-      console.log('Course deletion simulated (table not available)');
-    }
+    // Silently succeed for demo purposes (tables don't exist yet)
+    console.log('Course deletion simulated (table not available):', id);
   }
 };
 
