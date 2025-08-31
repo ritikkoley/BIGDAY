@@ -18,7 +18,7 @@ export interface DemoDataSet {
 }
 
 // Helper function to generate UUIDs (mock)
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => crypto.randomUUID();
 
 // Helper function to generate dates
 const getDate = (offset: number = 0) => {
