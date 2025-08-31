@@ -225,7 +225,14 @@ export const cohortsApi = {
         ];
         return demoCohorts;
       }
-      return data || [];
+      
+      // If table exists but is empty, use demo data
+      if (!data || data.length === 0) {
+        console.log('Cohorts table empty, using demo data');
+        return demoData.cohorts;
+      }
+      
+      return data;
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
       // Create proper demo cohorts
