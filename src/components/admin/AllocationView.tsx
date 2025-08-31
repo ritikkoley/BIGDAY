@@ -36,13 +36,14 @@ export const AllocationView: React.FC = () => {
         setSelectedTerm(terms[0].id);
       }
       
-      // Check if we got empty data due to missing tables
-      if (terms.length === 0) {
-        setMigrationRequired(true);
-      }
+      // Only show migration required if we're not getting demo data
+      setMigrationRequired(false);
     } catch (error) {
       console.error('Failed to load academic terms:', error);
-      setMigrationRequired(true);
+      // Only show migration required for actual errors, not missing tables
+      if (error instanceof Error && !error.message.includes('table not found')) {
+        setMigrationRequired(true);
+      }
     }
   };
 

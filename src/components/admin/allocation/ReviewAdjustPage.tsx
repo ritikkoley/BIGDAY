@@ -100,8 +100,12 @@ export const ReviewAdjustPage: React.FC = () => {
       // Get all sections for these cohorts
       const allSections: Section[] = [];
       for (const cohort of termCohorts) {
-        const cohortSections = await sectionsApi.getByCohort(cohort.id);
-        allSections.push(...cohortSections);
+        if (cohort.sections) {
+          allSections.push(...cohort.sections);
+        } else {
+          const cohortSections = await sectionsApi.getByCohort(cohort.id);
+          allSections.push(...cohortSections);
+        }
       }
       setSections(allSections);
       
@@ -116,12 +120,13 @@ export const ReviewAdjustPage: React.FC = () => {
 
   const fetchTimetables = async (sectionId: string) => {
     try {
-      const timetablesData = await timetablesApi.getBySection(sectionId);
+      const timetablesData = await timetablesApi.getAll();
+      const sectionTimetables = timetablesData.filter(t => t.section?.id === sectionId);
       setTimetables(timetablesData);
       
       // Select the latest timetable
-      if (timetablesData.length > 0) {
-        setSelectedTimetable(timetablesData[0]);
+      if (sectionTimetables.length > 0) {
+        setSelectedTimetable(sectionTimetables[0]);
       } else {
         setSelectedTimetable(null);
         setTimetableGrid({});

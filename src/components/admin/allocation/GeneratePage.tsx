@@ -105,8 +105,12 @@ export const GeneratePage: React.FC = () => {
       // Get all sections for these cohorts
       const allSections: Section[] = [];
       for (const cohort of termCohorts) {
-        const cohortSections = await sectionsApi.getByCohort(cohort.id);
-        allSections.push(...cohortSections);
+        if (cohort.sections) {
+          allSections.push(...cohort.sections);
+        } else {
+          const cohortSections = await sectionsApi.getByCohort(cohort.id);
+          allSections.push(...cohortSections);
+        }
       }
       setSections(allSections);
       
