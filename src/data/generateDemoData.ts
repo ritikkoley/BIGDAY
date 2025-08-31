@@ -5,6 +5,8 @@ export interface DemoDataSet {
   institutions: any[];
   academic_terms: any[];
   user_groups: any[];
+  cohorts: any[];
+  sections: any[];
   user_profiles: any[];
   courses: any[];
   group_courses: any[];
@@ -110,7 +112,49 @@ export const generateDemoData = (): DemoDataSet => {
     });
   });
 
-  // 4. User Profiles
+  // 4. Cohorts (based on user_groups)
+  const cohorts = [];
+  const cohortIds: Record<string, string> = {};
+  
+  ['6', '7', '8'].forEach(grade => {
+    const cohortId = generateId();
+    cohortIds[grade] = cohortId;
+    
+    cohorts.push({
+      id: cohortId,
+      institution_id: institutionId,
+      academic_term_id: term1Id,
+      stream: 'General',
+      grade: grade,
+      boarding_type: 'day_scholar',
+      periods_per_day: 8,
+      days_per_week: 5,
+      created_at: getDate(-20),
+      updated_at: getDate(-20)
+    });
+  });
+
+  // 5. Sections (based on cohorts)
+  const sections = [];
+  const sectionIds: Record<string, string> = {};
+  
+  Object.entries(cohortIds).forEach(([grade, cohortId]) => {
+    ['A', 'B'].forEach(sectionName => {
+      const sectionId = generateId();
+      const sectionKey = `${grade}${sectionName}`;
+      sectionIds[sectionKey] = sectionId;
+      
+      sections.push({
+        id: sectionId,
+        cohort_id: cohortId,
+        name: sectionName,
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      });
+    });
+  });
+
+  // 6. User Profiles
   const user_profiles = [];
   const teacherIds: Record<string, string> = {};
   const adminId = generateId();
@@ -185,9 +229,12 @@ export const generateDemoData = (): DemoDataSet => {
 
   // Students (10 per section = 60 total)
   let studentIndex = 0;
-  Object.entries(groupIds).forEach(([groupName, groupId]) => {
-    const grade = groupName.split('-')[0].split(' ')[1];
-    const section = groupName.split('-')[1];
+  Object.entries(sectionIds).forEach(([sectionKey, sectionId]) => {
+    const grade = sectionKey.charAt(0);
+    const section = sectionKey.charAt(1);
+    const groupId = Object.values(groupIds).find(id => 
+      user_groups.find(g => g.id === id)?.name === `Grade ${grade}-${section}`
+    );
     
     for (let i = 0; i < 10; i++) {
       const studentId = generateId();
@@ -227,7 +274,7 @@ export const generateDemoData = (): DemoDataSet => {
     }
   });
 
-  // 5. Courses
+  // 7. Courses
   const courses = [];
   const courseIds: Record<string, string> = {};
   
@@ -259,7 +306,7 @@ export const generateDemoData = (): DemoDataSet => {
     });
   });
 
-  // 6. Group Courses (Assign courses to sections with teachers)
+  // 8. Group Courses (Assign courses to sections with teachers)
   const group_courses = [];
   
   Object.entries(groupIds).forEach(([groupName, groupId]) => {
@@ -295,7 +342,7 @@ export const generateDemoData = (): DemoDataSet => {
     });
   });
 
-  // 7. Timetables (1 per section per term)
+  // 9. Timetables (1 per section per term)
   const timetables = [];
   const timetableIds: Record<string, string> = {};
   
@@ -320,7 +367,7 @@ export const generateDemoData = (): DemoDataSet => {
     });
   });
 
-  // 8. Timetable Sessions (Realistic weekly schedule)
+  // 10. Timetable Sessions (Realistic weekly schedule)
   const timetable_sessions = [];
   
   // Generate sessions for Term 1 (published timetables)
@@ -397,7 +444,7 @@ export const generateDemoData = (): DemoDataSet => {
     });
   });
 
-  // 9. Audit Logs
+  // 11. Audit Logs
   const audit_logs = [
     {
       id: generateId(),
@@ -426,7 +473,7 @@ export const generateDemoData = (): DemoDataSet => {
     }
   ];
 
-  // 10. System Reports
+  // 12. System Reports
   const system_reports = [
     {
       id: generateId(),
@@ -454,7 +501,7 @@ export const generateDemoData = (): DemoDataSet => {
     }
   ];
 
-  // 11. User Permissions
+  // 13. User Permissions
   const user_permissions = [];
   
   // Admin permissions
@@ -491,6 +538,8 @@ export const generateDemoData = (): DemoDataSet => {
     institutions,
     academic_terms,
     user_groups,
+    cohorts,
+    sections,
     user_profiles,
     courses,
     group_courses,
