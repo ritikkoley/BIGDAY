@@ -37,17 +37,12 @@ export const AllocationView: React.FC = () => {
       }
       setMigrationRequired(false);
     } catch (error) {
-      if (error instanceof Error && error.message === 'MIGRATION_REQUIRED') {
-        setMigrationRequired(true);
-        // Load demo data as fallback
-        const demoTerms = (await import('../../data/generateDemoData')).demoData.academic_terms;
-        setAcademicTerms(demoTerms);
-        if (demoTerms.length > 0 && !selectedTerm) {
-          setSelectedTerm(demoTerms[0].id);
-        }
-      } else {
-        console.error('Failed to load academic terms:', error);
-        setMigrationRequired(false);
+      setMigrationRequired(true);
+      // Load demo data as fallback
+      const demoTerms = (await import('../../data/generateDemoData')).demoData.academic_terms;
+      setAcademicTerms(demoTerms);
+      if (demoTerms.length > 0 && !selectedTerm) {
+        setSelectedTerm(demoTerms[0].id);
       }
     }
   };

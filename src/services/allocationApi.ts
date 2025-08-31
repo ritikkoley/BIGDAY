@@ -32,16 +32,10 @@ export const academicTermsApi = {
         .order('start_date', { ascending: false });
       
       if (error) {
-        if (error.code === 'PGRST205') {
-          throw new Error('MIGRATION_REQUIRED');
-        }
-        throw error;
+        throw new Error('MIGRATION_REQUIRED');
       }
       return data || demoData.academic_terms;
     } catch (error) {
-      if (error instanceof Error && error.message === 'MIGRATION_REQUIRED') {
-        throw error;
-      }
       console.warn('Academic terms table not found, using demo data');
       return demoData.academic_terms;
     }
@@ -124,16 +118,10 @@ export const cohortsApi = {
         .order('grade', { ascending: true });
       
       if (error) {
-        if (error.code === 'PGRST205') {
-          throw new Error('MIGRATION_REQUIRED');
-        }
-        throw error;
+        throw new Error('MIGRATION_REQUIRED');
       }
       return data || [];
     } catch (error) {
-      if (error instanceof Error && error.message === 'MIGRATION_REQUIRED') {
-        throw error;
-      }
       console.warn('Cohorts table not found, using demo data');
       // Transform demo data to match expected structure
       return demoData.user_groups
