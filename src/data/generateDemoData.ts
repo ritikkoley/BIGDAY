@@ -529,8 +529,286 @@ function findAvailableSlot(
   return null;
 }
 
+// Create comprehensive demo data with all required tables
+const createComprehensiveDemoData = () => {
+  const baseData = generateDemoData();
+  
+  // Add teacher eligibility matrix
+  const teacherEligibilityMatrix: TeacherEligibilityMatrix[] = [
+    {
+      teacher_id: 'teacher-math',
+      teacher_name: 'Mr. Suresh Rao',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: true },
+        { course_id: 'course-science', course_title: 'Science', eligible: false },
+        { course_id: 'course-english', course_title: 'English', eligible: false },
+        { course_id: 'course-history', course_title: 'History', eligible: false },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: false },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: false },
+        { course_id: 'course-art', course_title: 'Art', eligible: false },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: false }
+      ],
+      grades: [
+        { grade: '6', eligible: true },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: true }
+      ],
+      load_rules: {
+        id: 'load-math',
+        teacher_id: 'teacher-math',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    },
+    {
+      teacher_id: 'teacher-science',
+      teacher_name: 'Dr. Amit Kapoor',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+        { course_id: 'course-science', course_title: 'Science', eligible: true },
+        { course_id: 'course-english', course_title: 'English', eligible: false },
+        { course_id: 'course-history', course_title: 'History', eligible: false },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: false },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: true },
+        { course_id: 'course-art', course_title: 'Art', eligible: false },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: false }
+      ],
+      grades: [
+        { grade: '6', eligible: true },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: true }
+      ],
+      load_rules: {
+        id: 'load-science',
+        teacher_id: 'teacher-science',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    },
+    {
+      teacher_id: 'teacher-english',
+      teacher_name: 'Ms. Priya Sharma',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+        { course_id: 'course-science', course_title: 'Science', eligible: false },
+        { course_id: 'course-english', course_title: 'English', eligible: true },
+        { course_id: 'course-history', course_title: 'History', eligible: true },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: true },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: false },
+        { course_id: 'course-art', course_title: 'Art', eligible: false },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: false }
+      ],
+      grades: [
+        { grade: '6', eligible: true },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: false }
+      ],
+      load_rules: {
+        id: 'load-english',
+        teacher_id: 'teacher-english',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    },
+    {
+      teacher_id: 'teacher-history',
+      teacher_name: 'Mrs. Maria Fernandez',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+        { course_id: 'course-science', course_title: 'Science', eligible: false },
+        { course_id: 'course-english', course_title: 'English', eligible: false },
+        { course_id: 'course-history', course_title: 'History', eligible: true },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: true },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: false },
+        { course_id: 'course-art', course_title: 'Art', eligible: false },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: false }
+      ],
+      grades: [
+        { grade: '6', eligible: false },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: true }
+      ],
+      load_rules: {
+        id: 'load-history',
+        teacher_id: 'teacher-history',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    },
+    {
+      teacher_id: 'teacher-cs',
+      teacher_name: 'Mr. Ravi Iyer',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+        { course_id: 'course-science', course_title: 'Science', eligible: false },
+        { course_id: 'course-english', course_title: 'English', eligible: false },
+        { course_id: 'course-history', course_title: 'History', eligible: false },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: false },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: true },
+        { course_id: 'course-art', course_title: 'Art', eligible: false },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: false }
+      ],
+      grades: [
+        { grade: '6', eligible: true },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: true }
+      ],
+      load_rules: {
+        id: 'load-cs',
+        teacher_id: 'teacher-cs',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    },
+    {
+      teacher_id: 'teacher-arts',
+      teacher_name: 'Ms. Neha Mehta',
+      subjects: [
+        { course_id: 'course-math', course_title: 'Mathematics', eligible: false },
+        { course_id: 'course-science', course_title: 'Science', eligible: false },
+        { course_id: 'course-english', course_title: 'English', eligible: false },
+        { course_id: 'course-history', course_title: 'History', eligible: false },
+        { course_id: 'course-civics', course_title: 'Civics', eligible: false },
+        { course_id: 'course-cs', course_title: 'Computer Science', eligible: false },
+        { course_id: 'course-art', course_title: 'Art', eligible: true },
+        { course_id: 'course-pe', course_title: 'Physical Education', eligible: true }
+      ],
+      grades: [
+        { grade: '6', eligible: true },
+        { grade: '7', eligible: true },
+        { grade: '8', eligible: true }
+      ],
+      load_rules: {
+        id: 'load-arts',
+        teacher_id: 'teacher-arts',
+        max_periods_per_day: 6,
+        max_periods_per_week: 30,
+        availability: {
+          monday: [1,2,3,4,5,6,7,8],
+          tuesday: [1,2,3,4,5,6,7,8],
+          wednesday: [1,2,3,4,5,6,7,8],
+          thursday: [1,2,3,4,5,6,7,8],
+          friday: [1,2,3,4,5,6,7,8]
+        },
+        created_at: getDate(-20),
+        updated_at: getDate(-20)
+      }
+    }
+  ];
+  
+  // Add slot templates
+  const slotTemplates: SlotTemplate[] = [
+    {
+      id: 'template-standard',
+      institution_id: baseData.institutions[0].id,
+      name: 'Standard 8-Period Schedule',
+      days_per_week: 5,
+      periods_per_day: 8,
+      bells: {
+        '1': '08:30-09:15',
+        '2': '09:15-10:00',
+        '3': '10:00-10:45',
+        '4': '11:00-11:45',
+        '5': '11:45-12:30',
+        '6': '12:30-13:15',
+        '7': '14:00-14:45',
+        '8': '14:45-15:30'
+      },
+      created_at: getDate(-25),
+      updated_at: getDate(-25)
+    }
+  ];
+  
+  // Add slot template assignments
+  const slotTemplateAssignments: SlotTemplateAssignment[] = baseData.cohorts.map(cohort => ({
+    id: `assignment-${cohort.id}`,
+    slot_template_id: 'template-standard',
+    cohort_id: cohort.id,
+    section_id: null,
+    created_at: getDate(-20),
+    slot_template: slotTemplates[0],
+    cohort: cohort,
+    section: null
+  }));
+  
+  // Add timetables
+  const timetables: Timetable[] = [];
+  baseData.cohorts.forEach(cohort => {
+    cohort.sections?.forEach(section => {
+      timetables.push({
+        id: `timetable-${section.id}`,
+        section_id: section.id,
+        academic_term_id: baseData.academic_terms[0].id,
+        status: 'draft',
+        generated_at: getDate(-5),
+        generated_by: baseData.user_profiles[0].id,
+        published_at: null,
+        published_by: null,
+        created_at: getDate(-5),
+        updated_at: getDate(-5),
+        section: section,
+        academic_term: baseData.academic_terms[0],
+        sessions: []
+      });
+    });
+  });
+  
+  return {
+    ...baseData,
+    teacherEligibilityMatrix,
+    slotTemplates,
+    slotTemplateAssignments,
+    timetables
+  };
+};
+
 // Export the generated data
-export const demoData = generateDemoData();
+export const demoData = createComprehensiveDemoData();
 
 // Export individual tables for easy access
 export const {
