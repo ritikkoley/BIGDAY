@@ -1,16 +1,47 @@
-import React, { useState } from 'react';
-import { Calendar, Users, BookOpen, Settings, Play, FileText } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Users, BookOpen, Settings, Play, FileText, AlertTriangle } from 'lucide-react';
 import { CohortsSectionsPage } from './allocation/CohortsSectionsPage';
 import { CoursesAllocationPage } from './allocation/CoursesAllocationPage';
 import { TeacherEligibilityPage } from './allocation/TeacherEligibilityPage';
 import { SlotTemplatesPage } from './allocation/SlotTemplatesPage';
 import { GeneratePage } from './allocation/GeneratePage';
 import { ReviewAdjustPage } from './allocation/ReviewAdjustPage';
+import { academicTermsApi } from '../../services/allocationApi';
 
 type AllocationTab = 'cohorts' | 'courses' | 'teachers' | 'templates' | 'generate' | 'review';
 
+interface AcademicTerm {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+}
+
 export const AllocationView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AllocationTab>('cohorts');
+  const [academicTerms, setAcademicTerms] = useState<AcademicTerm[]>([]);
+  const [selectedTerm, setSelectedTerm] = useState<string>('');
+  const [migrationRequired, setMigrationRequired] = useState(false);
+
+  useEffect(() => {
+    loadAcademicTerms();
+  }, []);
+
+  const loadAcademicTerms = async () => {
+    try {
+      const terms = await academicTermsApi.getAll();
+      setAcademicTerms(terms);
+      if (terms.length > 0 && !selectedTerm) {
+        setSelectedTerm(terms[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load academic terms:', error);
+      if (error instanceof Error && error.message.includes('migration required')) {
+        setMigrationRequired(true);
+      }
+    }
+  };
 
   const tabs = [
     {
@@ -53,6 +84,20 @@ export const AllocationView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {migrationRequired && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <h3 className="font-medium text-amber-800">Database Migration Required</h3>
+          </div>
+          <p className="text-amber-700 mt-2">
+            The allocation system requires additional database tables. Please apply the migration file 
+            <code className="bg-amber-100 px-1 rounded">supabase/migrations/create_allocation_system.sql</code> 
+            in your Supabase dashboard to enable full functionality.
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="apple-card p-6">
         <div className="flex items-center space-x-4">
