@@ -179,7 +179,7 @@ export const cohortsApi = {
     // Create mock cohort for demo purposes (tables don't exist yet)
     const mockCohort: Cohort = {
       id: `cohort-${Date.now()}`,
-      institution_id: cohort.institution_id,
+      institution_id: 'mock-institution-id',
       academic_term_id: cohort.academic_term_id,
       stream: cohort.stream,
       grade: cohort.grade,
@@ -198,7 +198,7 @@ export const cohortsApi = {
     // Return mock updated cohort (tables don't exist yet)
     const mockCohort: Cohort = {
       id: id,
-      institution_id: 'mock-institution',
+      institution_id: 'mock-institution-id',
       academic_term_id: updates.academic_term_id || 'fallback-term-1',
       stream: updates.stream || 'Mock Stream',
       grade: updates.grade || '8',
