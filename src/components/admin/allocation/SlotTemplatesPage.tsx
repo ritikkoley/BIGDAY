@@ -78,11 +78,21 @@ export const SlotTemplatesPage: React.FC = () => {
     try {
       setError(null);
       
+      // Get institution ID
+      const { data: institutions } = await supabase
+        .from('institutions')
+        .select('id')
+        .limit(1);
+      
+      const institutionId = institutions?.[0]?.id;
+      if (!institutionId) throw new Error('No institution found');
+      
       if (editingTemplate) {
         await slotTemplatesApi.update(editingTemplate.id, formData);
       } else {
         await slotTemplatesApi.create({
-          ...formData
+          ...formData,
+          institution_id: institutionId
         });
       }
       

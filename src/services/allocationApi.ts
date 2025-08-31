@@ -374,7 +374,7 @@ export const coursesApi = {
     // Create mock course for demo purposes (tables don't exist yet)
     const mockCourse: Course = {
       id: `course-${Date.now()}`,
-      institution_id: 'mock-institution-id',
+      institution_id: 'mock-institution',
       code: course.code,
       title: course.title,
       subject_type: course.subject_type,
@@ -395,7 +395,7 @@ export const coursesApi = {
     // Return mock updated course (tables don't exist yet)
     const mockCourse: Course = {
       id: id,
-      institution_id: 'mock-institution-id',
+      institution_id: 'mock-institution',
       code: updates.code || 'MOCK101',
       title: updates.title || 'Mock Course',
       subject_type: updates.subject_type || 'theory',
