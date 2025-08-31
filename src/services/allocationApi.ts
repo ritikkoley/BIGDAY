@@ -32,7 +32,11 @@ export const academicTermsApi = {
         .order('start_date', { ascending: false });
       
       if (error) {
-        throw new Error('MIGRATION_REQUIRED');
+        console.warn('Academic terms table not found, using demo data');
+        return demoData.academic_terms.map(term => ({
+          ...term,
+          institution_id: term.institution_id || demoData.institutions[0]?.id || 'demo-institution'
+        }));
       }
       return data || demoData.academic_terms;
     } catch (error) {
@@ -121,7 +125,101 @@ export const cohortsApi = {
         .order('grade', { ascending: true });
       
       if (error) {
-        throw new Error('MIGRATION_REQUIRED');
+        console.warn('Cohorts table not found, using demo data');
+        // Create proper demo cohorts with sections
+        const demoCohorts = [
+          {
+            id: 'cohort-6a',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+            stream: 'Science',
+            grade: '6',
+            boarding_type: 'day_scholar' as const,
+            periods_per_day: 8,
+            days_per_week: 5,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            academic_term: demoData.academic_terms[0],
+            sections: [
+              {
+                id: 'section-6a-a',
+                cohort_id: 'cohort-6a',
+                name: 'A',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                students: [],
+                courses: []
+              },
+              {
+                id: 'section-6a-b',
+                cohort_id: 'cohort-6a',
+                name: 'B',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                students: [],
+                courses: []
+              }
+            ]
+          },
+          {
+            id: 'cohort-7a',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+            stream: 'Commerce',
+            grade: '7',
+            boarding_type: 'day_scholar' as const,
+            periods_per_day: 8,
+            days_per_week: 5,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            academic_term: demoData.academic_terms[0],
+            sections: [
+              {
+                id: 'section-7a-a',
+                cohort_id: 'cohort-7a',
+                name: 'A',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                students: [],
+                courses: []
+              }
+            ]
+          },
+          {
+            id: 'cohort-8a',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            academic_term_id: demoData.academic_terms[0]?.id || 'demo-term',
+            stream: 'Arts',
+            grade: '8',
+            boarding_type: 'hosteller' as const,
+            periods_per_day: 8,
+            days_per_week: 6,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            academic_term: demoData.academic_terms[0],
+            sections: [
+              {
+                id: 'section-8a-a',
+                cohort_id: 'cohort-8a',
+                name: 'A',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                students: [],
+                courses: []
+              },
+              {
+                id: 'section-8a-b',
+                cohort_id: 'cohort-8a',
+                name: 'B',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                students: [],
+                courses: []
+              }
+            ]
+          }
+        ];
+        return demoCohorts;
       }
       return data || [];
     } catch (error) {
@@ -393,7 +491,66 @@ export const coursesApi = {
       
       if (error) {
         console.warn('Courses table not found, using demo data');
-        return demoData.courses;
+        // Create proper demo courses with required fields
+        const demoCourses = [
+          {
+            id: 'course-math',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'MATH',
+            title: 'Mathematics',
+            subject_type: 'theory' as const,
+            weekly_theory_periods: 5,
+            weekly_lab_periods: 0,
+            lab_block_size: 1,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-sci',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'SCI',
+            title: 'Science',
+            subject_type: 'mixed' as const,
+            weekly_theory_periods: 3,
+            weekly_lab_periods: 2,
+            lab_block_size: 2,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-eng',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'ENG',
+            title: 'English',
+            subject_type: 'theory' as const,
+            weekly_theory_periods: 4,
+            weekly_lab_periods: 0,
+            lab_block_size: 1,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 'course-cs',
+            institution_id: demoData.institutions[0]?.id || 'demo-institution',
+            code: 'CS',
+            title: 'Computer Science',
+            subject_type: 'mixed' as const,
+            weekly_theory_periods: 2,
+            weekly_lab_periods: 2,
+            lab_block_size: 2,
+            constraints: {},
+            active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ];
+        return demoCourses;
       }
       return data || demoData.courses;
     } catch (error) {

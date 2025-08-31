@@ -250,16 +250,9 @@ export const generateDemoData = (): DemoDataSet => {
     courses.push({
       id: courseId,
       institution_id: institutionId,
-      code: course.code,
       title: course.title,
+      code: course.code,
       description: `${course.title} curriculum for middle school students`,
-      subject_type: course.type,
-      weekly_theory_periods: course.theory,
-      weekly_lab_periods: course.lab,
-      lab_block_size: course.lab > 0 ? 2 : 1,
-      min_days_between_theory: 1,
-      min_days_between_labs: 2,
-      constraints: course.constraints || {},
       active: true,
       created_at: getDate(-50),
       updated_at: getDate(-50)
