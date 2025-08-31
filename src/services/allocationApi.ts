@@ -381,6 +381,7 @@ export const coursesApi = {
       weekly_theory_periods: course.weekly_theory_periods || 0,
       weekly_lab_periods: course.weekly_lab_periods || 0,
       lab_block_size: course.lab_block_size || 2,
+    }
     // Return mock updated course (tables don't exist yet)
     const mockCourse: Course = {
       id: id,
