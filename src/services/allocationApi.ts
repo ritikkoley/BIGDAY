@@ -31,7 +31,10 @@ export const academicTermsApi = {
         .select('*')
         .order('start_date', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Academic terms table not found, using demo data');
+        return demoData.academic_terms;
+      }
       return data || [];
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
@@ -115,7 +118,32 @@ export const cohortsApi = {
         .select('*, academic_term:academic_terms(*), sections:sections(*)')
         .order('grade', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.warn('Cohorts table not found, using demo data');
+        // Transform demo data to match expected structure
+        return demoData.user_groups
+          .filter(group => group.type === 'class')
+          .map(group => ({
+            id: group.id,
+            institution_id: demoData.institutions[0].id,
+            academic_term_id: demoData.academic_terms[0].id,
+            stream: group.name.includes('Grade') ? 'General' : 'Science',
+            grade: group.name.split(' ')[1]?.split('-')[0] || '6',
+            boarding_type: 'day_scholar' as const,
+            periods_per_day: 8,
+            days_per_week: 5,
+            created_at: group.created_at,
+            updated_at: group.updated_at,
+            academic_term: demoData.academic_terms[0],
+            sections: [{
+              id: `section-${group.id}`,
+              cohort_id: group.id,
+              name: group.name.split('-')[1] || 'A',
+              created_at: group.created_at,
+              updated_at: group.updated_at
+            }]
+          }));
+      }
       return data || [];
     } catch (error) {
       console.warn('Cohorts table not found, using demo data');
