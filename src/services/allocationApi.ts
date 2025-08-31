@@ -1080,9 +1080,9 @@ export const allocationSettingsApi = {
       const { data, error } = await supabase
         .from('allocation_settings')
         .select('*')
-        .single();
+        .maybeSingle();
       
-      if (error) {
+      if (error || !data) {
         console.warn('Allocation settings table not found, using demo data');
         return {
           id: 'demo-settings',
