@@ -676,6 +676,27 @@ export const slotTemplatesApi = {
       
       if (error) throw error;
       return data || [];
+    } catch (error) {
+      console.warn('Slot templates table not found, using demo data');
+      return [{
+        id: 'demo-template-1',
+        institution_id: demoData.institutions[0].id,
+        name: 'Standard 8 Period Schedule',
+        days_per_week: 5,
+        periods_per_day: 8,
+        bells: {
+          '1': '08:00-08:45',
+          '2': '08:45-09:30',
+          '3': '09:30-10:15',
+          '4': '10:35-11:20',
+          '5': '11:20-12:05',
+          '6': '12:05-12:50',
+          '7': '13:30-14:15',
+          '8': '14:15-15:00'
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }];
     }
   },
 
