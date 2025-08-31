@@ -7,6 +7,7 @@ import { SlotTemplatesPage } from './allocation/SlotTemplatesPage';
 import { GeneratePage } from './allocation/GeneratePage';
 import { ReviewAdjustPage } from './allocation/ReviewAdjustPage';
 import { academicTermsApi } from '../../services/allocationApi';
+import { demoData } from '../../data/generateDemoData';
 
 type AllocationTab = 'cohorts' | 'courses' | 'teachers' | 'templates' | 'generate' | 'review';
 
@@ -15,7 +16,10 @@ interface AcademicTerm {
   name: string;
   start_date: string;
   end_date: string;
-  is_active: boolean;
+  frozen: boolean;
+  institution_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const AllocationView: React.FC = () => {
@@ -37,9 +41,14 @@ export const AllocationView: React.FC = () => {
       }
       setMigrationRequired(false);
     } catch (error) {
+      console.warn('Database tables not available, using demo data');
       setMigrationRequired(true);
+      
       // Load demo data as fallback
-      const demoTerms = (await import('../../data/generateDemoData')).demoData.academic_terms;
+      const demoTerms = demoData.academic_terms.map(term => ({
+        ...term,
+        frozen: term.frozen || false
+      }));
       setAcademicTerms(demoTerms);
       if (demoTerms.length > 0 && !selectedTerm) {
         setSelectedTerm(demoTerms[0].id);
