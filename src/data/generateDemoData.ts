@@ -875,4 +875,3 @@ export const {
 } = demoData;
 
 // Export the demo teacher eligibility function
-export { getDemoTeacherEligibilityMatrix } from '../data/generateDemoData';
