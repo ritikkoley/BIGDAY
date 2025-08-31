@@ -315,6 +315,9 @@ export const coursesApi = {
       
       if (error) throw error;
       return data || [];
+    } catch (error) {
+      console.warn('Courses table not found, using demo data');
+      return demoData.courses;
     }
   },
 
