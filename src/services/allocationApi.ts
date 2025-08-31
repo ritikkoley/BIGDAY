@@ -39,10 +39,12 @@ export const academicTermsApi = {
       // If table exists but is empty, use demo data
       if (!data || data.length === 0) {
         console.log('Academic terms table empty, using demo data');
-        return demoData.academic_terms;
+        return demoData.academic_terms.map(term => ({
+          ...term,
+          institution_id: term.institution_id || demoData.institutions[0]?.id || 'demo-institution'
+        }));
       }
-      
-      return data;
+      return data || demoData.academic_terms;
     } catch (error) {
       console.warn('Academic terms table not found, using demo data');
       return demoData.academic_terms.map(term => ({
@@ -501,7 +503,7 @@ export const coursesApi = {
         .order('code', { ascending: true });
       
       if (error) {
-        console.warn('Courses table not found, using demo data');
+        console.warn('Courses table error, using demo data:', error);
         // Create proper demo courses with required fields
         const demoCourses = [
           {
@@ -563,7 +565,14 @@ export const coursesApi = {
         ];
         return demoCourses;
       }
-      return data || demoData.courses;
+      
+      // If table exists but is empty, use demo data
+      if (!data || data.length === 0) {
+        console.log('Courses table empty, using demo data');
+        return demoData.courses;
+      }
+      
+      return data;
     } catch (error) {
       console.warn('Courses table not found, using demo data');
       // Create proper demo courses with required fields
