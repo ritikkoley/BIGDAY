@@ -17,90 +17,71 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { group_id, academic_term_id, force_regenerate = false, preserve_locked = true } = await req.json();
+    const { 
+      academic_term_id, 
+      section_ids, 
+      use_slot_template,
+      constraints = {}
+    } = await req.json();
 
-    // Get group configuration
-    const { data: group, error: groupError } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('id', group_id)
-      .single();
+    const {
+      teacher_max_per_day_default = 6,
+      enforce_lab_blocks = true,
+      spread_course_days = true
+    } = constraints;
 
-    if (groupError) throw groupError;
+    const runId = crypto.randomUUID();
+    const results = [];
+    const allConflicts = [];
 
-    // Get group courses with teacher assignments
-    const { data: groupCourses, error: coursesError } = await supabase
-      .from('group_courses')
-      .select(`
-        *,
-        course:courses(*),
-        teacher:user_profiles(id, full_name, availability_pref)
-      `)
-      .eq('group_id', group_id)
-      .eq('course.active', true);
-
-    if (coursesError) throw coursesError;
-
-    // Check if timetable already exists
-    let timetable;
-    const { data: existingTimetable } = await supabase
-      .from('timetables')
-      .select('*')
-      .eq('group_id', group_id)
-      .eq('academic_term_id', academic_term_id)
-      .eq('status', 'draft')
-      .order('version', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (existingTimetable && !force_regenerate) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: 'Timetable already exists. Use force_regenerate=true to recreate.'
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Process each section
+    for (const sectionId of section_ids) {
+      try {
+        const result = await generateSectionTimetable(
+          supabase,
+          sectionId,
+          academic_term_id,
+          use_slot_template,
+          {
+            teacher_max_per_day_default,
+            enforce_lab_blocks,
+            spread_course_days,
+            run_id: runId
+          }
+        );
+        
+        results.push(result.stats);
+        allConflicts.push(...result.conflicts);
+      } catch (error) {
+        console.error(`Error generating timetable for section ${sectionId}:`, error);
+        results.push({
+          section_id: sectionId,
+          placed: 0,
+          required: 0,
+          conflicts: 1
+        });
+        
+        allConflicts.push({
+          run_id: runId,
+          section_id: sectionId,
+          conflict_type: 'generation_error',
+          details: { error: error.message }
+        });
+      }
     }
 
-    // Create new timetable
-    const { data: newTimetable, error: timetableError } = await supabase
-      .from('timetables')
-      .insert({
-        group_id,
-        academic_term_id,
-        status: 'draft',
-        version: existingTimetable ? existingTimetable.version + 1 : 1
-      })
-      .select()
-      .single();
-
-    if (timetableError) throw timetableError;
-    timetable = newTimetable;
-
-    // Generate timetable sessions
-    const sessions = await generateTimetableSessions(group, groupCourses);
-    
-    // Insert sessions
-    const { error: sessionsError } = await supabase
-      .from('timetable_sessions')
-      .insert(
-        sessions.map(session => ({
-          ...session,
-          timetable_id: timetable.id,
-          group_id: group_id
-        }))
-      );
-
-    if (sessionsError) throw sessionsError;
+    // Log conflicts to database
+    if (allConflicts.length > 0) {
+      await supabase
+        .from('timetable_conflicts')
+        .insert(allConflicts);
+    }
 
     return new Response(
       JSON.stringify({
-        success: true,
-        timetable_id: timetable.id,
-        sessions_created: sessions.length,
-        conflicts: [],
-        warnings: []
+        status: 'ok',
+        section_results: results,
+        conflicts: allConflicts
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -117,100 +98,358 @@ Deno.serve(async (req) => {
   }
 });
 
-async function generateTimetableSessions(group: any, groupCourses: any[]) {
-  const sessions: any[] = [];
-  const grid: boolean[][] = [];
-  
-  // Initialize grid
-  for (let day = 0; day < group.days_per_week; day++) {
-    grid[day] = new Array(group.periods_per_day).fill(false);
+async function generateSectionTimetable(
+  supabase: any,
+  sectionId: string,
+  academicTermId: string,
+  slotTemplateId: string | undefined,
+  options: any
+) {
+  // Get section with cohort info
+  const { data: section, error: sectionError } = await supabase
+    .from('sections')
+    .select(`
+      *,
+      cohort:cohorts(*)
+    `)
+    .eq('id', sectionId)
+    .single();
+
+  if (sectionError) throw sectionError;
+
+  // Get slot template (from assignment or direct)
+  let slotTemplate;
+  if (slotTemplateId) {
+    const { data: template } = await supabase
+      .from('slot_templates')
+      .select('*')
+      .eq('id', slotTemplateId)
+      .single();
+    slotTemplate = template;
+  } else {
+    // Find assigned template
+    const { data: assignment } = await supabase
+      .from('slot_template_assignments')
+      .select('slot_template:slot_templates(*)')
+      .or(`section_id.eq.${sectionId},cohort_id.eq.${section.cohort_id}`)
+      .single();
+    slotTemplate = assignment?.slot_template;
   }
 
-  // Apply business hours constraints
-  if (group.business_hours) {
-    Object.entries(group.business_hours).forEach(([dayName, periods]) => {
-      const dayIndex = getDayIndex(dayName);
-      if (dayIndex >= 0 && dayIndex < group.days_per_week) {
-        for (let period = 0; period < group.periods_per_day; period++) {
-          if (!periods.includes(period)) {
-            grid[dayIndex][period] = true; // Mark as unavailable
-          }
-        }
+  const daysPerWeek = slotTemplate?.days_per_week || section.cohort.days_per_week;
+  const periodsPerDay = slotTemplate?.periods_per_day || section.cohort.periods_per_day;
+
+  // Get section courses
+  const { data: sectionCourses, error: coursesError } = await supabase
+    .from('section_courses')
+    .select(`
+      *,
+      course:courses(*),
+      teacher:user_profiles(id, full_name)
+    `)
+    .eq('section_id', sectionId)
+    .order('priority', { ascending: false });
+
+  if (coursesError) throw coursesError;
+
+  // Get teacher load rules
+  const teacherIds = sectionCourses.map(sc => sc.teacher_id).filter(Boolean);
+  const { data: teacherRules } = await supabase
+    .from('teacher_load_rules')
+    .select('*')
+    .in('teacher_id', teacherIds);
+
+  // Initialize grid and teacher tracking
+  const grid = initializeGrid(daysPerWeek, periodsPerDay);
+  const teacherDailyLoad = new Map();
+  const conflicts = [];
+  let totalRequired = 0;
+  let totalPlaced = 0;
+
+  // Calculate total periods required
+  sectionCourses.forEach(sc => {
+    const theoryPeriods = sc.weekly_theory_periods || sc.course.weekly_theory_periods;
+    const labPeriods = sc.weekly_lab_periods || sc.course.weekly_lab_periods;
+    totalRequired += theoryPeriods + labPeriods;
+  });
+
+  // Get existing timetable or create new one
+  let timetable;
+  const { data: existingTimetable } = await supabase
+    .from('timetables')
+    .select('*')
+    .eq('section_id', sectionId)
+    .eq('academic_term_id', academicTermId)
+    .eq('status', 'draft')
+    .order('version', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (existingTimetable) {
+    // Update existing timetable
+    const { data: updatedTimetable, error: updateError } = await supabase
+      .from('timetables')
+      .update({ 
+        generated_at: new Date().toISOString(),
+        version: existingTimetable.version + 1
+      })
+      .eq('id', existingTimetable.id)
+      .select('*')
+      .single();
+
+    if (updateError) throw updateError;
+    timetable = updatedTimetable;
+
+    // Clear existing sessions (except locked ones)
+    await supabase
+      .from('timetable_sessions')
+      .delete()
+      .eq('timetable_id', timetable.id)
+      .eq('locked', false);
+  } else {
+    // Create new timetable
+    const { data: newTimetable, error: createError } = await supabase
+      .from('timetables')
+      .insert({
+        section_id: sectionId,
+        academic_term_id: academicTermId,
+        status: 'draft',
+        version: 1
+      })
+      .select('*')
+      .single();
+
+    if (createError) throw createError;
+    timetable = newTimetable;
+  }
+
+  // Get locked sessions to preserve
+  const { data: lockedSessions } = await supabase
+    .from('timetable_sessions')
+    .select('*')
+    .eq('timetable_id', timetable.id)
+    .eq('locked', true);
+
+  // Mark locked sessions in grid
+  (lockedSessions || []).forEach(session => {
+    for (let i = 0; i < session.duration_periods; i++) {
+      const period = session.period_index + i;
+      if (period <= periodsPerDay) {
+        grid[session.day_of_week][period] = 'locked';
       }
-    });
-  }
-
-  // Sort courses by priority (higher priority first)
-  const sortedCourses = [...groupCourses].sort((a, b) => b.priority - a.priority);
-
-  // Schedule lab sessions first (they need contiguous blocks)
-  for (const groupCourse of sortedCourses) {
-    const labPeriods = groupCourse.weekly_lab_periods || groupCourse.course.weekly_lab_periods;
-    const blockSize = groupCourse.lab_block_size || groupCourse.course.lab_block_size;
+    }
     
-    if (labPeriods > 0) {
-      const labSessions = Math.ceil(labPeriods / blockSize);
+    // Track teacher load for locked sessions
+    if (session.teacher_id) {
+      const key = `${session.teacher_id}-${session.day_of_week}`;
+      teacherDailyLoad.set(key, (teacherDailyLoad.get(key) || 0) + session.duration_periods);
+    }
+  });
+
+  // Sort courses: labs first (need contiguous blocks), then by priority
+  const sortedCourses = [...sectionCourses].sort((a, b) => {
+    const aHasLab = (a.weekly_lab_periods || a.course.weekly_lab_periods) > 0;
+    const bHasLab = (b.weekly_lab_periods || b.course.weekly_lab_periods) > 0;
+    
+    if (aHasLab && !bHasLab) return -1;
+    if (!aHasLab && bHasLab) return 1;
+    return b.priority - a.priority;
+  });
+
+  const sessionsToInsert = [];
+
+  // Schedule each course
+  for (const sectionCourse of sortedCourses) {
+    const theoryPeriods = sectionCourse.weekly_theory_periods || sectionCourse.course.weekly_theory_periods;
+    const labPeriods = sectionCourse.weekly_lab_periods || sectionCourse.course.weekly_lab_periods;
+    const labBlockSize = sectionCourse.lab_block_size || sectionCourse.course.lab_block_size;
+    
+    const teacherId = sectionCourse.teacher_id;
+    const teacherRule = teacherRules?.find(tr => tr.teacher_id === teacherId);
+    const maxPeriodsPerDay = teacherRule?.max_periods_per_day || options.teacher_max_per_day_default;
+    const availability = teacherRule?.availability;
+
+    // Schedule lab sessions first
+    if (labPeriods > 0 && options.enforce_lab_blocks) {
+      const labSessions = Math.ceil(labPeriods / labBlockSize);
       
-      for (let session = 0; session < labSessions; session++) {
-        const slot = findAvailableSlot(grid, blockSize, group.days_per_week, group.periods_per_day);
+      for (let i = 0; i < labSessions; i++) {
+        const slot = findAvailableSlot(
+          grid,
+          labBlockSize,
+          daysPerWeek,
+          periodsPerDay,
+          teacherId,
+          teacherDailyLoad,
+          maxPeriodsPerDay,
+          availability
+        );
+        
         if (slot) {
           // Mark slots as occupied
-          for (let i = 0; i < blockSize; i++) {
-            grid[slot.day][slot.period + i] = true;
+          for (let j = 0; j < labBlockSize; j++) {
+            grid[slot.day][slot.period + j] = 'occupied';
           }
           
-          sessions.push({
-            course_id: groupCourse.course_id,
-            teacher_id: groupCourse.teacher_id,
+          // Update teacher load
+          const teacherKey = `${teacherId}-${slot.day}`;
+          teacherDailyLoad.set(teacherKey, (teacherDailyLoad.get(teacherKey) || 0) + labBlockSize);
+          
+          sessionsToInsert.push({
+            timetable_id: timetable.id,
+            section_id: sectionId,
+            course_id: sectionCourse.course_id,
+            teacher_id: teacherId,
             day_of_week: slot.day,
-            period_start_index: slot.period,
-            duration_periods: blockSize,
-            type: 'lab'
+            period_index: slot.period,
+            duration_periods: labBlockSize,
+            session_type: 'lab'
+          });
+          
+          totalPlaced += labBlockSize;
+        } else {
+          conflicts.push({
+            run_id: options.run_id,
+            section_id: sectionId,
+            course_id: sectionCourse.course_id,
+            teacher_id: teacherId,
+            conflict_type: 'no_lab_slot',
+            details: { 
+              message: `Could not find ${labBlockSize} consecutive periods for lab`,
+              required_block_size: labBlockSize
+            }
           });
         }
       }
     }
-  }
 
-  // Schedule theory sessions
-  for (const groupCourse of sortedCourses) {
-    const theoryPeriods = groupCourse.weekly_theory_periods || groupCourse.course.weekly_theory_periods;
-    
-    for (let period = 0; period < theoryPeriods; period++) {
-      const slot = findAvailableSlot(grid, 1, group.days_per_week, group.periods_per_day);
+    // Schedule theory sessions
+    for (let i = 0; i < theoryPeriods; i++) {
+      const slot = findAvailableSlot(
+        grid,
+        1,
+        daysPerWeek,
+        periodsPerDay,
+        teacherId,
+        teacherDailyLoad,
+        maxPeriodsPerDay,
+        availability,
+        options.spread_course_days ? sectionCourse.course_id : undefined
+      );
+      
       if (slot) {
-        grid[slot.day][slot.period] = true;
+        grid[slot.day][slot.period] = 'occupied';
         
-        sessions.push({
-          course_id: groupCourse.course_id,
-          teacher_id: groupCourse.teacher_id,
+        const teacherKey = `${teacherId}-${slot.day}`;
+        teacherDailyLoad.set(teacherKey, (teacherDailyLoad.get(teacherKey) || 0) + 1);
+        
+        sessionsToInsert.push({
+          timetable_id: timetable.id,
+          section_id: sectionId,
+          course_id: sectionCourse.course_id,
+          teacher_id: teacherId,
           day_of_week: slot.day,
-          period_start_index: slot.period,
+          period_index: slot.period,
           duration_periods: 1,
-          type: 'theory'
+          session_type: 'theory'
+        });
+        
+        totalPlaced++;
+      } else {
+        conflicts.push({
+          run_id: options.run_id,
+          section_id: sectionId,
+          course_id: sectionCourse.course_id,
+          teacher_id: teacherId,
+          conflict_type: 'no_theory_slot',
+          details: { 
+            message: 'Could not find available period for theory session'
+          }
         });
       }
     }
   }
 
-  return sessions;
+  // Insert all sessions
+  if (sessionsToInsert.length > 0) {
+    const { error: insertError } = await supabase
+      .from('timetable_sessions')
+      .insert(sessionsToInsert);
+
+    if (insertError) throw insertError;
+  }
+
+  return {
+    stats: {
+      section_id: sectionId,
+      placed: totalPlaced,
+      required: totalRequired,
+      conflicts: conflicts.length
+    },
+    conflicts
+  };
 }
 
-function findAvailableSlot(grid: boolean[][], duration: number, daysPerWeek: number, periodsPerDay: number) {
-  for (let day = 0; day < daysPerWeek; day++) {
-    for (let period = 0; period <= periodsPerDay - duration; period++) {
-      let available = true;
+function initializeGrid(daysPerWeek: number, periodsPerDay: number) {
+  const grid: any = {};
+  for (let day = 1; day <= daysPerWeek; day++) {
+    grid[day] = {};
+    for (let period = 1; period <= periodsPerDay; period++) {
+      grid[day][period] = null;
+    }
+  }
+  return grid;
+}
+
+function findAvailableSlot(
+  grid: any,
+  duration: number,
+  daysPerWeek: number,
+  periodsPerDay: number,
+  teacherId: string,
+  teacherDailyLoad: Map<string, number>,
+  maxPeriodsPerDay: number,
+  availability?: any,
+  courseId?: string
+) {
+  // Try to spread courses across different days if specified
+  const dayOrder = courseId && grid._courseLastDay?.[courseId] 
+    ? getSpreadDayOrder(grid._courseLastDay[courseId], daysPerWeek)
+    : Array.from({ length: daysPerWeek }, (_, i) => i + 1);
+
+  for (const day of dayOrder) {
+    // Check teacher availability for this day
+    if (availability && availability[getDayName(day).toLowerCase()]) {
+      const availablePeriods = availability[getDayName(day).toLowerCase()];
       
-      // Check if all required consecutive periods are available
-      for (let i = 0; i < duration; i++) {
-        if (grid[day][period + i]) {
-          available = false;
-          break;
+      for (const period of availablePeriods) {
+        if (period + duration - 1 <= periodsPerDay) {
+          if (isSlotAvailable(grid, day, period, duration) &&
+              canTeacherTakeSlot(teacherId, day, duration, teacherDailyLoad, maxPeriodsPerDay)) {
+            
+            // Track course placement for spreading
+            if (courseId) {
+              if (!grid._courseLastDay) grid._courseLastDay = {};
+              grid._courseLastDay[courseId] = day;
+            }
+            
+            return { day, period };
+          }
         }
       }
-      
-      if (available) {
-        return { day, period };
+    } else {
+      // No specific availability constraints, try all periods
+      for (let period = 1; period <= periodsPerDay - duration + 1; period++) {
+        if (isSlotAvailable(grid, day, period, duration) &&
+            canTeacherTakeSlot(teacherId, day, duration, teacherDailyLoad, maxPeriodsPerDay)) {
+          
+          if (courseId) {
+            if (!grid._courseLastDay) grid._courseLastDay = {};
+            grid._courseLastDay[courseId] = day;
+          }
+          
+          return { day, period };
+        }
       }
     }
   }
@@ -218,7 +457,38 @@ function findAvailableSlot(grid: boolean[][], duration: number, daysPerWeek: num
   return null;
 }
 
-function getDayIndex(dayName: string): number {
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  return days.indexOf(dayName.toLowerCase());
+function isSlotAvailable(grid: any, day: number, period: number, duration: number): boolean {
+  for (let i = 0; i < duration; i++) {
+    if (grid[day][period + i] !== null) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function canTeacherTakeSlot(
+  teacherId: string,
+  day: number,
+  duration: number,
+  teacherDailyLoad: Map<string, number>,
+  maxPeriodsPerDay: number
+): boolean {
+  const teacherKey = `${teacherId}-${day}`;
+  const currentLoad = teacherDailyLoad.get(teacherKey) || 0;
+  return currentLoad + duration <= maxPeriodsPerDay;
+}
+
+function getDayName(dayIndex: number): string {
+  const days = ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  return days[dayIndex] || 'unknown';
+}
+
+function getSpreadDayOrder(lastDay: number, daysPerWeek: number): number[] {
+  const days = Array.from({ length: daysPerWeek }, (_, i) => i + 1);
+  // Start from the day after the last scheduled day
+  const startIndex = days.indexOf(lastDay);
+  if (startIndex >= 0) {
+    return [...days.slice(startIndex + 1), ...days.slice(0, startIndex + 1)];
+  }
+  return days;
 }

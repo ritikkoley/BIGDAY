@@ -431,6 +431,171 @@ export interface Database {
           impact?: number;
         };
       };
+      academic_terms: {
+        Row: {
+          id: string;
+          institution_id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          frozen: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          institution_id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          frozen?: boolean;
+        };
+        Update: {
+          name?: string;
+          start_date?: string;
+          end_date?: string;
+          frozen?: boolean;
+        };
+      };
+      cohorts: {
+        Row: {
+          id: string;
+          institution_id: string;
+          academic_term_id: string;
+          stream: string;
+          grade: string;
+          boarding_type: 'hosteller' | 'day_scholar';
+          periods_per_day: number;
+          days_per_week: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          institution_id: string;
+          academic_term_id: string;
+          stream: string;
+          grade: string;
+          boarding_type: 'hosteller' | 'day_scholar';
+          periods_per_day?: number;
+          days_per_week?: number;
+        };
+        Update: {
+          stream?: string;
+          grade?: string;
+          boarding_type?: 'hosteller' | 'day_scholar';
+          periods_per_day?: number;
+          days_per_week?: number;
+        };
+      };
+      sections: {
+        Row: {
+          id: string;
+          cohort_id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          cohort_id: string;
+          name: string;
+        };
+        Update: {
+          name?: string;
+        };
+      };
+      courses: {
+        Row: {
+          id: string;
+          institution_id: string;
+          code: string;
+          title: string;
+          subject_type: 'theory' | 'lab' | 'mixed';
+          weekly_theory_periods: number;
+          weekly_lab_periods: number;
+          lab_block_size: number;
+          constraints: any;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          institution_id: string;
+          code: string;
+          title: string;
+          subject_type: 'theory' | 'lab' | 'mixed';
+          weekly_theory_periods?: number;
+          weekly_lab_periods?: number;
+          lab_block_size?: number;
+          constraints?: any;
+          active?: boolean;
+        };
+        Update: {
+          code?: string;
+          title?: string;
+          subject_type?: 'theory' | 'lab' | 'mixed';
+          weekly_theory_periods?: number;
+          weekly_lab_periods?: number;
+          lab_block_size?: number;
+          constraints?: any;
+          active?: boolean;
+        };
+      };
+      timetables: {
+        Row: {
+          id: string;
+          section_id: string;
+          academic_term_id: string;
+          status: 'draft' | 'published' | 'archived';
+          version: number;
+          generated_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          section_id: string;
+          academic_term_id: string;
+          status?: 'draft' | 'published' | 'archived';
+          version?: number;
+        };
+        Update: {
+          status?: 'draft' | 'published' | 'archived';
+          version?: number;
+        };
+      };
+      timetable_sessions: {
+        Row: {
+          id: string;
+          timetable_id: string;
+          section_id: string;
+          course_id: string;
+          teacher_id: string | null;
+          day_of_week: number;
+          period_index: number;
+          duration_periods: number;
+          session_type: 'theory' | 'lab';
+          locked: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          timetable_id: string;
+          section_id: string;
+          course_id: string;
+          teacher_id?: string | null;
+          day_of_week: number;
+          period_index: number;
+          duration_periods?: number;
+          session_type?: 'theory' | 'lab';
+          locked?: boolean;
+        };
+        Update: {
+          teacher_id?: string | null;
+          day_of_week?: number;
+          period_index?: number;
+          duration_periods?: number;
+          session_type?: 'theory' | 'lab';
+          locked?: boolean;
+        };
+      };
       conversations: {
         Row: {
           id: string;

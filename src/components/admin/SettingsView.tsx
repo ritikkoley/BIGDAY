@@ -4,9 +4,10 @@ import { UserManagement } from './UserManagement';
 import { CoursesManagement } from './CoursesManagement';
 import { GroupsManagement } from './GroupsManagement';
 import { TimetablesManagement } from './TimetablesManagement';
+import { AllocationView } from './AllocationView';
 
 export const SettingsView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'groups' | 'timetables' | 'notifications' | 'security' | 'email'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'groups' | 'timetables' | 'allocation' | 'notifications' | 'security' | 'email'>('users');
 
   return (
     <div className="space-y-6">
@@ -74,6 +75,17 @@ export const SettingsView: React.FC = () => {
           <span>Timetables</span>
         </button>
         <button
+          onClick={() => setActiveTab('allocation')}
+          className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+            activeTab === 'allocation'
+              ? 'border-apple-blue-500 text-apple-blue-500'
+              : 'border-transparent text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-300'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>Allocation</span>
+        </button>
+        <button
           onClick={() => setActiveTab('notifications')}
           className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
             activeTab === 'notifications'
@@ -114,6 +126,7 @@ export const SettingsView: React.FC = () => {
         {activeTab === 'courses' && <CoursesManagement />}
         {activeTab === 'groups' && <GroupsManagement />}
         {activeTab === 'timetables' && <TimetablesManagement />}
+        {activeTab === 'allocation' && <AllocationView />}
         {activeTab === 'notifications' && (
           <div className="apple-card p-6">
             <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">
