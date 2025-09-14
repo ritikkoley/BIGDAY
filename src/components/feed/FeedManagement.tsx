@@ -37,8 +37,9 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       title: 'Drama Competition 2024 - Spectacular Performances!',
       body: 'Our talented students delivered breathtaking performances at the Annual Inter-House Drama Competition. From Shakespearean classics to contemporary plays, each house showcased exceptional acting, direction, and stage presence.',
       category: {
-        name: '🎵 Cultural Events',
-        color: '#8B5CF6'
+        name: 'Cultural Events',
+        color: '#8B5CF6',
+        icon: 'Music'
       },
       media: [
         {
@@ -71,8 +72,9 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       title: 'Quiz Bowl Championship - Regional Success!',
       body: 'Congratulations to our Quiz Bowl team for securing 2nd place in the Regional Championship! Our mental athletes competed against 50+ schools, demonstrating exceptional knowledge across science, literature, history, and current affairs.',
       category: {
-        name: '🎓 Academics',
-        color: '#3B82F6'
+        name: 'Academics',
+        color: '#3B82F6',
+        icon: 'GraduationCap'
       },
       media: [
         {
@@ -100,8 +102,9 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       title: 'Term 1 Examination Results - Outstanding Performance',
       body: 'We are proud to announce that our students have achieved a remarkable 95% pass rate in Term 1 examinations. Special congratulations to our top performers and appreciation to all teachers for their dedicated guidance.',
       category: {
-        name: '📢 Announcements',
-        color: '#EF4444'
+        name: 'Announcements',
+        color: '#EF4444',
+        icon: 'Megaphone'
       },
       media: [
         {
@@ -129,8 +132,9 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       title: 'Swimming Championship Victory - Making Waves!',
       body: 'Our swimming team has made us incredibly proud by winning the District Swimming Championship! With victories in multiple events including freestyle, backstroke, and relay races, our aquatic athletes have set new standards of excellence.',
       category: {
-        name: '⚡ Sports',
-        color: '#10B981'
+        name: 'Sports',
+        color: '#10B981',
+        icon: 'Zap'
       },
       media: [
         {
@@ -163,8 +167,9 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       title: 'DRAFT: Upcoming Science Fair - Call for Participation',
       body: 'Get ready for our Annual Science Fair! Students from grades 6-12 are invited to showcase their innovative projects. Registration deadline is February 15th. Prizes await the most creative and scientifically sound projects.',
       category: {
-        name: '🎓 Academics',
-        color: '#3B82F6'
+        name: 'Academics',
+        color: '#3B82F6',
+        icon: 'GraduationCap'
       },
       media: [],
       tags: ['science', 'fair', 'innovation', 'projects'],
