@@ -11,6 +11,7 @@ import { ReportsView } from '../admin/ReportsView';
 import { SettingsView } from '../admin/SettingsView';
 import { HPCManagement } from '../admin/HPCManagement';
 import { SchoolFeed } from '../feed/SchoolFeed';
+import { FeedManagement } from '../feed/FeedManagement';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -216,6 +217,7 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
           {activeTab === 'feed' && <SchoolFeed />}
+          {activeTab === 'manage-feed' && <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />}
           {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>
