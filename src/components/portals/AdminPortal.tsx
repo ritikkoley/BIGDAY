@@ -74,16 +74,16 @@ export const AdminPortal: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="backdrop-blur-apple bg-white/70 dark:bg-apple-gray-600/70 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between h-14">
+              <div className="flex items-center space-x-3">
                 <Logo />
-                <span className="ml-2 text-sm text-apple-gray-400 dark:text-apple-gray-300">
+                <span className="hidden sm:inline text-xs text-apple-gray-400 dark:text-apple-gray-300">
                   Administrator Portal
                 </span>
               </div>
 
               {/* Search Bar */}
-              <div className="hidden md:block flex-1 max-w-2xl mx-4">
+              <div className="hidden lg:block flex-1 max-w-xl mx-3">
                 <SearchBar
                   onSearch={handleSearch}
                   permissions={searchPermissions}
@@ -92,82 +92,82 @@ export const AdminPortal: React.FC = () => {
               </div>
 
               {/* Navigation Tabs */}
-              <div className="hidden md:flex space-x-1">
+              <div className="hidden lg:flex space-x-0.5">
                 <button
                   onClick={() => handleTabChange('overview')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'overview' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Overview
                 </button>
                 <button
                   onClick={() => handleTabChange('performance')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'performance' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Performance
                 </button>
                 <button
                   onClick={() => handleTabChange('departments')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'departments' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Departments
                 </button>
                 <button
                   onClick={() => handleTabChange('reports')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'reports' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Reports
                 </button>
                 <button
                   onClick={() => handleTabChange('settings')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'settings' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Settings
                 </button>
                 <button
                   onClick={() => handleTabChange('feed')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'feed' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
-                  School Feed
+                  Feed
                 </button>
                 <button
                   onClick={() => handleTabChange('hpc')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   HPC System
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <ThemeToggle />
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center space-x-1 px-2 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1.5 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-md transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden lg:inline text-sm">Sign Out</span>
+                  <span className="hidden xl:inline text-xs">Out</span>
                 </button>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="inline-flex items-center justify-center p-1.5 md:p-2 rounded-md text-apple-gray-600 dark:text-apple-gray-300 hover:text-apple-gray-900 dark:hover:text-white focus:outline-none md:hidden"
+                  className="inline-flex items-center justify-center p-1.5 rounded-md text-apple-gray-600 dark:text-apple-gray-300 hover:text-apple-gray-900 dark:hover:text-white focus:outline-none lg:hidden"
                 >
                   {isMenuOpen ? (
-                    <X className="block h-5 w-5 md:h-6 md:w-6" />
+                    <X className="block h-4 w-4" />
                   ) : (
-                    <Menu className="block h-5 w-5 md:h-6 md:w-6" />
+                    <Menu className="block h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -176,7 +176,7 @@ export const AdminPortal: React.FC = () => {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <div className="px-4 py-2">
                 <SearchBar
                   onSearch={handleSearch}
@@ -192,8 +192,8 @@ export const AdminPortal: React.FC = () => {
                   { key: 'departments', label: 'Departments' },
                   { key: 'reports', label: 'Reports' },
                   { key: 'settings', label: 'Settings' },
+                  { key: 'feed', label: 'School Feed' },
                   { key: 'hpc', label: 'HPC System' },
-                  { key: 'hpc', label: 'HPC System' }
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -217,13 +217,8 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
           {activeTab === 'feed' && (
-            <SchoolFeed 
-              userRole="admin" 
-              userName="Dr. Rajesh Kumar" 
-              showManagement={true}
-            />
+            <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />
           )}
-          {activeTab === 'hpc' && <HPCManagement />}
           {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>

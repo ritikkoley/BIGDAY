@@ -118,16 +118,16 @@ export const StudentPortal: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="backdrop-blur-apple bg-white/70 dark:bg-apple-gray-600/70 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between h-14">
+              <div className="flex items-center space-x-3">
                 <Logo />
-                <span className="ml-2 text-sm text-apple-gray-400 dark:text-apple-gray-300">
+                <span className="hidden sm:inline text-xs text-apple-gray-400 dark:text-apple-gray-300">
                   Student Portal
                 </span>
               </div>
 
               {/* Search Bar */}
-              <div className="hidden md:block flex-1 max-w-2xl mx-4">
+              <div className="hidden lg:block flex-1 max-w-xl mx-3">
                 <SearchBar
                   onSearch={handleSearch}
                   permissions={searchPermissions}
@@ -136,90 +136,90 @@ export const StudentPortal: React.FC = () => {
               </div>
 
               {/* Navigation Tabs */}
-              <div className="hidden md:flex space-x-1">
+              <div className="hidden lg:flex space-x-0.5">
                 <button
                   onClick={() => handleTabChange('home')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'home' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Home
                 </button>
                 <button
                   onClick={() => handleTabChange('feed')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'feed' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
-                  School Feed
+                  Feed
                 </button>
                 <button
                   onClick={() => handleTabChange('progress')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'progress' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Progress
                 </button>
                 <button
                   onClick={() => handleTabChange('study-vault')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'study-vault' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
-                  Study Vault
+                  Study
                 </button>
                 <button
                   onClick={() => handleTabChange('grades')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'grades' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Grades
                 </button>
                 <button
                   onClick={() => handleTabChange('attendance')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'attendance' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Attendance
                 </button>
                 <button
                   onClick={() => handleTabChange('performance')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'performance' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
                   Performance
                 </button>
                 <button
                   onClick={() => handleTabChange('hpc')}
-                  className={`apple-nav-button ${
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
                 >
-                  My Progress Card
+                  HPC
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex items-center space-x-1">
                 <ThemeToggle />
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center space-x-1 px-2 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
+                  className="flex items-center space-x-1 px-2 py-1.5 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-md transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden lg:inline text-sm">Sign Out</span>
+                  <span className="hidden xl:inline text-xs">Out</span>
                 </button>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="inline-flex items-center justify-center p-1.5 md:p-2 rounded-md text-apple-gray-600 dark:text-apple-gray-300 hover:text-apple-gray-900 dark:hover:text-white focus:outline-none md:hidden"
+                  className="inline-flex items-center justify-center p-1.5 rounded-md text-apple-gray-600 dark:text-apple-gray-300 hover:text-apple-gray-900 dark:hover:text-white focus:outline-none lg:hidden"
                 >
                   {isMenuOpen ? (
-                    <X className="block h-5 w-5 md:h-6 md:w-6" />
+                    <X className="block h-4 w-4" />
                   ) : (
-                    <Menu className="block h-5 w-5 md:h-6 md:w-6" />
+                    <Menu className="block h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -228,7 +228,7 @@ export const StudentPortal: React.FC = () => {
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <div className="px-4 py-2">
                 <SearchBar
                   onSearch={handleSearch}
@@ -248,7 +248,7 @@ export const StudentPortal: React.FC = () => {
                   onClick={() => handleTabChange('feed')}
                   className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
                 >
-                  School Feed
+                  Feed
                 </button>
                 <button
                   onClick={() => handleTabChange('progress')}
@@ -284,7 +284,7 @@ export const StudentPortal: React.FC = () => {
                   onClick={() => handleTabChange('hpc')}
                   className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
                 >
-                  My Progress Card
+                  HPC
                 </button>
               </div>
             </div>
@@ -298,11 +298,7 @@ export const StudentPortal: React.FC = () => {
             <Home />
           )}
           {activeTab === 'feed' && (
-            <SchoolFeed 
-              studentName={profile?.name || "Student"} 
-              userRole="student"
-              showManagement={false}
-            />
+            <SchoolFeed userRole="student" showManagement={false} />
           )}
           {activeTab === 'progress' && (
             <StudentProgress />
