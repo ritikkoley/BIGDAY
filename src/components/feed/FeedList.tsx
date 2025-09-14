@@ -94,7 +94,7 @@ export const FeedList: React.FC<FeedListProps> = ({
                   <img
                     src={item.thumbnail_path || item.path}
                     alt={item.alt_text || item.filename}
-                    className="w-full h-32 object-cover"
+                    className="w-full h-40 object-cover"
                   />
                 )}
                 {index === 3 && media.length > 4 && (
