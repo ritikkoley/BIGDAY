@@ -141,14 +141,6 @@ export const AdminPortal: React.FC = () => {
                 >
                   School Feed
                 </button>
-                <button
-                  onClick={() => handleTabChange('hpc')}
-                  className={`apple-nav-button ${
-                    activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
-                >
-                  HPC System
-                </button>
               </div>
 
               <div className="flex items-center space-x-2 md:space-x-4">
@@ -192,7 +184,6 @@ export const AdminPortal: React.FC = () => {
                   { key: 'departments', label: 'Departments' },
                   { key: 'reports', label: 'Reports' },
                   { key: 'settings', label: 'Settings' },
-                  { key: 'feed', label: 'School Feed' },
                   { key: 'hpc', label: 'HPC System' }
                 ].map(({ key, label }) => (
                   <button
@@ -216,8 +207,7 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'departments' && <DepartmentsView />}
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
-          {activeTab === 'feed' && <SchoolFeed />}
-          {activeTab === 'manage-feed' && <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />}
+          {activeTab === 'feed' && <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />}
           {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>

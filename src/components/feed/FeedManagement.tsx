@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PostComposer } from './PostComposer';
 import { FeedList } from './FeedList';
+import { SchoolFeed } from './SchoolFeed';
 import { 
   Plus, 
   Filter, 
@@ -24,6 +25,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
   userName
 }) => {
   const [posts, setPosts] = useState<any[]>([]);
+  const [activeView, setActiveView] = useState<'feed' | 'manage'>('feed');
   const [showComposer, setShowComposer] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -275,176 +277,212 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* Header */}
+      {/* Header with View Toggle */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-apple-gray-600 dark:text-white mb-2">
-              School Feed Management
-            </h1>
-            <p className="text-apple-gray-500 dark:text-apple-gray-300">
-              Create, manage, and monitor school posts and announcements
-            </p>
-          </div>
-          <button
-            onClick={() => setShowComposer(true)}
-            className="flex items-center space-x-2 px-6 py-3 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors shadow-lg"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Create Post</span>
-          </button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
-            <div className="text-2xl font-bold text-apple-blue-500">{stats.total}</div>
-            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Posts</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
-            <div className="text-2xl font-bold text-green-500">{stats.published}</div>
-            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Published</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
-            <div className="text-2xl font-bold text-yellow-500">{stats.drafts}</div>
-            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Drafts</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
-            <div className="text-2xl font-bold text-purple-500">{stats.totalViews}</div>
-            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Views</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
-            <div className="text-2xl font-bold text-red-500">{stats.totalLikes}</div>
-            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Likes</div>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-apple-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-              placeholder="Search posts, tags, or content..."
-            />
-          </div>
-
-          {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.icon} {category.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-          >
-            <option value="all">All Status</option>
-            <option value="published">Published</option>
-            <option value="draft">Drafts</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Posts List with Management Actions */}
-      <div className="space-y-6">
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="w-8 h-8 border-4 border-apple-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-apple-gray-500 dark:text-apple-gray-400">Loading posts...</p>
-          </div>
-        ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <Megaphone className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
-              No posts found
-            </h3>
-            <p className="text-apple-gray-500 dark:text-apple-gray-400 mb-4">
-              {searchTerm || selectedCategory !== 'all' || statusFilter !== 'all'
-                ? 'Try adjusting your filters or search terms.'
-                : 'Create your first post to get started!'}
-            </p>
-            {(!searchTerm && selectedCategory === 'all' && statusFilter === 'all') && (
+          <div className="flex items-center space-x-6">
+            <div>
+              <h1 className="text-2xl font-semibold text-apple-gray-600 dark:text-white mb-2">
+                School Feed
+              </h1>
+              <p className="text-apple-gray-500 dark:text-apple-gray-300">
+                {activeView === 'feed' ? 'Stay updated with school events and achievements' : 'Create, manage, and monitor school posts'}
+              </p>
+            </div>
+            
+            {/* View Toggle */}
+            <div className="flex space-x-2 bg-apple-gray-100 dark:bg-apple-gray-700 rounded-lg p-1">
               <button
-                onClick={() => setShowComposer(true)}
-                className="px-6 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors"
+                onClick={() => setActiveView('feed')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeView === 'feed'
+                    ? 'bg-white dark:bg-gray-800 text-apple-blue-500 shadow-sm'
+                    : 'text-apple-gray-600 dark:text-apple-gray-300'
+                }`}
               >
-                Create First Post
+                View Feed
               </button>
-            )}
+              <button
+                onClick={() => setActiveView('manage')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeView === 'manage'
+                    ? 'bg-white dark:bg-gray-800 text-apple-blue-500 shadow-sm'
+                    : 'text-apple-gray-600 dark:text-apple-gray-300'
+                }`}
+              >
+                Manage Posts
+              </button>
+            </div>
           </div>
-        ) : (
-          filteredPosts.map((post) => (
-            <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600 overflow-hidden">
-              {/* Management Header */}
-              <div className="px-6 py-4 bg-apple-gray-50 dark:bg-apple-gray-700/50 border-b border-apple-gray-200 dark:border-apple-gray-600">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      post.status === 'published' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : post.status === 'draft'
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                    }`}>
-                      {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
-                    </span>
-                    <div className="flex items-center space-x-4 text-sm text-apple-gray-500 dark:text-apple-gray-400">
-                      <span className="flex items-center space-x-1">
-                        <Eye className="w-4 h-4" />
-                        <span>{post.views_count} views</span>
-                      </span>
-                      <span>•</span>
-                      <span>by {post.author.name}</span>
-                      <span>•</span>
-                      <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleToggleStatus(post.id)}
-                      className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 transition-colors"
-                      title={post.status === 'published' ? 'Archive post' : 'Publish post'}
-                    >
-                      {post.status === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                    <button
-                      className="p-2 text-apple-gray-400 hover:text-apple-blue-500 transition-colors"
-                      title="Edit post"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="p-2 text-apple-gray-400 hover:text-red-500 transition-colors"
-                      title="Delete post"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+          
+          {activeView === 'manage' && (
+            <button
+              onClick={() => setShowComposer(true)}
+              className="flex items-center space-x-2 px-6 py-3 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Post</span>
+            </button>
+          )}
+        </div>
 
-              {/* Post Content */}
-              <div className="p-6">
-                <FeedList posts={[post]} showLoadMore={false} />
+        {/* Content Based on Active View */}
+        {activeView === 'feed' ? (
+          <SchoolFeed />
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+                <div className="text-2xl font-bold text-apple-blue-500">{stats.total}</div>
+                <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Posts</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+                <div className="text-2xl font-bold text-green-500">{stats.published}</div>
+                <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Published</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+                <div className="text-2xl font-bold text-yellow-500">{stats.drafts}</div>
+                <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Drafts</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+                <div className="text-2xl font-bold text-purple-500">{stats.totalViews}</div>
+                <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Views</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+                <div className="text-2xl font-bold text-red-500">{stats.totalLikes}</div>
+                <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Likes</div>
               </div>
             </div>
-          ))
+
+            {/* Filters */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              {/* Search */}
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-apple-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                  placeholder="Search posts, tags, or content..."
+                />
+              </div>
+
+              {/* Category Filter */}
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              >
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.icon} {category.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="published">Published</option>
+                <option value="draft">Drafts</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+
+            {/* Posts List with Management Actions */}
+            <div className="space-y-6">
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <div className="w-8 h-8 border-4 border-apple-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-apple-gray-500 dark:text-apple-gray-400">Loading posts...</p>
+                </div>
+              ) : filteredPosts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Megaphone className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
+                    No posts found
+                  </h3>
+                  <p className="text-apple-gray-500 dark:text-apple-gray-400 mb-4">
+                    {searchTerm || selectedCategory !== 'all' || statusFilter !== 'all'
+                      ? 'Try adjusting your filters or search terms.'
+                      : 'Create your first post to get started!'}
+                  </p>
+                  {(!searchTerm && selectedCategory === 'all' && statusFilter === 'all') && (
+                    <button
+                      onClick={() => setShowComposer(true)}
+                      className="px-6 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors"
+                    >
+                      Create First Post
+                    </button>
+                  )}
+                </div>
+              ) : (
+                filteredPosts.map((post) => (
+                  <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600 overflow-hidden">
+                    {/* Management Header */}
+                    <div className="px-6 py-4 bg-apple-gray-50 dark:bg-apple-gray-700/50 border-b border-apple-gray-200 dark:border-apple-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            post.status === 'published' 
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : post.status === 'draft'
+                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                          }`}>
+                            {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                          </span>
+                          <div className="flex items-center space-x-4 text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                            <span className="flex items-center space-x-1">
+                              <Eye className="w-4 h-4" />
+                              <span>{post.views_count} views</span>
+                            </span>
+                            <span>•</span>
+                            <span>by {post.author.name}</span>
+                            <span>•</span>
+                            <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleToggleStatus(post.id)}
+                            className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 transition-colors"
+                            title={post.status === 'published' ? 'Archive post' : 'Publish post'}
+                          >
+                            {post.status === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                          <button
+                            className="p-2 text-apple-gray-400 hover:text-apple-blue-500 transition-colors"
+                            title="Edit post"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="p-2 text-apple-gray-400 hover:text-red-500 transition-colors"
+                            title="Delete post"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Post Content */}
+                    <div className="p-6">
+                      <FeedList posts={[post]} onLike={() => {}} onShare={() => {}} onPostClick={() => {}} />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
         )}
       </div>
 

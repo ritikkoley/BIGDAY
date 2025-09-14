@@ -175,14 +175,6 @@ export const TeacherPortal: React.FC = () => {
                   School Feed
                 </button>
                 <button
-                  onClick={() => handleTabChange('create-post')}
-                  className={`apple-nav-button ${
-                    activeTab === 'create-post' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
-                  }`}
-                >
-                  Create Post
-                </button>
-                <button
                   onClick={() => handleTabChange('attendance')}
                   className={`apple-nav-button ${
                     activeTab === 'attendance' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
@@ -286,7 +278,6 @@ export const TeacherPortal: React.FC = () => {
                 {[
                   { key: 'dashboard', label: 'Dashboard' },
                   { key: 'feed', label: 'School Feed' },
-                  { key: 'create-post', label: 'Create Post' },
                   { key: 'attendance', label: 'Attendance' },
                   { key: 'grading', label: 'Grading' },
                   { key: 'resources', label: 'Resources' },
@@ -334,9 +325,6 @@ export const TeacherPortal: React.FC = () => {
             />
           )}
           {activeTab === 'feed' && (
-            <SchoolFeed />
-          )}
-          {activeTab === 'create-post' && (
             <FeedManagement userRole="teacher" userName={displayProfile.name} />
           )}
           {activeTab === 'attendance' && (
