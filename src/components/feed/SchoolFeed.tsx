@@ -436,18 +436,9 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({
     total: posts.length,
     published: posts.filter(p => p.status === 'published').length,
     drafts: posts.filter(p => p.status === 'draft').length,
-    totalViews: posts.reduce((sum, p) => sum + p.views_count, 0),
+    totalViews: posts.reduce((sum, p) => sum + (p.views_count || 0), 0),
     totalLikes: posts.reduce((sum, p) => sum + p.likes_count, 0)
   };
-    const matchesCategory = selectedCategory === 'all' || 
-      post.category.name.toLowerCase().includes(selectedCategory);
-    const matchesSearch = searchTerm === '' || 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.body.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    return matchesCategory && matchesSearch;
-  });
 
   return (
     <div className="space-y-6">
@@ -637,12 +628,12 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({
                           ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
                           : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                       }`}>
-                        {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                        {(post.status || 'published').charAt(0).toUpperCase() + (post.status || 'published').slice(1)}
                       </span>
                       <div className="flex items-center space-x-4 text-sm text-apple-gray-500 dark:text-apple-gray-400">
                         <span className="flex items-center space-x-1">
                           <Eye className="w-4 h-4" />
-                          <span>{post.views_count} views</span>
+                          <span>{post.views_count || 0} views</span>
                         </span>
                         <span>•</span>
                         <span>by {post.author.name}</span>
@@ -654,9 +645,9 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({
                       <button
                         onClick={() => handleToggleStatus(post.id)}
                         className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 transition-colors"
-                        title={post.status === 'published' ? 'Archive post' : 'Publish post'}
+                        title={(post.status || 'published') === 'published' ? 'Archive post' : 'Publish post'}
                       >
-                        {post.status === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {(post.status || 'published') === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
                         className="p-2 text-apple-gray-400 hover:text-apple-blue-500 transition-colors"
@@ -676,7 +667,7 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({
                 </div>
                 {/* Post Content */}
                 <div className="p-6">
-                  <FeedList posts={[post]} onLike={handleLike} onShare={handleShare} onPostClick={handlePostClick} />
+                  <FeedList posts={[post]} onLike={handleLike} onShare={handleShare} onPostClick={handlePostClick} isLoading={false} hasMore={false} />
                 </div>
               </div>
             ))
