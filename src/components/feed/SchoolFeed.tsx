@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { FeedList } from './FeedList';
-import { Megaphone, Filter, Search } from 'lucide-react';
+import { PostComposer } from './PostComposer';
+import { Megaphone, Filter, Search, Plus, BarChart3, Eye, EyeOff, Edit, Trash2 } from 'lucide-react';
 
 interface SchoolFeedProps {
   studentName?: string;
+  userRole?: 'student' | 'teacher' | 'admin';
+  userName?: string;
+  showManagement?: boolean;
 }
 
-export const SchoolFeed: React.FC<SchoolFeedProps> = ({ studentName }) => {
+export const SchoolFeed: React.FC<SchoolFeedProps> = ({ 
+  studentName, 
+  userRole = 'student',
+  userName = '',
+  showManagement = false 
+}) => {
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeView, setActiveView] = useState<'feed' | 'manage'>('feed');
+  const [showComposer, setShowComposer] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
 
   // Demo data for the feed
   const demoFeedPosts = [
@@ -352,6 +364,53 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({ studentName }) => {
     console.log('Opening post:', postId);
   };
 
+  const handleCreatePost = async (postData: any) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const newPost = {
+        id: `post-${Date.now()}`,
+        ...postData,
+        created_at: new Date().toISOString(),
+        author: {
+          name: userName,
+          role: userRole === 'admin' ? 'Administrator' : 'Teacher'
+        },
+        likes_count: 0,
+        comments_count: 0,
+        is_liked: false,
+        views_count: 0,
+        category: categories.find(c => c.id === postData.category_id) || categories[0]
+      };
+
+      setPosts(prev => [newPost, ...prev]);
+      setShowComposer(false);
+      
+      // Show success message (in real app, use toast notification)
+      alert(`Post ${postData.status === 'draft' ? 'saved as draft' : 'published'} successfully!`);
+    } catch (error) {
+      throw new Error('Failed to save post. Please try again.');
+    }
+  };
+
+  const handleDeletePost = (postId: string) => {
+    if (confirm('Are you sure you want to delete this post?')) {
+      setPosts(prev => prev.filter(p => p.id !== postId));
+    }
+  };
+
+  const handleToggleStatus = (postId: string) => {
+    setPosts(prev => prev.map(post => 
+      post.id === postId 
+        ? { 
+            ...post, 
+            status: post.status === 'published' ? 'archived' : 'published' 
+          }
+        : post
+    ));
+  };
+
   const categories = [
     { id: 'all', name: 'All Posts', color: '#6B7280' },
     { id: 'achievements', name: 'Achievements', color: '#F59E0B' },
@@ -368,6 +427,24 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({ studentName }) => {
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.body.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = activeView === 'feed' || statusFilter === 'all' || post.status === statusFilter;
+    
+    return matchesCategory && matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: posts.length,
+    published: posts.filter(p => p.status === 'published').length,
+    drafts: posts.filter(p => p.status === 'draft').length,
+    totalViews: posts.reduce((sum, p) => sum + p.views_count, 0),
+    totalLikes: posts.reduce((sum, p) => sum + p.likes_count, 0)
+  };
+    const matchesCategory = selectedCategory === 'all' || 
+      post.category.name.toLowerCase().includes(selectedCategory);
+    const matchesSearch = searchTerm === '' || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.body.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return matchesCategory && matchesSearch;
   });
@@ -376,20 +453,99 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({ studentName }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="apple-card p-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
-            <Megaphone className="w-6 h-6 text-apple-blue-500" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
+                <Megaphone className="w-6 h-6 text-apple-blue-500" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-medium text-apple-gray-600 dark:text-white">
+                  School Feed
+                </h1>
+                <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
+                  {activeView === 'feed' ? 'Stay updated with school events and achievements' : 'Create, manage, and monitor school posts'}
+                </p>
+              </div>
+            </div>
+            
+            {/* View Toggle for Teachers/Admins */}
+          {/* Status Filter (Management View Only) */}
+          {activeView === 'manage' && showManagement && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="published">Published</option>
+              <option value="draft">Drafts</option>
+              <option value="archived">Archived</option>
+            </select>
+          )}
+            {showManagement && (
+              <div className="flex space-x-2 bg-apple-gray-100 dark:bg-apple-gray-700 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveView('feed')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeView === 'feed'
+                      ? 'bg-white dark:bg-gray-800 text-apple-blue-500 shadow-sm'
+                      : 'text-apple-gray-600 dark:text-apple-gray-300'
+                  }`}
+                >
+                  View Feed
+                </button>
+                <button
+                  onClick={() => setActiveView('manage')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeView === 'manage'
+                      ? 'bg-white dark:bg-gray-800 text-apple-blue-500 shadow-sm'
+                      : 'text-apple-gray-600 dark:text-apple-gray-300'
+                  }`}
+                >
+                  Manage Posts
+                </button>
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-2xl font-medium text-apple-gray-600 dark:text-white">
-              School Feed
-            </h1>
-            <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-              Stay updated with school events and achievements
-            </p>
-          </div>
+          
+          {activeView === 'manage' && showManagement && (
+            <button
+              onClick={() => setShowComposer(true)}
+              className="flex items-center space-x-2 px-6 py-3 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors shadow-lg"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Post</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Stats Cards (Management View Only) */}
+      {activeView === 'manage' && showManagement && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+            <div className="text-2xl font-bold text-apple-blue-500">{stats.total}</div>
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Posts</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+            <div className="text-2xl font-bold text-green-500">{stats.published}</div>
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Published</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+            <div className="text-2xl font-bold text-yellow-500">{stats.drafts}</div>
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Drafts</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+            <div className="text-2xl font-bold text-purple-500">{stats.totalViews}</div>
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Views</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600">
+            <div className="text-2xl font-bold text-red-500">{stats.totalLikes}</div>
+            <div className="text-sm text-apple-gray-500 dark:text-apple-gray-400">Total Likes</div>
+          </div>
+        </div>
+      )}
 
       {/* Filters and Search */}
       <div className="apple-card p-6">
@@ -429,14 +585,110 @@ export const SchoolFeed: React.FC<SchoolFeedProps> = ({ studentName }) => {
         </div>
       </div>
 
-      {/* Feed Posts */}
-      <FeedList
-        posts={filteredPosts}
-        onLike={handleLike}
-        onShare={handleShare}
-        onPostClick={handlePostClick}
-        isLoading={isLoading}
-        hasMore={false}
+      {/* Content Based on Active View */}
+      {activeView === 'feed' || !showManagement ? (
+        <FeedList
+          posts={filteredPosts}
+          onLike={handleLike}
+          onShare={handleShare}
+          onPostClick={handlePostClick}
+          isLoading={isLoading}
+          hasMore={false}
+        />
+      ) : (
+        /* Management View */
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="w-8 h-8 border-4 border-apple-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-apple-gray-500 dark:text-apple-gray-400">Loading posts...</p>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="text-center py-12">
+              <Megaphone className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
+                No posts found
+              </h3>
+              <p className="text-apple-gray-500 dark:text-apple-gray-400 mb-4">
+                {searchTerm || selectedCategory !== 'all' || statusFilter !== 'all'
+                  ? 'Try adjusting your filters or search terms.'
+                  : 'Create your first post to get started!'}
+              </p>
+              {(!searchTerm && selectedCategory === 'all' && statusFilter === 'all') && (
+                <button
+                  onClick={() => setShowComposer(true)}
+                  className="px-6 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors"
+                >
+                  Create First Post
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredPosts.map((post) => (
+              <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg border border-apple-gray-200 dark:border-apple-gray-600 overflow-hidden">
+                {/* Management Header */}
+                <div className="px-6 py-4 bg-apple-gray-50 dark:bg-apple-gray-700/50 border-b border-apple-gray-200 dark:border-apple-gray-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        post.status === 'published' 
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : post.status === 'draft'
+                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                      }`}>
+                        {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                      </span>
+                      <div className="flex items-center space-x-4 text-sm text-apple-gray-500 dark:text-apple-gray-400">
+                        <span className="flex items-center space-x-1">
+                          <Eye className="w-4 h-4" />
+                          <span>{post.views_count} views</span>
+                        </span>
+                        <span>•</span>
+                        <span>by {post.author.name}</span>
+                        <span>•</span>
+                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => handleToggleStatus(post.id)}
+                        className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 transition-colors"
+                        title={post.status === 'published' ? 'Archive post' : 'Publish post'}
+                      >
+                        {post.status === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        className="p-2 text-apple-gray-400 hover:text-apple-blue-500 transition-colors"
+                        title="Edit post"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="p-2 text-apple-gray-400 hover:text-red-500 transition-colors"
+                        title="Delete post"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* Post Content */}
+                <div className="p-6">
+                  <FeedList posts={[post]} onLike={handleLike} onShare={handleShare} onPostClick={handlePostClick} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Post Composer Modal */}
+      <PostComposer
+        isOpen={showComposer}
+        onSave={handleCreatePost}
+        onCancel={() => setShowComposer(false)}
       />
     </div>
   );

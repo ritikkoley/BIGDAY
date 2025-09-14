@@ -141,16 +141,24 @@ export const AdminPortal: React.FC = () => {
                 >
                   School Feed
                 </button>
+                <button
+                  onClick={() => handleTabChange('hpc')}
+                  className={`apple-nav-button ${
+                    activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  HPC System
+                </button>
               </div>
 
-              <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="flex items-center space-x-2">
                 <ThemeToggle />
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center space-x-2 px-3 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
+                  className="flex items-center space-x-1 px-2 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden md:inline">Sign Out</span>
+                  <span className="hidden lg:inline text-sm">Sign Out</span>
                 </button>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -184,6 +192,7 @@ export const AdminPortal: React.FC = () => {
                   { key: 'departments', label: 'Departments' },
                   { key: 'reports', label: 'Reports' },
                   { key: 'settings', label: 'Settings' },
+                  { key: 'hpc', label: 'HPC System' },
                   { key: 'hpc', label: 'HPC System' }
                 ].map(({ key, label }) => (
                   <button
@@ -207,7 +216,14 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'departments' && <DepartmentsView />}
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
-          {activeTab === 'feed' && <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />}
+          {activeTab === 'feed' && (
+            <SchoolFeed 
+              userRole="admin" 
+              userName="Dr. Rajesh Kumar" 
+              showManagement={true}
+            />
+          )}
+          {activeTab === 'hpc' && <HPCManagement />}
           {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>
@@ -269,28 +285,6 @@ export const AdminPortal: React.FC = () => {
           >
             <Megaphone className="mobile-nav-icon" />
             <span className="mobile-nav-text">Feed</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('settings')}
-            className={`mobile-nav-item ${
-              activeTab === 'settings'
-                ? 'text-apple-blue-500'
-                : 'text-apple-gray-400 dark:text-apple-gray-300'
-            }`}
-          >
-            <Settings className="mobile-nav-icon" />
-            <span className="mobile-nav-text">Settings</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('hpc')}
-            className={`mobile-nav-item ${
-              activeTab === 'hpc'
-                ? 'text-apple-blue-500'
-                : 'text-apple-gray-400 dark:text-apple-gray-300'
-            }`}
-          >
-            <Brain className="mobile-nav-icon" />
-            <span className="mobile-nav-text">HPC</span>
           </button>
         </div>
       </nav>

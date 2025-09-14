@@ -207,10 +207,10 @@ export const StudentPortal: React.FC = () => {
                 <ThemeToggle />
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center space-x-2 px-3 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
+                  className="flex items-center space-x-1 px-2 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50 rounded-full transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden md:inline">Sign Out</span>
+                  <span className="hidden lg:inline text-sm">Sign Out</span>
                 </button>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -298,7 +298,11 @@ export const StudentPortal: React.FC = () => {
             <Home />
           )}
           {activeTab === 'feed' && (
-            <SchoolFeed studentName={profile?.name || "Student"} />
+            <SchoolFeed 
+              studentName={profile?.name || "Student"} 
+              userRole="student"
+              showManagement={false}
+            />
           )}
           {activeTab === 'progress' && (
             <StudentProgress />
