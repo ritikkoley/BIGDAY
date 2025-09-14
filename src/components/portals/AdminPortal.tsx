@@ -10,6 +10,7 @@ import { DepartmentsView } from '../admin/DepartmentsView';
 import { ReportsView } from '../admin/ReportsView';
 import { SettingsView } from '../admin/SettingsView';
 import { HPCManagement } from '../admin/HPCManagement';
+import { SchoolFeed } from '../feed/SchoolFeed';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -24,6 +25,7 @@ import {
   FileText,
   Settings,
   Brain,
+  Megaphone,
   LogOut
 } from 'lucide-react';
 
@@ -131,6 +133,14 @@ export const AdminPortal: React.FC = () => {
                   Settings
                 </button>
                 <button
+                  onClick={() => handleTabChange('feed')}
+                  className={`apple-nav-button ${
+                    activeTab === 'feed' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  School Feed
+                </button>
+                <button
                   onClick={() => handleTabChange('hpc')}
                   className={`apple-nav-button ${
                     activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
@@ -181,6 +191,7 @@ export const AdminPortal: React.FC = () => {
                   { key: 'departments', label: 'Departments' },
                   { key: 'reports', label: 'Reports' },
                   { key: 'settings', label: 'Settings' },
+                  { key: 'feed', label: 'School Feed' },
                   { key: 'hpc', label: 'HPC System' }
                 ].map(({ key, label }) => (
                   <button
@@ -204,6 +215,7 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'departments' && <DepartmentsView />}
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
+          {activeTab === 'feed' && <SchoolFeed />}
           {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>
@@ -254,6 +266,17 @@ export const AdminPortal: React.FC = () => {
           >
             <FileText className="mobile-nav-icon" />
             <span className="mobile-nav-text">Reports</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('feed')}
+            className={`mobile-nav-item ${
+              activeTab === 'feed'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Megaphone className="mobile-nav-icon" />
+            <span className="mobile-nav-text">Feed</span>
           </button>
           <button
             onClick={() => handleTabChange('settings')}

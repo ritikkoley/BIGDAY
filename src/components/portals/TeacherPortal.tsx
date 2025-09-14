@@ -14,6 +14,7 @@ import { TeacherQuizzes } from '../teacher/TeacherQuizzes';
 import { TeacherProfile } from '../teacher/TeacherProfile';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
 import { HPCEvaluations } from '../teacher/HPCEvaluations';
+import { SchoolFeed } from '../feed/SchoolFeed';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -31,6 +32,7 @@ import {
   GraduationCap,
   TrendingUp,
   Brain,
+  Megaphone,
   LogOut
 } from 'lucide-react';
 
@@ -162,6 +164,20 @@ export const TeacherPortal: React.FC = () => {
                   }`}
                 >
                   Dashboard
+                </button>
+                <button
+                  onClick={() => handleTabChange('feed')}
+                  className={`apple-nav-button ${
+                    activeTab === 'feed' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  School Feed
+                </button>
+                <button
+                  onClick={() => handleTabChange('feed')}
+                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
+                >
+                  School Feed
                 </button>
                 <button
                   onClick={() => handleTabChange('attendance')}
@@ -312,6 +328,9 @@ export const TeacherPortal: React.FC = () => {
               dashboardData={sampleDashboardData}
             />
           )}
+          {activeTab === 'feed' && (
+            <SchoolFeed />
+          )}
           {activeTab === 'attendance' && (
             <TeacherAttendance
               profile={displayProfile}
@@ -377,6 +396,17 @@ export const TeacherPortal: React.FC = () => {
           >
             <LayoutDashboard className="mobile-nav-icon" />
             <span className="mobile-nav-text">Dashboard</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('feed')}
+            className={`mobile-nav-item ${
+              activeTab === 'feed'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Megaphone className="mobile-nav-icon" />
+            <span className="mobile-nav-text">Feed</span>
           </button>
           <button
             onClick={() => handleTabChange('attendance')}
