@@ -59,7 +59,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       comments_count: 18,
       is_liked: false,
       created_at: '2024-01-26T10:30:00Z',
-      created_by: {
+      author: {
         name: 'Ms. Sarah Johnson',
         role: 'Drama Teacher'
       },
@@ -89,7 +89,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       comments_count: 14,
       is_liked: true,
       created_at: '2024-01-21T14:15:00Z',
-      created_by: {
+      author: {
         name: 'Dr. Michael Chen',
         role: 'Academic Coordinator'
       },
@@ -119,7 +119,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       comments_count: 25,
       is_liked: true,
       created_at: '2024-01-19T09:00:00Z',
-      created_by: {
+      author: {
         name: 'Principal Dr. Rajesh Kumar',
         role: 'Principal'
       },
@@ -154,7 +154,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       comments_count: 22,
       is_liked: false,
       created_at: '2024-01-16T16:45:00Z',
-      created_by: {
+      author: {
         name: 'Coach Amanda Williams',
         role: 'Sports Coordinator'
       },
@@ -178,7 +178,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
       comments_count: 0,
       is_liked: false,
       created_at: '2024-01-28T11:20:00Z',
-      created_by: {
+      author: {
         name: 'Dr. Lisa Thompson',
         role: 'Science Department Head'
       },
@@ -216,7 +216,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
         id: `post-${Date.now()}`,
         ...postData,
         created_at: new Date().toISOString(),
-        created_by: {
+        author: {
           name: userName,
           role: userRole === 'admin' ? 'Administrator' : 'Teacher'
         },
@@ -409,7 +409,7 @@ export const FeedManagement: React.FC<FeedManagementProps> = ({
                         <span>{post.views_count} views</span>
                       </span>
                       <span>•</span>
-                      <span>by {post.created_by.name}</span>
+                      <span>by {post.author.name}</span>
                       <span>•</span>
                       <span>{new Date(post.created_at).toLocaleDateString()}</span>
                     </div>
