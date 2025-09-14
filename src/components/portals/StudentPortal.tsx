@@ -10,6 +10,7 @@ import { StudyVault } from '../StudyVault';
 import { GradesView } from '../GradesView';
 import { AttendanceView } from '../AttendanceView';
 import { Performance } from '../student/Performance';
+import { HPCSelfAssessment } from '../student/HPCSelfAssessment';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -24,6 +25,7 @@ import {
   Calendar, 
   Activity, 
   BookOpen,
+  Brain,
   LogOut
 } from 'lucide-react';
 
@@ -181,6 +183,14 @@ export const StudentPortal: React.FC = () => {
                 >
                   Performance
                 </button>
+                <button
+                  onClick={() => handleTabChange('hpc')}
+                  className={`apple-nav-button ${
+                    activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  My Progress Card
+                </button>
               </div>
 
               <div className="flex items-center space-x-2 md:space-x-4">
@@ -254,6 +264,12 @@ export const StudentPortal: React.FC = () => {
                 >
                   Performance
                 </button>
+                <button
+                  onClick={() => handleTabChange('hpc')}
+                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
+                >
+                  My Progress Card
+                </button>
               </div>
             </div>
           )}
@@ -292,6 +308,9 @@ export const StudentPortal: React.FC = () => {
           )}
           {activeTab === 'performance' && (
             <Performance />
+          )}
+          {activeTab === 'hpc' && (
+            <HPCSelfAssessment />
           )}
         </main>
       </div>
@@ -364,6 +383,17 @@ export const StudentPortal: React.FC = () => {
           >
             <Activity className="mobile-nav-icon" />
             <span className="mobile-nav-text">Stats</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('hpc')}
+            className={`mobile-nav-item ${
+              activeTab === 'hpc'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Brain className="mobile-nav-icon" />
+            <span className="mobile-nav-text">HPC</span>
           </button>
         </div>
       </nav>

@@ -9,6 +9,7 @@ import { PerformanceView } from '../admin/PerformanceView';
 import { DepartmentsView } from '../admin/DepartmentsView';
 import { ReportsView } from '../admin/ReportsView';
 import { SettingsView } from '../admin/SettingsView';
+import { HPCManagement } from '../admin/HPCManagement';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -22,6 +23,7 @@ import {
   School,
   FileText,
   Settings,
+  Brain,
   LogOut
 } from 'lucide-react';
 
@@ -128,6 +130,14 @@ export const AdminPortal: React.FC = () => {
                 >
                   Settings
                 </button>
+                <button
+                  onClick={() => handleTabChange('hpc')}
+                  className={`apple-nav-button ${
+                    activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  HPC System
+                </button>
               </div>
 
               <div className="flex items-center space-x-2 md:space-x-4">
@@ -170,7 +180,8 @@ export const AdminPortal: React.FC = () => {
                   { key: 'performance', label: 'Performance' },
                   { key: 'departments', label: 'Departments' },
                   { key: 'reports', label: 'Reports' },
-                  { key: 'settings', label: 'Settings' }
+                  { key: 'settings', label: 'Settings' },
+                  { key: 'hpc', label: 'HPC System' }
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -193,6 +204,7 @@ export const AdminPortal: React.FC = () => {
           {activeTab === 'departments' && <DepartmentsView />}
           {activeTab === 'reports' && <ReportsView />}
           {activeTab === 'settings' && <SettingsView />}
+          {activeTab === 'hpc' && <HPCManagement />}
         </main>
       </div>
 
@@ -253,6 +265,17 @@ export const AdminPortal: React.FC = () => {
           >
             <Settings className="mobile-nav-icon" />
             <span className="mobile-nav-text">Settings</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('hpc')}
+            className={`mobile-nav-item ${
+              activeTab === 'hpc'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Brain className="mobile-nav-icon" />
+            <span className="mobile-nav-text">HPC</span>
           </button>
         </div>
       </nav>

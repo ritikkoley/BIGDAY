@@ -13,6 +13,7 @@ import { TeacherMessages } from '../teacher/TeacherMessages';
 import { TeacherQuizzes } from '../teacher/TeacherQuizzes';
 import { TeacherProfile } from '../teacher/TeacherProfile';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
+import { HPCEvaluations } from '../teacher/HPCEvaluations';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -29,6 +30,7 @@ import {
   BookOpen,
   GraduationCap,
   TrendingUp,
+  Brain,
   LogOut
 } from 'lucide-react';
 
@@ -217,6 +219,14 @@ export const TeacherPortal: React.FC = () => {
                 >
                   Profile
                 </button>
+                <button
+                  onClick={() => handleTabChange('hpc')}
+                  className={`apple-nav-button ${
+                    activeTab === 'hpc' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  HPC
+                </button>
               </div>
 
               <div className="flex items-center space-x-2 md:space-x-4">
@@ -262,7 +272,8 @@ export const TeacherPortal: React.FC = () => {
                   { key: 'messages', label: 'Messages' },
                   { key: 'quizzes', label: 'Quizzes' },
                   { key: 'performance', label: 'Performance' },
-                  { key: 'profile', label: 'Profile' }
+                  { key: 'profile', label: 'Profile' },
+                  { key: 'hpc', label: 'HPC' }
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -347,6 +358,9 @@ export const TeacherPortal: React.FC = () => {
               profile={displayProfile}
             />
           )}
+          {activeTab === 'hpc' && (
+            <HPCEvaluations />
+          )}
         </main>
       </div>
 
@@ -429,6 +443,17 @@ export const TeacherPortal: React.FC = () => {
           >
             <User className="mobile-nav-icon" />
             <span className="mobile-nav-text">Profile</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('hpc')}
+            className={`mobile-nav-item ${
+              activeTab === 'hpc'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Brain className="mobile-nav-icon" />
+            <span className="mobile-nav-text">HPC</span>
           </button>
         </div>
       </nav>
