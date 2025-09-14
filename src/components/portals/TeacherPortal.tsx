@@ -15,6 +15,7 @@ import { TeacherProfile } from '../teacher/TeacherProfile';
 import { TeacherPerformanceView } from '../performance/TeacherPerformanceView';
 import { HPCEvaluations } from '../teacher/HPCEvaluations';
 import { SchoolFeed } from '../feed/SchoolFeed';
+import { FeedManagement } from '../feed/FeedManagement';
 
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -174,10 +175,12 @@ export const TeacherPortal: React.FC = () => {
                   School Feed
                 </button>
                 <button
-                  onClick={() => handleTabChange('feed')}
-                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
+                  onClick={() => handleTabChange('create-post')}
+                  className={`apple-nav-button ${
+                    activeTab === 'create-post' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
                 >
-                  School Feed
+                  Create Post
                 </button>
                 <button
                   onClick={() => handleTabChange('attendance')}
@@ -282,6 +285,8 @@ export const TeacherPortal: React.FC = () => {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 {[
                   { key: 'dashboard', label: 'Dashboard' },
+                  { key: 'feed', label: 'School Feed' },
+                  { key: 'create-post', label: 'Create Post' },
                   { key: 'attendance', label: 'Attendance' },
                   { key: 'grading', label: 'Grading' },
                   { key: 'resources', label: 'Resources' },
@@ -330,6 +335,9 @@ export const TeacherPortal: React.FC = () => {
           )}
           {activeTab === 'feed' && (
             <SchoolFeed />
+          )}
+          {activeTab === 'create-post' && (
+            <FeedManagement userRole="teacher" userName={displayProfile.name} />
           )}
           {activeTab === 'attendance' && (
             <TeacherAttendance
