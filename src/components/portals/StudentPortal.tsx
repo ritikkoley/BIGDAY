@@ -11,6 +11,7 @@ import { GradesView } from '../GradesView';
 import { AttendanceView } from '../AttendanceView';
 import { Performance } from '../student/Performance';
 import { HPCSelfAssessment } from '../student/HPCSelfAssessment';
+import { SchoolFeed } from '../feed/SchoolFeed';
 import { FloatingIcons } from '../FloatingIcons';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
@@ -26,6 +27,7 @@ import {
   Activity, 
   BookOpen,
   Brain,
+  Megaphone,
   LogOut
 } from 'lucide-react';
 
@@ -144,6 +146,14 @@ export const StudentPortal: React.FC = () => {
                   Home
                 </button>
                 <button
+                  onClick={() => handleTabChange('feed')}
+                  className={`apple-nav-button ${
+                    activeTab === 'feed' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  }`}
+                >
+                  School Feed
+                </button>
+                <button
                   onClick={() => handleTabChange('progress')}
                   className={`apple-nav-button ${
                     activeTab === 'progress' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
@@ -235,6 +245,12 @@ export const StudentPortal: React.FC = () => {
                   Home
                 </button>
                 <button
+                  onClick={() => handleTabChange('feed')}
+                  className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
+                >
+                  School Feed
+                </button>
+                <button
                   onClick={() => handleTabChange('progress')}
                   className="block w-full px-3 py-2 rounded-md text-base font-medium text-apple-gray-700 dark:text-apple-gray-200 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600"
                 >
@@ -281,6 +297,9 @@ export const StudentPortal: React.FC = () => {
           {activeTab === 'home' && (
             <Home />
           )}
+          {activeTab === 'feed' && (
+            <SchoolFeed studentName={profile?.name || "Student"} />
+          )}
           {activeTab === 'progress' && (
             <StudentProgress />
           )}
@@ -317,7 +336,7 @@ export const StudentPortal: React.FC = () => {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-apple-gray-600/80 border-t border-apple-gray-200/50 dark:border-apple-gray-500/20 backdrop-blur-apple">
-        <div className="grid grid-cols-6 h-14">
+        <div className="grid grid-cols-7 h-14">
           <button
             onClick={() => handleTabChange('home')}
             className={`mobile-nav-item ${
@@ -328,6 +347,17 @@ export const StudentPortal: React.FC = () => {
           >
             <HomeIcon className="mobile-nav-icon" />
             <span className="mobile-nav-text">Home</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('feed')}
+            className={`mobile-nav-item ${
+              activeTab === 'feed'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <Megaphone className="mobile-nav-icon" />
+            <span className="mobile-nav-text">Feed</span>
           </button>
           <button
             onClick={() => handleTabChange('progress')}
