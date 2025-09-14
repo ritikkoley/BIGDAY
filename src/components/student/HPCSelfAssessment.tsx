@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, Heart, Users, Target, Star, Save } from 'lucide-react';
+import { Brain, Heart, Users, Target, Star, Save, CheckCircle2 } from 'lucide-react';
 
 export const HPCSelfAssessment: React.FC = () => {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
