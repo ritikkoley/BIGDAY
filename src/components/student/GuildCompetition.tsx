@@ -188,7 +188,7 @@ const GuildCard: React.FC<{ guild: Guild; expanded: boolean; onToggle: () => voi
   return (
     <div
       className={`apple-card overflow-hidden transition-all duration-500 ${
-        rank === 1 ? 'ring-2 ring-yellow-500 ring-opacity-50' : ''
+        guild.rank === 1 ? 'ring-2 ring-yellow-500 ring-opacity-50' : ''
       }`}
     >
       <button
