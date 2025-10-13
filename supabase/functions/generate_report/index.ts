@@ -19,9 +19,8 @@ Deno.serve(async (req) => {
 
     const { report_type, filters, report_name } = await req.json();
 
-    // Generate report based on type
     let reportData: any = {};
-    
+
     switch (report_type) {
       case 'user_summary':
         reportData = await generateUserSummaryReport(supabase, filters);
@@ -39,7 +38,6 @@ Deno.serve(async (req) => {
         throw new Error('Invalid report type');
     }
 
-    // Create report record
     const { data: report, error: reportError } = await supabase
       .from('system_reports')
       .insert({
@@ -55,10 +53,10 @@ Deno.serve(async (req) => {
     if (reportError) throw reportError;
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         report_id: report.id,
-        data: reportData 
+        data: reportData
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -66,9 +64,9 @@ Deno.serve(async (req) => {
     console.error('Report generation error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
@@ -81,7 +79,6 @@ async function generateUserSummaryReport(supabase: any, filters: any) {
 
   if (error) throw error;
 
-  // Aggregate data
   const summary = {
     total_users: users.length,
     by_role: users.reduce((acc: any, user: any) => {
@@ -93,7 +90,9 @@ async function generateUserSummaryReport(supabase: any, filters: any) {
       return acc;
     }, {}),
     by_peer_group: users.reduce((acc: any, user: any) => {
-      acc[user.peer_group] = (acc[user.peer_group] || 0) + 1;
+      if (user.peer_group) {
+        acc[user.peer_group] = (acc[user.peer_group] || 0) + 1;
+      }
       return acc;
     }, {}),
     accommodation_breakdown: users.reduce((acc: any, user: any) => {
@@ -108,90 +107,172 @@ async function generateUserSummaryReport(supabase: any, filters: any) {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         return createdDate > thirtyDaysAgo;
       })
-      .length
+      .length,
+    by_gender: users.reduce((acc: any, user: any) => {
+      if (user.gender) {
+        acc[user.gender] = (acc[user.gender] || 0) + 1;
+      }
+      return acc;
+    }, {}),
+    by_department: users.reduce((acc: any, user: any) => {
+      if (user.department) {
+        acc[user.department] = (acc[user.department] || 0) + 1;
+      }
+      return acc;
+    }, {})
   };
 
   return summary;
 }
 
 async function generateAcademicReport(supabase: any, filters: any) {
-  // Get academic performance data
-  const { data: grades, error: gradesError } = await supabase
-    .from('grades')
-    .select(`
-      *,
-      user_profiles!inner(full_name, current_standard, section),
-      assessments!inner(name, type, course_id)
-    `);
+  const { data: courses, error: coursesError } = await supabase
+    .from('courses')
+    .select('*');
 
-  if (gradesError) throw gradesError;
+  if (coursesError) throw coursesError;
 
-  // Aggregate academic data
+  const { data: sections, error: sectionsError } = await supabase
+    .from('sections')
+    .select('*');
+
+  if (sectionsError) throw sectionsError;
+
+  const { data: sectionCourses, error: scError } = await supabase
+    .from('section_courses')
+    .select('*');
+
+  if (scError) throw scError;
+
+  const { data: sectionStudents, error: ssError } = await supabase
+    .from('section_students')
+    .select('*');
+
+  if (ssError) throw ssError;
+
   const academicSummary = {
-    total_assessments: grades.length,
-    average_score: grades.reduce((sum: number, grade: any) => sum + (grade.score / grade.max_score * 100), 0) / grades.length,
-    by_standard: grades.reduce((acc: any, grade: any) => {
-      const standard = grade.user_profiles.current_standard;
-      if (standard) {
-        if (!acc[standard]) acc[standard] = { total: 0, sum: 0 };
-        acc[standard].total++;
-        acc[standard].sum += (grade.score / grade.max_score * 100);
-      }
+    total_courses: courses.length,
+    total_sections: sections.length,
+    total_enrollments: sectionStudents.length,
+    courses_by_type: courses.reduce((acc: any, course: any) => {
+      const type = course.type || 'regular';
+      acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {}),
-    performance_trends: {
-      improving: 0,
-      declining: 0,
-      stable: 0
-    }
+    average_section_size: sectionStudents.length / (sections.length || 1),
+    sections_by_grade: sections.reduce((acc: any, section: any) => {
+      const grade = section.grade_level || 'unknown';
+      acc[grade] = (acc[grade] || 0) + 1;
+      return acc;
+    }, {}),
+    course_distribution: sectionCourses.length > 0 ?
+      `${sectionCourses.length} course assignments across ${sections.length} sections` :
+      'No course assignments yet'
   };
 
   return academicSummary;
 }
 
 async function generateAttendanceReport(supabase: any, filters: any) {
-  const { data: attendance, error } = await supabase
-    .from('attendance')
-    .select(`
-      *,
-      user_profiles!inner(full_name, current_standard),
-      courses!inner(name, code)
-    `);
+  const { data: timetableSessions, error } = await supabase
+    .from('timetable_sessions')
+    .select('*');
 
   if (error) throw error;
 
+  const { data: timetables, error: ttError } = await supabase
+    .from('timetables')
+    .select('*');
+
+  if (ttError) throw ttError;
+
+  const { data: sections, error: sectionsError } = await supabase
+    .from('sections')
+    .select('*');
+
+  if (sectionsError) throw sectionsError;
+
   const attendanceSummary = {
-    total_records: attendance.length,
-    overall_attendance_rate: attendance.filter((a: any) => a.status === 'present').length / attendance.length * 100,
-    by_course: attendance.reduce((acc: any, record: any) => {
-      const course = record.courses.name;
-      if (!acc[course]) acc[course] = { total: 0, present: 0 };
-      acc[course].total++;
-      if (record.status === 'present') acc[course].present++;
+    total_timetable_sessions: timetableSessions.length,
+    total_timetables: timetables.length,
+    total_sections: sections.length,
+    sessions_by_day: timetableSessions.reduce((acc: any, session: any) => {
+      const day = session.day_of_week || 'unknown';
+      acc[day] = (acc[day] || 0) + 1;
       return acc;
     }, {}),
-    at_risk_students: [] // Would calculate students with < 75% attendance
+    active_timetables: timetables.filter((t: any) => t.status === 'active').length,
+    published_timetables: timetables.filter((t: any) => t.is_published).length,
+    timetable_coverage: timetableSessions.length > 0 ?
+      `${timetableSessions.length} scheduled sessions across ${sections.length} sections` :
+      'No scheduled sessions yet'
   };
 
   return attendanceSummary;
 }
 
 async function generatePerformanceReport(supabase: any, filters: any) {
-  // Comprehensive performance analysis
+  const { data: users, error: usersError } = await supabase
+    .from('user_profiles')
+    .select('*');
+
+  if (usersError) throw usersError;
+
+  const { data: courses, error: coursesError } = await supabase
+    .from('courses')
+    .select('*');
+
+  if (coursesError) throw coursesError;
+
+  const { data: sections, error: sectionsError } = await supabase
+    .from('sections')
+    .select('*');
+
+  if (sectionsError) throw sectionsError;
+
+  const { data: sectionStudents, error: ssError } = await supabase
+    .from('section_students')
+    .select('*');
+
+  if (ssError) throw ssError;
+
+  const students = users.filter((u: any) => u.role === 'student');
+  const teachers = users.filter((u: any) => u.role === 'teacher');
+  const activeUsers = users.filter((u: any) => u.status === 'active');
+
   const performanceData = {
     institutional_metrics: {
-      total_students: 0,
-      total_teachers: 0,
-      average_performance: 0,
-      top_performing_classes: [],
-      improvement_areas: []
+      total_students: students.length,
+      total_teachers: teachers.length,
+      total_courses: courses.length,
+      total_sections: sections.length,
+      active_users: activeUsers.length,
+      student_teacher_ratio: teachers.length > 0 ? (students.length / teachers.length).toFixed(2) : 'N/A',
+      average_class_size: sections.length > 0 ? (sectionStudents.length / sections.length).toFixed(1) : 'N/A',
+      enrollment_rate: `${((activeUsers.length / users.length) * 100).toFixed(1)}%`
     },
-    comparative_analysis: {
-      year_over_year: {},
-      department_comparison: {},
-      peer_benchmarking: {}
+    user_distribution: {
+      students: students.length,
+      teachers: teachers.length,
+      admin: users.filter((u: any) => u.role === 'admin').length,
+      staff: users.filter((u: any) => u.role === 'staff').length
     },
-    recommendations: []
+    status_breakdown: users.reduce((acc: any, user: any) => {
+      acc[user.status] = (acc[user.status] || 0) + 1;
+      return acc;
+    }, {}),
+    peer_group_distribution: users.reduce((acc: any, user: any) => {
+      if (user.peer_group) {
+        acc[user.peer_group] = (acc[user.peer_group] || 0) + 1;
+      }
+      return acc;
+    }, {}),
+    recommendations: [
+      students.length === 0 ? 'Add student data to enable comprehensive reporting' : '',
+      teachers.length === 0 ? 'Add teacher data for workload analysis' : '',
+      courses.length === 0 ? 'Create courses to track academic performance' : '',
+      sections.length === 0 ? 'Set up class sections for better organization' : ''
+    ].filter(r => r !== '')
   };
 
   return performanceData;

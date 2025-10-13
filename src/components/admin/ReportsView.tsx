@@ -193,55 +193,146 @@ export const ReportsView: React.FC = () => {
     return (
       <div className="space-y-6">
         {reportData.total_users !== undefined && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="apple-card p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_users}</p>
-            </div>
-            {reportData.by_role && Object.entries(reportData.by_role).map(([role, count]: [string, any]) => (
-              <div key={role} className="apple-card p-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 capitalize">{role}s</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Users</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_users}</p>
               </div>
-            ))}
-          </div>
-        )}
-
-        {reportData.by_status && (
-          <div className="apple-card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">By Status</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(reportData.by_status).map(([status, count]: [string, any]) => (
-                <div key={status} className="text-center">
+              {reportData.by_role && Object.entries(reportData.by_role).map(([role, count]: [string, any]) => (
+                <div key={role} className="apple-card p-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 capitalize">{role}s</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{status}</p>
                 </div>
               ))}
             </div>
-          </div>
+
+            {reportData.by_status && (
+              <div className="apple-card p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Status Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(reportData.by_status).map(([status, count]: [string, any]) => (
+                    <div key={status} className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 capitalize mt-1">{status}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {reportData.by_peer_group && Object.keys(reportData.by_peer_group).length > 0 && (
+              <div className="apple-card p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Peer Group Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {Object.entries(reportData.by_peer_group).map(([group, count]: [string, any]) => (
+                    <div key={group} className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 capitalize mt-1">{group.replace(/_/g, ' ')}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
-        {reportData.average_score !== undefined && (
-          <div className="apple-card p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Academic Overview</h3>
+        {reportData.total_courses !== undefined && (
+          <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Average Score</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.average_score.toFixed(1)}%</p>
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Courses</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_courses}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Assessments</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_assessments}</p>
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Sections</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_sections}</p>
+              </div>
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Enrollments</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_enrollments}</p>
               </div>
             </div>
-          </div>
+            {reportData.course_distribution && (
+              <div className="apple-card p-6">
+                <p className="text-gray-700 dark:text-gray-300">{reportData.course_distribution}</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {reportData.institutional_metrics && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(reportData.institutional_metrics).map(([key, value]: [string, any]) => (
+                <div key={key} className="apple-card p-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 capitalize">{key.replace(/_/g, ' ')}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            {reportData.user_distribution && (
+              <div className="apple-card p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">User Distribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(reportData.user_distribution).map(([role, count]: [string, any]) => (
+                    <div key={role} className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 capitalize mt-1">{role}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {reportData.recommendations && reportData.recommendations.length > 0 && (
+              <div className="apple-card p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recommendations</h3>
+                <ul className="space-y-2">
+                  {reportData.recommendations.map((rec: string, idx: number) => (
+                    <li key={idx} className="flex items-start space-x-2 text-gray-700 dark:text-gray-300">
+                      <span className="text-blue-500 mt-1">•</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+
+        {reportData.total_timetable_sessions !== undefined && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Timetable Sessions</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_timetable_sessions}</p>
+              </div>
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Active Timetables</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.active_timetables}</p>
+              </div>
+              <div className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Published</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.published_timetables}</p>
+              </div>
+            </div>
+            {reportData.timetable_coverage && (
+              <div className="apple-card p-6">
+                <p className="text-gray-700 dark:text-gray-300">{reportData.timetable_coverage}</p>
+              </div>
+            )}
+          </>
         )}
 
         <div className="apple-card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Raw Data</h3>
-          <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm">
-            {JSON.stringify(reportData, null, 2)}
-          </pre>
+          <details className="cursor-pointer">
+            <summary className="text-lg font-semibold text-gray-900 dark:text-white mb-4">View Raw Data (JSON)</summary>
+            <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm mt-4">
+              {JSON.stringify(reportData, null, 2)}
+            </pre>
+          </details>
         </div>
       </div>
     );
