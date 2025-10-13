@@ -6,6 +6,8 @@ import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
 import { StudentPortal } from './components/portals/StudentPortal';
 import { TeacherPortal } from './components/portals/TeacherPortal';
 import { AdminPortal } from './components/portals/AdminPortal';
+import { StudentProfileView } from './components/profiles/StudentProfileView';
+import { TeacherProfileView } from './components/profiles/TeacherProfileView';
 
 function App() {
   const { user, role, isLoading, initialize } = useAuthStore();
@@ -36,18 +38,28 @@ function App() {
           element={!user ? <ForgotPasswordPage /> : <Navigate to={`/${role}`} replace />} 
         />
 
+        {/* Profile Routes - accessible by authorized users */}
+        <Route
+          path="/profile/student/:userId"
+          element={user ? <StudentProfileView /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile/teacher/:userId"
+          element={user ? <TeacherProfileView /> : <Navigate to="/login" replace />}
+        />
+
         {/* Protected Routes */}
-        <Route 
-          path="/student/*" 
-          element={user && role === 'student' ? <StudentPortal /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/student/*"
+          element={user && role === 'student' ? <StudentPortal /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/teacher/*" 
-          element={user && role === 'teacher' ? <TeacherPortal /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/teacher/*"
+          element={user && role === 'teacher' ? <TeacherPortal /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/admin/*" 
-          element={user && role === 'admin' ? <AdminPortal /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/admin/*"
+          element={user && role === 'admin' ? <AdminPortal /> : <Navigate to="/login" replace />}
         />
 
         {/* Default Redirects */}
