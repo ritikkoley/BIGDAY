@@ -47,6 +47,13 @@ const REPORT_TYPES = [
   }
 ];
 
+const GRADE_LEVELS = ['Pre-Primary', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+const SECTIONS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const PEER_GROUPS = ['Pre-Primary', 'Primary', 'Secondary', 'Higher Secondary'];
+const USER_ROLES = ['Student', 'Teacher', 'Admin', 'Staff'];
+const USER_STATUS = ['Active', 'Inactive', 'Suspended', 'Graduated'];
+const PERFORMANCE_RANGES = ['Excellent (90-100%)', 'Good (75-89%)', 'Average (60-74%)', 'Below Average (<60%)'];
+
 export const ReportsView: React.FC = () => {
   const { user } = useAuthStore();
   const [reports, setReports] = useState<SystemReport[]>([]);
@@ -58,6 +65,24 @@ export const ReportsView: React.FC = () => {
   const [reportName, setReportName] = useState('');
   const [selectedReport, setSelectedReport] = useState<SystemReport | null>(null);
   const [reportData, setReportData] = useState<any>(null);
+
+  const [filters, setFilters] = useState<{
+    grades: string[];
+    sections: string[];
+    peerGroups: string[];
+    roles: string[];
+    status: string[];
+    performanceRange: string[];
+    dateRange: { start: string; end: string };
+  }>({
+    grades: [],
+    sections: [],
+    peerGroups: [],
+    roles: [],
+    status: [],
+    performanceRange: [],
+    dateRange: { start: '', end: '' }
+  });
 
   useEffect(() => {
     fetchReports();
@@ -111,7 +136,7 @@ export const ReportsView: React.FC = () => {
         body: JSON.stringify({
           report_type: selectedReportType,
           report_name: reportName,
-          filters: {}
+          filters: filters
         })
       });
 
@@ -124,6 +149,15 @@ export const ReportsView: React.FC = () => {
 
       setReportName('');
       setSelectedReportType('');
+      setFilters({
+        grades: [],
+        sections: [],
+        peerGroups: [],
+        roles: [],
+        status: [],
+        performanceRange: [],
+        dateRange: { start: '', end: '' }
+      });
       setShowReportForm(false);
 
       await fetchReports();
@@ -163,6 +197,16 @@ export const ReportsView: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleFilter = (filterType: keyof typeof filters, value: string) => {
+    setFilters(prev => {
+      const currentArray = prev[filterType] as string[];
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter(v => v !== value)
+        : [...currentArray, value];
+      return { ...prev, [filterType]: newArray };
+    });
   };
 
   const getStatusIcon = (status: SystemReport['status']) => {
@@ -334,6 +378,213 @@ export const ReportsView: React.FC = () => {
             </pre>
           </details>
         </div>
+      </div>
+    );
+  };
+
+  const renderFiltersForReportType = () => {
+    if (!selectedReportType) return null;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400 mb-2">
+          <Filter className="w-4 h-4" />
+          <span className="text-sm font-medium">Filter Options</span>
+        </div>
+
+        {(selectedReportType === 'user_summary' || selectedReportType === 'performance_analysis') && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                User Roles
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {USER_ROLES.map(role => (
+                  <button
+                    key={role}
+                    onClick={() => toggleFilter('roles', role.toLowerCase())}
+                    className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
+                      filters.roles.includes(role.toLowerCase())
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                User Status
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {USER_STATUS.map(status => (
+                  <button
+                    key={status}
+                    onClick={() => toggleFilter('status', status.toLowerCase())}
+                    className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
+                      filters.status.includes(status.toLowerCase())
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Peer Groups
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {PEER_GROUPS.map(group => (
+                  <button
+                    key={group}
+                    onClick={() => toggleFilter('peerGroups', group.toLowerCase().replace(/\s+/g, '_'))}
+                    className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
+                      filters.peerGroups.includes(group.toLowerCase().replace(/\s+/g, '_'))
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    {group}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {(selectedReportType === 'academic_report' || selectedReportType === 'attendance_summary') && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Grade Levels
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {GRADE_LEVELS.map(grade => (
+                  <button
+                    key={grade}
+                    onClick={() => toggleFilter('grades', grade)}
+                    className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
+                      filters.grades.includes(grade)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    {grade}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Sections
+              </label>
+              <div className="grid grid-cols-6 gap-2">
+                {SECTIONS.map(section => (
+                  <button
+                    key={section}
+                    onClick={() => toggleFilter('sections', section)}
+                    className={`px-3 py-2 text-sm rounded-lg border-2 transition-all ${
+                      filters.sections.includes(section)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                    }`}
+                  >
+                    {section}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {selectedReportType === 'academic_report' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Performance Range
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {PERFORMANCE_RANGES.map(range => (
+                <button
+                  key={range}
+                  onClick={() => toggleFilter('performanceRange', range)}
+                  className={`px-3 py-2 text-sm rounded-lg border-2 transition-all text-left ${
+                    filters.performanceRange.includes(range)
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                      : 'border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-300'
+                  }`}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+            Date Range
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={filters.dateRange.start}
+                onChange={(e) => setFilters(prev => ({
+                  ...prev,
+                  dateRange: { ...prev.dateRange, start: e.target.value }
+                }))}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">End Date</label>
+              <input
+                type="date"
+                value={filters.dateRange.end}
+                onChange={(e) => setFilters(prev => ({
+                  ...prev,
+                  dateRange: { ...prev.dateRange, end: e.target.value }
+                }))}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        {(filters.grades.length > 0 || filters.sections.length > 0 || filters.peerGroups.length > 0 ||
+          filters.roles.length > 0 || filters.status.length > 0 || filters.performanceRange.length > 0) && (
+          <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {[...filters.grades, ...filters.sections, ...filters.peerGroups, ...filters.roles,
+                  ...filters.status, ...filters.performanceRange].length} filters applied
+              </span>
+              <button
+                onClick={() => setFilters({
+                  grades: [],
+                  sections: [],
+                  peerGroups: [],
+                  roles: [],
+                  status: [],
+                  performanceRange: [],
+                  dateRange: { start: '', end: '' }
+                })}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Clear all
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -510,14 +761,26 @@ export const ReportsView: React.FC = () => {
 
       {showReportForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   Generate Report
                 </h2>
                 <button
-                  onClick={() => setShowReportForm(false)}
+                  onClick={() => {
+                    setShowReportForm(false);
+                    setSelectedReportType('');
+                    setFilters({
+                      grades: [],
+                      sections: [],
+                      peerGroups: [],
+                      roles: [],
+                      status: [],
+                      performanceRange: [],
+                      dateRange: { start: '', end: '' }
+                    });
+                  }}
                   className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -530,7 +793,7 @@ export const ReportsView: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
                   Report Type
                 </label>
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3">
                   {REPORT_TYPES.map((type) => {
                     const Icon = type.icon;
                     return (
@@ -542,16 +805,16 @@ export const ReportsView: React.FC = () => {
                             setReportName(type.label + ' - ' + new Date().toLocaleDateString());
                           }
                         }}
-                        className={`w-full p-3 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
+                        className={`p-3 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
                           selectedReportType === type.value
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                             : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                         }`}
                       >
-                        <Icon className="w-5 h-5 text-blue-500" />
+                        <Icon className="w-5 h-5 text-blue-500 flex-shrink-0" />
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{type.label}</p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">{type.description}</p>
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">{type.label}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{type.description}</p>
                         </div>
                       </button>
                     );
@@ -572,9 +835,23 @@ export const ReportsView: React.FC = () => {
                 />
               </div>
 
+              {renderFiltersForReportType()}
+
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
                 <button
-                  onClick={() => setShowReportForm(false)}
+                  onClick={() => {
+                    setShowReportForm(false);
+                    setSelectedReportType('');
+                    setFilters({
+                      grades: [],
+                      sections: [],
+                      peerGroups: [],
+                      roles: [],
+                      status: [],
+                      performanceRange: [],
+                      dateRange: { start: '', end: '' }
+                    });
+                  }}
                   className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   disabled={isGenerating}
                 >
@@ -593,7 +870,7 @@ export const ReportsView: React.FC = () => {
                   ) : (
                     <>
                       <BarChart3 className="w-4 h-4" />
-                      <span>Generate</span>
+                      <span>Generate Report</span>
                     </>
                   )}
                 </button>
