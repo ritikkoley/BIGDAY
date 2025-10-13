@@ -418,6 +418,69 @@ export const TeacherProfileView: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {currentUserProfile?.role === 'admin' && (
+              <div className="apple-card p-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Classes Teaching</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { id: 'class-1', name: '10-A', subject: 'Mathematics', studentsCount: 45, schedule: 'Mon, Wed, Fri - 9:00 AM' },
+                    { id: 'class-2', name: '10-B', subject: 'Mathematics', studentsCount: 42, schedule: 'Tue, Thu - 10:00 AM' },
+                    { id: 'class-3', name: '11-Science', subject: 'Advanced Mathematics', studentsCount: 38, schedule: 'Mon, Wed - 11:00 AM' },
+                    { id: 'class-4', name: '12-Science', subject: 'Calculus', studentsCount: 35, schedule: 'Tue, Thu, Fri - 2:00 PM' },
+                    { id: 'class-5', name: '9-A', subject: 'Mathematics', studentsCount: 48, schedule: 'Mon, Wed, Fri - 3:00 PM' },
+                    { id: 'class-6', name: '9-B', subject: 'Mathematics', studentsCount: 47, schedule: 'Tue, Thu - 3:00 PM' }
+                  ].map((classItem) => (
+                    <div
+                      key={classItem.id}
+                      className="p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-xl border border-gray-200 dark:border-gray-700"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold text-sm">
+                            {classItem.name.split('-')[0]}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                              Class {classItem.name}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {classItem.subject}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                          <Users className="w-4 h-4" />
+                          <span>{classItem.studentsCount} students</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                          <Clock className="w-4 h-4" />
+                          <span>{classItem.schedule}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <div className="flex items-start space-x-3">
+                    <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                        Teaching Load Summary
+                      </p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        Total: {teacherData.teaching_load.classes_per_week} classes per week ({teacherData.teaching_load.weekly_hours} hours) |
+                        Total Students: {teacherData.total_students}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

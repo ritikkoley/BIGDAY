@@ -1,34 +1,54 @@
 import React from 'react';
-import { TeacherProfile, TeacherDashboardData } from '../../types/teacher'; 
-import { 
-  LayoutDashboard, 
-  Clock, 
-  Users, 
+import { TeacherProfile, TeacherDashboardData } from '../../types/teacher';
+import {
+  LayoutDashboard,
+  Clock,
+  Users,
   AlertTriangle,
   CheckCircle2,
   TrendingUp,
   BookOpen,
-  GraduationCap
-} from 'lucide-react'; 
-import { useEffect, useState } from 'react'; 
+  GraduationCap,
+  ChevronRight
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDataStore } from '../../stores/dataStore';
 import { useAuthStore } from '../../stores/authStore';
 import { format } from 'date-fns';
+import { ClassStudentsView } from './ClassStudentsView';
 
 interface TeacherDashboardProps {
   profile: TeacherProfile;
   dashboardData: TeacherDashboardData;
 }
 
+interface ClassInfo {
+  id: string;
+  name: string;
+  subject: string;
+  studentsCount: number;
+  period: string;
+}
+
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   profile,
   dashboardData
-}) => { 
+}) => {
   const { user } = useAuthStore();
   const { subscribeToGrades, unsubscribeAll } = useDataStore();
   const [realDashboardData, setRealDashboardData] = useState<TeacherDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<ClassInfo | null>(null);
+
+  const myClasses: ClassInfo[] = [
+    { id: 'class-1', name: '10-A', subject: 'Mathematics', studentsCount: 45, period: 'Period 1-2' },
+    { id: 'class-2', name: '10-B', subject: 'Mathematics', studentsCount: 42, period: 'Period 3-4' },
+    { id: 'class-3', name: '11-Science', subject: 'Advanced Mathematics', studentsCount: 38, period: 'Period 5-6' },
+    { id: 'class-4', name: '12-Science', subject: 'Calculus', studentsCount: 35, period: 'Period 7-8' },
+    { id: 'class-5', name: '9-A', subject: 'Mathematics', studentsCount: 48, period: 'Period 9-10' },
+    { id: 'class-6', name: '9-B', subject: 'Mathematics', studentsCount: 47, period: 'Period 11-12' }
+  ];
 
   useEffect(() => {
     fetchDashboardData();
@@ -83,6 +103,16 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
     return icons[type];
   };
 
+  if (selectedClass) {
+    return (
+      <ClassStudentsView
+        className={selectedClass.name}
+        subject={selectedClass.subject}
+        onBack={() => setSelectedClass(null)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -99,6 +129,49 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               Here's what's happening today
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* My Classes */}
+      <div className="apple-card p-6">
+        <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4 flex items-center space-x-2">
+          <BookOpen className="w-5 h-5" />
+          <span>My Classes</span>
+        </h2>
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {myClasses.map((classItem) => (
+            <button
+              key={classItem.id}
+              onClick={() => setSelectedClass(classItem)}
+              className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 hover:shadow-md transition-all duration-300 text-left border border-gray-200 dark:border-gray-700 group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold shadow-lg">
+                    {classItem.name.split('-')[0]}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      Class {classItem.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {classItem.period}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {classItem.subject}
+                </p>
+                <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                  <Users className="w-4 h-4" />
+                  <span>{classItem.studentsCount} students</span>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
