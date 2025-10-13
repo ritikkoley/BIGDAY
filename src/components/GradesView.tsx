@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useDataStore } from '../stores/dataStore';
 import { Grade } from '../types';
-import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen, Microscope, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { AlertTriangle, Calendar, CheckCircle2, Clock, School, XCircle, BookOpen, Microscope, ChevronDown, ChevronUp, CalendarDays, Trophy } from 'lucide-react';
+import { GuildCompetition } from './student/GuildCompetition';
 
 interface GradesViewProps {
   studentName: string;
@@ -18,6 +19,7 @@ const GradesView: React.FC<GradesViewProps> = ({
   const { user } = useAuthStore();
   const { fetchGrades } = useDataStore();
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'grades' | 'guild'>('grades');
   const subjectRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
@@ -162,7 +164,35 @@ const GradesView: React.FC<GradesViewProps> = ({
           </div>
         </div>
 
-        <div className="grid gap-8">
+        <div className="flex space-x-2 mb-6">
+          <button
+            onClick={() => setActiveTab('grades')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+              activeTab === 'grades'
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-white/80 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>My Grades</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('guild')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+              activeTab === 'guild'
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-white/80 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            <span>Guild Competition</span>
+          </button>
+        </div>
+
+        {activeTab === 'guild' ? (
+          <GuildCompetition />
+        ) : (
+          <div className="grid gap-8">
           {grades.map((grade, index) => {
             const averageScore = grade.exams.reduce((sum, exam) => sum + exam.score, 0) / grade.exams.length;
             
@@ -288,6 +318,7 @@ const GradesView: React.FC<GradesViewProps> = ({
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );
