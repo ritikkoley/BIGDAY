@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { SystemReport, FilterCriteria } from '../../types/admin';
-import { 
-  FileText, 
-  Download, 
-  Calendar, 
-  Filter, 
+import { SystemReport } from '../../types/admin';
+import {
+  FileText,
+  Download,
+  Calendar,
+  Filter,
   Plus,
   Clock,
   CheckCircle2,
@@ -15,33 +15,34 @@ import {
   GraduationCap,
   TrendingUp,
   BarChart3,
-  PieChart,
-  Activity
+  X,
+  Loader2,
+  Eye
 } from 'lucide-react';
 
 const REPORT_TYPES = [
-  { 
-    value: 'user_summary', 
-    label: 'User Summary Report',
-    description: 'Comprehensive overview of all users by role, status, and demographics',
+  {
+    value: 'user_summary',
+    label: 'User Summary',
+    description: 'Overview of all users by role, status, and demographics',
     icon: Users
   },
-  { 
-    value: 'academic_report', 
-    label: 'Academic Performance Report',
-    description: 'Student academic performance analysis and trends',
+  {
+    value: 'academic_report',
+    label: 'Academic Performance',
+    description: 'Student performance analysis and trends',
     icon: GraduationCap
   },
-  { 
-    value: 'attendance_summary', 
-    label: 'Attendance Summary Report',
-    description: 'Attendance patterns and statistics across all classes',
+  {
+    value: 'attendance_summary',
+    label: 'Attendance Summary',
+    description: 'Attendance patterns across all classes',
     icon: Calendar
   },
-  { 
-    value: 'performance_analysis', 
-    label: 'Performance Analysis Report',
-    description: 'Detailed performance metrics and comparative analysis',
+  {
+    value: 'performance_analysis',
+    label: 'Performance Analysis',
+    description: 'Detailed metrics and comparative analysis',
     icon: TrendingUp
   }
 ];
@@ -50,11 +51,13 @@ export const ReportsView: React.FC = () => {
   const { user } = useAuthStore();
   const [reports, setReports] = useState<SystemReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
-  const [reportFilters, setReportFilters] = useState<FilterCriteria>({});
   const [reportName, setReportName] = useState('');
+  const [selectedReport, setSelectedReport] = useState<SystemReport | null>(null);
+  const [reportData, setReportData] = useState<any>(null);
 
   useEffect(() => {
     fetchReports();
@@ -64,41 +67,15 @@ export const ReportsView: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      // Mock reports data since we don't have a reports table yet
-      const mockReports: SystemReport[] = [
-        {
-          id: 'report-1',
-          name: 'Monthly User Summary - March 2024',
-          type: 'user_summary',
-          filters: { role: ['student', 'teacher'] },
-          generated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          generated_by: user?.id || 'admin',
-          file_path: '/reports/user_summary_march_2024.pdf',
-          status: 'completed'
-        },
-        {
-          id: 'report-2',
-          name: 'Academic Performance Analysis Q1',
-          type: 'academic_report',
-          filters: { peer_group: ['secondary', 'higher_secondary'] },
-          generated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          generated_by: user?.id || 'admin',
-          file_path: '/reports/academic_performance_q1.pdf',
-          status: 'completed'
-        },
-        {
-          id: 'report-3',
-          name: 'Attendance Summary - Current Semester',
-          type: 'attendance_summary',
-          filters: { status: ['active'] },
-          generated_at: new Date().toISOString(),
-          generated_by: user?.id || 'admin',
-          status: 'generating'
-        }
-      ];
-      
-      setReports(mockReports);
+
+      const { data, error: fetchError } = await supabase
+        .from('system_reports')
+        .select('*')
+        .order('generated_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setReports(data || []);
     } catch (err) {
       console.error('Error fetching reports:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch reports');
@@ -114,58 +91,77 @@ export const ReportsView: React.FC = () => {
         return;
       }
 
-      setIsLoading(true);
+      if (!user) {
+        setError('User not authenticated');
+        return;
+      }
+
+      setIsGenerating(true);
       setError(null);
 
-      const newReport: SystemReport = {
-        id: `report-${Date.now()}`,
-        name: reportName,
-        type: selectedReportType as any,
-        filters: reportFilters,
-        generated_at: new Date().toISOString(),
-        generated_by: user?.id || 'admin',
-        status: 'generating'
-      };
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      // Simulate report generation
-      setReports(prev => [newReport, ...prev]);
-      
-      // Simulate completion after 3 seconds
-      setTimeout(() => {
-        setReports(prev => prev.map(r => 
-          r.id === newReport.id 
-            ? { ...r, status: 'completed', file_path: `/reports/${reportName.toLowerCase().replace(/\s+/g, '_')}.pdf` }
-            : r
-        ));
-      }, 3000);
+      const response = await fetch(`${supabaseUrl}/functions/v1/generate_report`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report_type: selectedReportType,
+          report_name: reportName,
+          filters: {}
+        })
+      });
 
-      // Reset form
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate report');
+      }
+
+      const result = await response.json();
+
       setReportName('');
       setSelectedReportType('');
-      setReportFilters({});
       setShowReportForm(false);
-      
+
+      await fetchReports();
+
     } catch (err) {
       console.error('Error generating report:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate report');
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
-  const handleDownloadReport = async (report: SystemReport) => {
+  const handleViewReport = async (report: SystemReport) => {
     try {
-      if (report.status !== 'completed' || !report.file_path) {
-        setError('Report is not ready for download');
-        return;
-      }
+      setSelectedReport(report);
+      setIsLoading(true);
 
-      // In a real implementation, this would download from Supabase storage
-      alert(`Downloading report: ${report.name}`);
-      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate_report`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          report_type: report.type,
+          report_name: report.name,
+          filters: report.filters || {}
+        })
+      });
+
+      const result = await response.json();
+      setReportData(result.data);
+
     } catch (err) {
-      console.error('Error downloading report:', err);
-      setError(err instanceof Error ? err.message : 'Failed to download report');
+      console.error('Error viewing report:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load report data');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -174,7 +170,7 @@ export const ReportsView: React.FC = () => {
       case 'completed':
         return <CheckCircle2 className="w-5 h-5 text-green-500" />;
       case 'generating':
-        return <Clock className="w-5 h-5 text-yellow-500 animate-pulse" />;
+        return <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />;
       case 'failed':
         return <AlertTriangle className="w-5 h-5 text-red-500" />;
       default:
@@ -191,144 +187,247 @@ export const ReportsView: React.FC = () => {
     return colors[status] || colors.generating;
   };
 
+  const renderReportData = () => {
+    if (!reportData) return null;
+
+    return (
+      <div className="space-y-6">
+        {reportData.total_users !== undefined && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="apple-card p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_users}</p>
+            </div>
+            {reportData.by_role && Object.entries(reportData.by_role).map(([role, count]: [string, any]) => (
+              <div key={role} className="apple-card p-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1 capitalize">{role}s</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {reportData.by_status && (
+          <div className="apple-card p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">By Status</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(reportData.by_status).map(([status, count]: [string, any]) => (
+                <div key={status} className="text-center">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{status}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {reportData.average_score !== undefined && (
+          <div className="apple-card p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Academic Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Average Score</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.average_score.toFixed(1)}%</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Assessments</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.total_assessments}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="apple-card p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Raw Data</h3>
+          <pre className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto text-sm">
+            {JSON.stringify(reportData, null, 2)}
+          </pre>
+        </div>
+      </div>
+    );
+  };
+
+  if (selectedReport) {
+    return (
+      <div className="space-y-6">
+        <div className="apple-card p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => {
+                  setSelectedReport(null);
+                  setReportData(null);
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-medium text-gray-900 dark:text-white">
+                  {selectedReport.name}
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">
+                  Generated: {new Date(selectedReport.generated_at).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="apple-card p-12 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          </div>
+        ) : (
+          renderReportData()
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="apple-card p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="p-3 bg-apple-gray-50 dark:bg-apple-gray-700 rounded-lg">
-              <FileText className="w-6 h-6 text-apple-blue-500" />
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <FileText className="w-6 h-6 text-blue-500" />
             </div>
             <div>
-              <h1 className="text-2xl font-medium text-apple-gray-600 dark:text-white">
+              <h1 className="text-2xl font-medium text-gray-900 dark:text-white">
                 System Reports
               </h1>
-              <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-                Generate and manage institutional reports
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Generate and view institutional reports
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowReportForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-full hover:bg-apple-blue-600 transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Generate Report</span>
+            <span>New Report</span>
           </button>
         </div>
       </div>
 
-      {/* Report Types Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {REPORT_TYPES.map((reportType) => (
-          <div key={reportType.value} className="apple-card p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-3 bg-apple-blue-50 dark:bg-apple-blue-900/30 rounded-lg">
-                <reportType.icon className="w-6 h-6 text-apple-blue-500" />
+        {REPORT_TYPES.map((reportType) => {
+          const Icon = reportType.icon;
+          const count = reports.filter(r => r.type === reportType.value).length;
+
+          return (
+            <button
+              key={reportType.value}
+              onClick={() => {
+                setSelectedReportType(reportType.value);
+                setReportName(reportType.label + ' - ' + new Date().toLocaleDateString());
+                setShowReportForm(true);
+              }}
+              className="apple-card p-6 hover:shadow-lg transition-all cursor-pointer text-left group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
+                  <Icon className="w-6 h-6 text-blue-500" />
+                </div>
+                {count > 0 && (
+                  <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                    {count} generated
+                  </span>
+                )}
               </div>
-              <div>
-                <h3 className="font-medium text-apple-gray-600 dark:text-white">
-                  {reportType.label}
-                </h3>
-              </div>
-            </div>
-            <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-              {reportType.description}
-            </p>
-            <div className="mt-4">
-              <button
-                onClick={() => {
-                  setSelectedReportType(reportType.value);
-                  setReportName(reportType.label);
-                  setShowReportForm(true);
-                }}
-                className="w-full px-4 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors"
-              >
-                Generate
-              </button>
-            </div>
-          </div>
-        ))}
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                {reportType.label}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {reportType.description}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Reports List */}
       <div className="apple-card">
-        <div className="p-6 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
-          <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white">
-            Generated Reports ({reports.length})
+        <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Recent Reports ({reports.length})
           </h2>
         </div>
-        
-        <div className="divide-y divide-apple-gray-200/50 dark:divide-apple-gray-500/20">
-          {reports.map((report) => (
-            <div key={report.id} className="p-6 hover:bg-apple-gray-50 dark:hover:bg-apple-gray-700/30 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-apple-gray-100 dark:bg-apple-gray-700 rounded-lg">
-                    <FileText className="w-6 h-6 text-apple-blue-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-apple-gray-600 dark:text-white">
-                      {report.name}
-                    </h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                        Type: {REPORT_TYPES.find(t => t.value === report.type)?.label}
-                      </span>
-                      <span className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                        Generated: {new Date(report.generated_at).toLocaleDateString()}
-                      </span>
+
+        <div className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+          {reports.map((report) => {
+            const reportType = REPORT_TYPES.find(t => t.value === report.type);
+            const Icon = reportType?.icon || FileText;
+
+            return (
+              <div key={report.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <Icon className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900 dark:text-white">
+                        {report.name}
+                      </h3>
+                      <div className="flex items-center space-x-4 mt-1">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {reportType?.label}
+                        </span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {new Date(report.generated_at).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(report.status)}
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
-                      {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                    </span>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(report.status)}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                        {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                      </span>
+                    </div>
+                    {report.status === 'completed' && (
+                      <button
+                        onClick={() => handleViewReport(report)}
+                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>View</span>
+                      </button>
+                    )}
                   </div>
-                  {report.status === 'completed' && (
-                    <button
-                      onClick={() => handleDownloadReport(report)}
-                      className="flex items-center space-x-2 px-4 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download</span>
-                    </button>
-                  )}
                 </div>
               </div>
-            </div>
-          ))}
-          
-          {reports.length === 0 && (
+            );
+          })}
+
+          {reports.length === 0 && !isLoading && (
             <div className="p-12 text-center">
-              <FileText className="w-16 h-16 text-apple-gray-300 dark:text-apple-gray-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-2">
-                No Reports Generated
+              <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No Reports Yet
               </h3>
-              <p className="text-apple-gray-400 dark:text-apple-gray-300">
-                Generate your first report to get started with data analysis
+              <p className="text-gray-600 dark:text-gray-400">
+                Generate your first report to analyze institutional data
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Report Generation Form */}
       {showReportForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-medium text-apple-gray-600 dark:text-white">
-                  Generate New Report
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Generate Report
                 </h2>
                 <button
                   onClick={() => setShowReportForm(false)}
-                  className="p-2 text-apple-gray-400 hover:text-apple-gray-600 dark:hover:text-apple-gray-200 transition-colors"
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -336,112 +435,76 @@ export const ReportsView: React.FC = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              {/* Report Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-4">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-3">
                   Report Type
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {REPORT_TYPES.map((type) => (
-                    <button
-                      key={type.value}
-                      onClick={() => setSelectedReportType(type.value)}
-                      className={`p-4 border-2 rounded-lg text-left transition-all ${
-                        selectedReportType === type.value
-                          ? 'border-apple-blue-500 bg-apple-blue-50 dark:bg-apple-blue-900/20'
-                          : 'border-apple-gray-200 dark:border-apple-gray-600 hover:border-apple-gray-300 dark:hover:border-apple-gray-500'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3 mb-2">
-                        <type.icon className="w-5 h-5 text-apple-blue-500" />
-                        <span className="font-medium text-apple-gray-600 dark:text-white">
-                          {type.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300">
-                        {type.description}
-                      </p>
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  {REPORT_TYPES.map((type) => {
+                    const Icon = type.icon;
+                    return (
+                      <button
+                        key={type.value}
+                        onClick={() => {
+                          setSelectedReportType(type.value);
+                          if (!reportName || REPORT_TYPES.some(t => reportName.startsWith(t.label))) {
+                            setReportName(type.label + ' - ' + new Date().toLocaleDateString());
+                          }
+                        }}
+                        className={`w-full p-3 border-2 rounded-lg text-left transition-all flex items-center space-x-3 ${
+                          selectedReportType === type.value
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{type.label}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">{type.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Report Name */}
               <div>
-                <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                   Report Name
                 </label>
                 <input
                   type="text"
                   value={reportName}
                   onChange={(e) => setReportName(e.target.value)}
-                  placeholder="Enter a descriptive name for this report"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
+                  placeholder="Enter report name"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                 />
               </div>
 
-              {/* Report Filters */}
-              <div>
-                <label className="block text-sm font-medium text-apple-gray-600 dark:text-white mb-4">
-                  Report Filters (Optional)
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-apple-gray-400 dark:text-apple-gray-300 mb-2">
-                      Roles
-                    </label>
-                    <select
-                      multiple
-                      value={reportFilters.role || []}
-                      onChange={(e) => setReportFilters(prev => ({
-                        ...prev,
-                        role: Array.from(e.target.selectedOptions, option => option.value)
-                      }))}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-                    >
-                      <option value="student">Student</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="admin">Admin</option>
-                      <option value="staff">Staff</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-apple-gray-400 dark:text-apple-gray-300 mb-2">
-                      Status
-                    </label>
-                    <select
-                      multiple
-                      value={reportFilters.status || []}
-                      onChange={(e) => setReportFilters(prev => ({
-                        ...prev,
-                        status: Array.from(e.target.selectedOptions, option => option.value)
-                      }))}
-                      className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-apple-gray-200 dark:border-apple-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-apple-blue-500"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                      <option value="suspended">Suspended</option>
-                      <option value="graduated">Graduated</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex items-center justify-end space-x-4 pt-6 border-t border-apple-gray-200/50 dark:border-apple-gray-500/20">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
                 <button
                   onClick={() => setShowReportForm(false)}
-                  className="px-6 py-2 text-apple-gray-600 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  disabled={isGenerating}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleGenerateReport}
-                  disabled={!selectedReportType || !reportName || isLoading}
-                  className="flex items-center space-x-2 px-6 py-2 bg-apple-blue-500 text-white rounded-lg hover:bg-apple-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!selectedReportType || !reportName || isGenerating}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Generate Report</span>
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 className="w-4 h-4" />
+                      <span>Generate</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -449,7 +512,6 @@ export const ReportsView: React.FC = () => {
         </div>
       )}
 
-      {/* Error Display */}
       {error && (
         <div className="apple-card p-4">
           <div className="flex items-center space-x-2 text-red-500">
