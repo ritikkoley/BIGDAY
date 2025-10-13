@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { useBrandingStore } from '../../stores/brandingStore';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { signIn, signInWithOAuth, isLoading, loginAttempts, lockoutUntil } = useAuthStore();
-  
+  const { institutionName, productName, fetchBranding } = useBrandingStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPasswordField, setShowPasswordField] = useState(false);
+
+  useEffect(() => {
+    fetchBranding();
+  }, [fetchBranding]);
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,11 +98,11 @@ export const LoginPage: React.FC = () => {
           <div className="text-center text-white">
             <div className="mb-8">
               <h1 className="text-6xl md:text-7xl font-bold mb-4 tracking-tight">
-                BIG DAY
+                {productName}
               </h1>
               <div className="w-16 h-0.5 bg-white/60 mx-auto mb-6"></div>
               <p className="text-xl md:text-2xl font-light opacity-90 mb-2">
-                Delhi Public School, Bhilai
+                {institutionName}
               </p>
               <p className="text-lg font-light opacity-75">
                 Let's make today big
