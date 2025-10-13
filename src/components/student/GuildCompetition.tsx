@@ -12,7 +12,8 @@ interface Guild {
   id: string;
   name: string;
   badge: string;
-  color: string;
+  colorClass: string;
+  strokeColor: string;
   members: Student[];
   guildAverage: number;
   rank: number;
@@ -25,7 +26,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-1',
     name: 'Phoenix Scholars',
     badge: '🔥',
-    color: 'from-orange-500 to-red-500',
+    colorClass: 'from-orange-500 to-red-500',
+    strokeColor: '#f97316',
     members: [
       { id: 's1', name: 'Emma Chen', gradeAverage: 94.2, avatar: 'EC' },
       { id: 's2', name: 'Marcus Johnson', gradeAverage: 92.8, avatar: 'MJ' },
@@ -41,7 +43,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-2',
     name: 'Quantum Minds',
     badge: '⚡',
-    color: 'from-blue-500 to-cyan-500',
+    colorClass: 'from-blue-500 to-cyan-500',
+    strokeColor: '#3b82f6',
     members: [
       { id: 's5', name: 'Aisha Patel', gradeAverage: 91.5, avatar: 'AP' },
       { id: 's6', name: 'Ryan Foster', gradeAverage: 90.2, avatar: 'RF' },
@@ -57,7 +60,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-3',
     name: 'Stellar Innovators',
     badge: '⭐',
-    color: 'from-yellow-500 to-orange-400',
+    colorClass: 'from-yellow-500 to-orange-400',
+    strokeColor: '#eab308',
     members: [
       { id: 's9', name: 'Olivia Martinez', gradeAverage: 89.7, avatar: 'OM' },
       { id: 's10', name: 'Ethan Wong', gradeAverage: 91.2, avatar: 'EW' },
@@ -72,7 +76,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-4',
     name: 'Titan Achievers',
     badge: '💎',
-    color: 'from-purple-500 to-pink-500',
+    colorClass: 'from-purple-500 to-pink-500',
+    strokeColor: '#a855f7',
     members: [
       { id: 's12', name: 'Noah Anderson', gradeAverage: 88.3, avatar: 'NA' },
       { id: 's13', name: 'Chloe Williams', gradeAverage: 89.9, avatar: 'CW' },
@@ -88,7 +93,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-5',
     name: 'Olympus Rising',
     badge: '🏆',
-    color: 'from-green-500 to-emerald-500',
+    colorClass: 'from-green-500 to-emerald-500',
+    strokeColor: '#22c55e',
     members: [
       { id: 's16', name: 'Lucas Miller', gradeAverage: 86.8, avatar: 'LM' },
       { id: 's17', name: 'Mia Garcia', gradeAverage: 88.4, avatar: 'MG' },
@@ -103,7 +109,8 @@ const mockGuilds: Guild[] = [
     id: 'guild-6',
     name: 'Nebula Collective',
     badge: '🌟',
-    color: 'from-indigo-500 to-blue-500',
+    colorClass: 'from-indigo-500 to-blue-500',
+    strokeColor: '#6366f1',
     members: [
       { id: 's19', name: 'Sophie Turner', gradeAverage: 85.6, avatar: 'ST' },
       { id: 's20', name: 'Benjamin Harris', gradeAverage: 86.9, avatar: 'BH' },
@@ -198,7 +205,7 @@ const GuildCard: React.FC<{ guild: Guild; expanded: boolean; onToggle: () => voi
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1">
             <div className="relative">
-              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${guild.color} flex items-center justify-center text-3xl shadow-lg`}>
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${guild.colorClass} flex items-center justify-center text-3xl shadow-lg`}>
                 {guild.badge}
               </div>
               <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-br ${getRankColor(guild.rank)} flex items-center justify-center shadow-lg`}>
@@ -244,16 +251,8 @@ const GuildCard: React.FC<{ guild: Guild; expanded: boolean; onToggle: () => voi
                   value={guild.guildAverage}
                   size={80}
                   strokeWidth={6}
-                  color={`url(#gradient-${guild.id})`}
+                  color={guild.strokeColor}
                 />
-                <svg width="0" height="0">
-                  <defs>
-                    <linearGradient id={`gradient-${guild.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={guild.color.split(' ')[1].replace('from-', '')} />
-                      <stop offset="100%" stopColor={guild.color.split(' ')[3].replace('to-', '')} />
-                    </linearGradient>
-                  </defs>
-                </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
@@ -283,7 +282,7 @@ const GuildCard: React.FC<{ guild: Guild; expanded: boolean; onToggle: () => voi
                 className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 rounded-xl p-4 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${guild.color} flex items-center justify-center text-white font-semibold text-sm shadow-md`}>
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${guild.colorClass} flex items-center justify-center text-white font-semibold text-sm shadow-md`}>
                     {member.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -309,7 +308,7 @@ const GuildCard: React.FC<{ guild: Guild; expanded: boolean; onToggle: () => voi
 
                   <div className="relative h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                     <div
-                      className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${guild.color} transition-all duration-500`}
+                      className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${guild.colorClass} transition-all duration-500`}
                       style={{ width: `${member.gradeAverage}%` }}
                     />
                   </div>
