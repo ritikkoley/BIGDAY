@@ -10,6 +10,7 @@ import { DepartmentsView } from '../admin/DepartmentsView';
 import { ReportsView } from '../admin/ReportsView';
 import { SettingsView } from '../admin/SettingsView';
 import { HPCManagement } from '../admin/HPCManagement';
+import QGenView from '../admin/QGenView';
 import { SchoolFeed } from '../feed/SchoolFeed';
 import { FeedManagement } from '../feed/FeedManagement';
 
@@ -27,7 +28,8 @@ import {
   Settings,
   Brain,
   Megaphone,
-  LogOut
+  LogOut,
+  FileQuestion
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -149,6 +151,14 @@ export const AdminPortal: React.FC = () => {
                 >
                   HPC System
                 </button>
+                <button
+                  onClick={() => handleTabChange('qgen')}
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    activeTab === 'qgen' && 'bg-apple-gray-100 dark:bg-apple-gray-600/50'
+                  } text-apple-gray-500 dark:text-apple-gray-300 hover:bg-apple-gray-100 dark:hover:bg-apple-gray-600/50`}
+                >
+                  Q-Gen
+                </button>
               </div>
 
               <div className="flex items-center space-x-1">
@@ -194,6 +204,7 @@ export const AdminPortal: React.FC = () => {
                   { key: 'settings', label: 'Settings' },
                   { key: 'feed', label: 'School Feed' },
                   { key: 'hpc', label: 'HPC System' },
+                  { key: 'qgen', label: 'Q-Gen' },
                 ].map(({ key, label }) => (
                   <button
                     key={key}
@@ -220,12 +231,13 @@ export const AdminPortal: React.FC = () => {
             <FeedManagement userRole="admin" userName="Dr. Rajesh Kumar" />
           )}
           {activeTab === 'hpc' && <HPCManagement />}
+          {activeTab === 'qgen' && <QGenView />}
         </main>
       </div>
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-apple-gray-600/80 border-t border-apple-gray-200/50 dark:border-apple-gray-500/20 backdrop-blur-apple">
-        <div className="grid grid-cols-5 h-14">
+        <div className="grid grid-cols-6 h-14">
           <button
             onClick={() => handleTabChange('overview')}
             className={`mobile-nav-item ${
@@ -269,6 +281,17 @@ export const AdminPortal: React.FC = () => {
           >
             <FileText className="mobile-nav-icon" />
             <span className="mobile-nav-text">Reports</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('qgen')}
+            className={`mobile-nav-item ${
+              activeTab === 'qgen'
+                ? 'text-apple-blue-500'
+                : 'text-apple-gray-400 dark:text-apple-gray-300'
+            }`}
+          >
+            <FileQuestion className="mobile-nav-icon" />
+            <span className="mobile-nav-text">Q-Gen</span>
           </button>
           <button
             onClick={() => handleTabChange('feed')}
