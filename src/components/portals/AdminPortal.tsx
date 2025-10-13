@@ -222,7 +222,7 @@ export const AdminPortal: React.FC = () => {
 
       <div className="min-h-screen pt-16">
         <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
-          {activeTab === 'overview' && <AdminOverview />}
+          {activeTab === 'overview' && <AdminOverview onNavigate={handleTabChange} />}
           {activeTab === 'performance' && <PerformanceView />}
           {activeTab === 'departments' && <DepartmentsView />}
           {activeTab === 'reports' && <ReportsView />}
