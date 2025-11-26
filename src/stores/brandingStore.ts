@@ -11,7 +11,7 @@ interface BrandingState {
 }
 
 export const useBrandingStore = create<BrandingState>((set, get) => ({
-  institutionName: 'Delhi Public School, Bhilai',
+  institutionName: 'GD Goenka, Indore',
   institutionType: 'school',
   productName: 'BIG DAY',
   isLoading: false,

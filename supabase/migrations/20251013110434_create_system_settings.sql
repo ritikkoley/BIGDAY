@@ -72,7 +72,7 @@ CREATE POLICY "All authenticated users can read public settings"
 
 INSERT INTO system_settings (key, value, category, description)
 VALUES 
-  ('institution_name', 'Delhi Public School, Bhilai', 'branding', 'Name of the educational institution'),
+  ('institution_name', 'GD Goenka, Indore', 'branding', 'Name of the educational institution'),
   ('institution_type', 'school', 'branding', 'Type of institution (school, college, university)'),
   ('product_name', 'BIG DAY', 'branding', 'Name of the product/platform')
 ON CONFLICT (key) DO NOTHING;

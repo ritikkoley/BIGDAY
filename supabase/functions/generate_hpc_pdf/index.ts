@@ -100,7 +100,7 @@ async function generatePDFContent(
   const template = {
     header: {
       school_logo: '/assets/school_logo.png',
-      school_name: language === 'hindi' ? 'दिल्ली पब्लिक स्कूल, भिलाई' : 'Delhi Public School, Bhilai',
+      school_name: language === 'hindi' ? 'दिल्ली पब्लिक स्कूल, भिलाई' : 'GD Goenka, Indore',
       document_title: language === 'hindi' ? 'समग्र प्रगति कार्ड' : 'Holistic Progress Card',
       academic_year: summaryJson.student_info.academic_year,
       term: report.term.name

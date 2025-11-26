@@ -2,7 +2,7 @@ export const branding = {
   productName: 'BIG DAY',
   institution: {
     type: 'school',
-    name: 'Delhi Public School, Bhilai',
+    name: 'GD Goenka, Indore',
   },
   // Add more branding configuration as needed
 };

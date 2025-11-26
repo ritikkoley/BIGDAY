@@ -2,7 +2,7 @@
 
 ## System Overview
 
-BIG DAY is a comprehensive educational management system built for Delhi Public School, Bhilai. It provides role-based dashboards for students, teachers, and administrators with real-time data synchronization and advanced analytics.
+BIG DAY is a comprehensive educational management system built for GD Goenka, Indore. It provides role-based dashboards for students, teachers, and administrators with real-time data synchronization and advanced analytics.
 
 ## Architecture Overview
 
@@ -1076,7 +1076,7 @@ export default defineConfig({
 ```bash
 # Frontend Environment Variables
 VITE_APP_NAME="BIG DAY"
-VITE_INSTITUTION_NAME="Delhi Public School, Bhilai"
+VITE_INSTITUTION_NAME="GD Goenka, Indore"
 
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project.supabase.co
