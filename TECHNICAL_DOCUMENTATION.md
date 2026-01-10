@@ -1076,7 +1076,7 @@ export default defineConfig({
 ```bash
 # Frontend Environment Variables
 VITE_APP_NAME="BIG DAY"
-VITE_INSTITUTION_NAME="GD Goenka, Indore"
+VITE_INSTITUTION_NAME="DPS, Nagpur"
 
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project.supabase.co
