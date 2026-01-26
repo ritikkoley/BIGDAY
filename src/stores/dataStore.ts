@@ -131,39 +131,55 @@ export const useDataStore = create<DataState>((set, get) => ({
   fetchCourses: async (userId: string, role: string) => {
     try {
       set({ isLoading: true, error: null });
-      
-      // Check if userId is a mock ID (not a valid UUID)
-      if (userId.startsWith('student-') || userId.startsWith('teacher-') || userId.startsWith('admin-')) {
-        // Set empty courses array for mock users
+
+      if (userId.startsWith('student-') || userId.startsWith('teacher-') || userId.startsWith('admin-') || userId.startsWith('operations-')) {
         set({ courses: [], isLoading: false });
         return;
       }
-      
-      let query = supabase.from('courses').select('*');
-      
+
       if (role === 'teacher') {
-        query = query.eq('teacher_id', userId);
+        const { data, error } = await supabase
+          .from('section_courses')
+          .select(`
+            course_id,
+            courses!inner(*)
+          `)
+          .eq('teacher_id', userId);
+
+        if (error) throw error;
+        const courses = data?.map(sc => sc.courses) || [];
+        set({ courses: courses as any[], isLoading: false });
       } else if (role === 'student') {
-        // Get user's group_id first
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('group_id')
           .eq('id', userId)
-          .single();
-        
+          .maybeSingle();
+
         if (profile?.group_id) {
-          query = query.contains('group_ids', [profile.group_id]);
+          const { data, error } = await supabase
+            .from('section_courses')
+            .select(`
+              course_id,
+              courses!inner(*)
+            `)
+            .eq('section_id', profile.group_id);
+
+          if (error) throw error;
+          const courses = data?.map(sc => sc.courses) || [];
+          set({ courses: courses as any[], isLoading: false });
+        } else {
+          set({ courses: [], isLoading: false });
         }
+      } else {
+        const { data, error } = await supabase.from('courses').select('*');
+        if (error) throw error;
+        set({ courses: data || [], isLoading: false });
       }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      set({ courses: data || [], isLoading: false });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to fetch courses', 
-        isLoading: false 
+      set({
+        error: error instanceof Error ? error.message : 'Failed to fetch courses',
+        isLoading: false
       });
     }
   },
@@ -659,49 +675,43 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   getAtRiskStudents: async (courseId: string) => {
     try {
-      // Get all students in the course
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select('group_ids')
-        .eq('id', courseId)
-        .single();
-      
-      if (courseError) throw courseError;
-      
-      if (!courseData || !courseData.group_ids || courseData.group_ids.length === 0) {
-        return [];
-      }
-      
-      // Get all students in these groups
+      const { data: sectionCourses, error: scError } = await supabase
+        .from('section_courses')
+        .select('section_id')
+        .eq('course_id', courseId);
+
+      if (scError) throw scError;
+      if (!sectionCourses || sectionCourses.length === 0) return [];
+
+      const sectionIds = sectionCourses.map(sc => sc.section_id);
+
+      const { data: sectionStudents, error: ssError } = await supabase
+        .from('section_students')
+        .select('student_id')
+        .in('section_id', sectionIds);
+
+      if (ssError) throw ssError;
+      if (!sectionStudents || sectionStudents.length === 0) return [];
+
+      const studentIds = sectionStudents.map(ss => ss.student_id);
+
       const { data: students, error: studentsError } = await supabase
         .from('user_profiles')
-        .select('id, name')
+        .select('id, full_name')
         .eq('role', 'student')
-        .in('group_id', courseData.group_ids);
-      
+        .in('id', studentIds);
+
       if (studentsError) throw studentsError;
-      
-      if (!students || students.length === 0) {
-        return [];
-      }
-      
-      // For each student, get their average score in this course
+      if (!students || students.length === 0) return [];
+
       const atRiskStudents = [];
-      
       for (const student of students) {
         const avgScore = await get().getProjectedGrade(student.id, courseId);
-        
-        // Consider students with score < 70 as at risk
         if (avgScore < 70) {
-          atRiskStudents.push({
-            student_id: student.id,
-            avg_score: avgScore
-          });
+          atRiskStudents.push({ student_id: student.id, avg_score: avgScore });
         }
       }
-      
       return atRiskStudents;
-
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get at-risk students' });
       return [];
@@ -710,49 +720,44 @@ export const useDataStore = create<DataState>((set, get) => ({
 
   getTopPerformers: async (courseId: string) => {
     try {
-      // Get all students in the course
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select('group_ids')
-        .eq('id', courseId)
-        .single();
-      
-      if (courseError) throw courseError;
-      
-      if (!courseData || !courseData.group_ids || courseData.group_ids.length === 0) {
-        return [];
-      }
-      
-      // Get all students in these groups
+      const { data: sectionCourses, error: scError } = await supabase
+        .from('section_courses')
+        .select('section_id')
+        .eq('course_id', courseId);
+
+      if (scError) throw scError;
+      if (!sectionCourses || sectionCourses.length === 0) return [];
+
+      const sectionIds = sectionCourses.map(sc => sc.section_id);
+
+      const { data: sectionStudents, error: ssError } = await supabase
+        .from('section_students')
+        .select('student_id')
+        .in('section_id', sectionIds);
+
+      if (ssError) throw ssError;
+      if (!sectionStudents || sectionStudents.length === 0) return [];
+
+      const studentIds = sectionStudents.map(ss => ss.student_id);
+
       const { data: students, error: studentsError } = await supabase
         .from('user_profiles')
-        .select('id, name')
+        .select('id, full_name')
         .eq('role', 'student')
-        .in('group_id', courseData.group_ids);
-      
+        .in('id', studentIds);
+
       if (studentsError) throw studentsError;
-      
-      if (!students || students.length === 0) {
-        return [];
-      }
-      
-      // For each student, get their average score in this course
+      if (!students || students.length === 0) return [];
+
       const studentScores = [];
-      
       for (const student of students) {
         const avgScore = await get().getProjectedGrade(student.id, courseId);
-        studentScores.push({
-          student_id: student.id,
-          avg_score: avgScore
-        });
+        studentScores.push({ student_id: student.id, avg_score: avgScore });
       }
-      
-      // Sort by score and take top 20%
+
       studentScores.sort((a, b) => b.avg_score - a.avg_score);
       const topCount = Math.max(1, Math.ceil(studentScores.length * 0.2));
-      
       return studentScores.slice(0, topCount);
-
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to get top performers' });
       return [];
