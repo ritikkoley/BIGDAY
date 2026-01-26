@@ -4,8 +4,9 @@ import { useAuthStore } from '../../stores/authStore';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '../ThemeToggle';
 import { Logo } from '../Logo';
+import { FloatingIcons } from '../FloatingIcons';
 
-// Operations Components (to be created)
+// Operations Components
 import { OperationsDashboard } from '../operations/OperationsDashboard';
 import { LeadManagement } from '../operations/LeadManagement';
 import { FeeManagement } from '../operations/FeeManagement';
@@ -36,6 +37,16 @@ export const OperationsPortal: React.FC = () => {
   const { signOut, user } = useAuthStore();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleSearch = async (query: string, filters: any) => {
     console.log('Searching:', query, filters);
@@ -72,6 +83,10 @@ export const OperationsPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen apple-gradient transition-colors duration-300 relative">
+      <FloatingIcons scrollY={scrollY} />
+
+      <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-black/20 dark:to-transparent pointer-events-none" />
+
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="backdrop-blur-apple bg-white/70 dark:bg-apple-gray-600/70 border-b border-apple-gray-200/50 dark:border-apple-gray-500/20">
           <div className="max-w-7xl mx-auto px-4">

@@ -1,11 +1,71 @@
-import React from 'react';
-import { LayoutDashboard, Users, School, TrendingUp, AlertTriangle, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  LayoutDashboard,
+  Users,
+  School,
+  TrendingUp,
+  AlertTriangle,
+  ChevronRight,
+  GraduationCap,
+  BookOpen,
+  Calendar,
+  CheckCircle2
+} from 'lucide-react';
 
 interface AdminOverviewProps {
   onNavigate?: (tab: string) => void;
 }
 
+interface DashboardStats {
+  totalTeachers: number;
+  totalStudents: number;
+  departments: number;
+  avgPerformance: number;
+  activeIssues: number;
+  coursesActive: number;
+  attendanceRate: number;
+  upcomingExams: number;
+}
+
 export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalTeachers: 156,
+    totalStudents: 2450,
+    departments: 8,
+    avgPerformance: 87.5,
+    activeIssues: 5,
+    coursesActive: 42,
+    attendanceRate: 94.2,
+    upcomingExams: 12
+  });
+
+  const [recentActivity] = useState([
+    {
+      type: 'performance',
+      message: 'Computer Science department shows 15% improvement in student outcomes',
+      time: '2 hours ago',
+      action: 'performance'
+    },
+    {
+      type: 'alert',
+      message: 'Mathematics department requires additional resources for advanced classes',
+      time: '4 hours ago',
+      action: 'departments'
+    },
+    {
+      type: 'success',
+      message: 'Term-end examinations scheduled and published',
+      time: '6 hours ago',
+      action: 'settings'
+    },
+    {
+      type: 'update',
+      message: 'New teaching evaluation criteria implemented successfully',
+      time: '1 day ago',
+      action: 'settings'
+    }
+  ]);
+
   const handleNavigate = (tab: string) => {
     if (onNavigate) {
       onNavigate(tab);
@@ -23,9 +83,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
             <h1 className="text-2xl font-medium text-apple-gray-600 dark:text-white">
               Administrator Dashboard
             </h1>
-            <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-              School Performance Overview
-            </p>
+            <p className="text-apple-gray-400 dark:text-apple-gray-300 mt-1">School Performance Overview</p>
           </div>
         </div>
       </div>
@@ -38,7 +96,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-apple-gray-400 dark:text-apple-gray-300">Total Teachers</p>
-              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">156</h3>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.totalTeachers}</h3>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <Users className="w-8 h-8 text-apple-blue-500" />
@@ -52,13 +110,35 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
         </button>
 
         <button
+          onClick={() => handleNavigate('settings')}
+          className="apple-card p-6 text-left hover:shadow-lg transition-all duration-300 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-apple-gray-400 dark:text-apple-gray-300">Total Students</p>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">
+                {stats.totalStudents.toLocaleString()}
+              </h3>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <GraduationCap className="w-8 h-8 text-green-500" />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-green-500 transition-colors" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center text-green-500">
+            <TrendingUp className="w-4 h-4 mr-1" />
+            <span className="text-sm">+8% enrollment growth</span>
+          </div>
+        </button>
+
+        <button
           onClick={() => handleNavigate('departments')}
           className="apple-card p-6 text-left hover:shadow-lg transition-all duration-300 group cursor-pointer"
         >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-apple-gray-400 dark:text-apple-gray-300">Departments</p>
-              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">8</h3>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.departments}</h3>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <School className="w-8 h-8 text-purple-500" />
@@ -76,8 +156,8 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-apple-gray-400 dark:text-apple-gray-300">Average Performance</p>
-              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">87.5%</h3>
+              <p className="text-apple-gray-400 dark:text-apple-gray-300">Avg Performance</p>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.avgPerformance}%</h3>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <TrendingUp className="w-8 h-8 text-green-500" />
@@ -89,6 +169,47 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
             <span className="text-sm">+3.2% this semester</span>
           </div>
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <button
+          onClick={() => handleNavigate('settings')}
+          className="apple-card p-6 text-left hover:shadow-lg transition-all duration-300 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-apple-gray-400 dark:text-apple-gray-300">Active Courses</p>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.coursesActive}</h3>
+            </div>
+            <BookOpen className="w-8 h-8 text-orange-500" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleNavigate('reports')}
+          className="apple-card p-6 text-left hover:shadow-lg transition-all duration-300 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-apple-gray-400 dark:text-apple-gray-300">Attendance Rate</p>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.attendanceRate}%</h3>
+            </div>
+            <CheckCircle2 className="w-8 h-8 text-green-500" />
+          </div>
+        </button>
+
+        <button
+          onClick={() => handleNavigate('reports')}
+          className="apple-card p-6 text-left hover:shadow-lg transition-all duration-300 group cursor-pointer"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-apple-gray-400 dark:text-apple-gray-300">Upcoming Exams</p>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.upcomingExams}</h3>
+            </div>
+            <Calendar className="w-8 h-8 text-blue-500" />
+          </div>
+        </button>
 
         <button
           onClick={() => handleNavigate('reports')}
@@ -97,44 +218,18 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-apple-gray-400 dark:text-apple-gray-300">Active Issues</p>
-              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">5</h3>
+              <h3 className="text-2xl font-bold text-apple-gray-600 dark:text-white mt-1">{stats.activeIssues}</h3>
             </div>
-            <div className="flex flex-col items-center space-y-2">
-              <AlertTriangle className="w-8 h-8 text-yellow-500" />
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-yellow-500 transition-colors" />
-            </div>
+            <AlertTriangle className="w-8 h-8 text-yellow-500" />
           </div>
-          <div className="mt-4 flex items-center text-yellow-500">
-            <span className="text-sm">2 require attention</span>
-          </div>
+          <div className="mt-2 text-yellow-500 text-sm">2 require attention</div>
         </button>
       </div>
 
       <div className="apple-card p-6">
-        <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">
-          Recent Activity
-        </h2>
+        <h2 className="text-lg font-medium text-apple-gray-600 dark:text-white mb-4">Recent Activity</h2>
         <div className="space-y-4">
-          {[
-            {
-              type: 'performance',
-              message: 'Computer Science department shows 15% improvement in student outcomes',
-              time: '2 hours ago',
-              action: 'performance'
-            },
-            {
-              type: 'alert',
-              message: 'Mathematics department requires additional resources for advanced classes',
-              time: '4 hours ago',
-              action: 'departments'
-            },
-            {
-              type: 'update',
-              message: 'New teaching evaluation criteria implemented successfully',
-              time: '1 day ago',
-              action: 'settings'
-            }
-          ].map((activity, index) => (
+          {recentActivity.map((activity, index) => (
             <button
               key={index}
               onClick={() => handleNavigate(activity.action)}
@@ -144,20 +239,13 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onNavigate }) => {
                 <p className="text-apple-gray-600 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {activity.message}
                 </p>
-                <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300 mt-1">
-                  {activity.time}
-                </p>
+                <p className="text-sm text-apple-gray-400 dark:text-apple-gray-300 mt-1">{activity.time}</p>
               </div>
               <div className="flex items-center space-x-2">
-                {activity.type === 'performance' && (
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                )}
-                {activity.type === 'alert' && (
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                )}
-                {activity.type === 'update' && (
-                  <Users className="w-5 h-5 text-apple-blue-500" />
-                )}
+                {activity.type === 'performance' && <TrendingUp className="w-5 h-5 text-green-500" />}
+                {activity.type === 'alert' && <AlertTriangle className="w-5 h-5 text-yellow-500" />}
+                {activity.type === 'update' && <Users className="w-5 h-5 text-apple-blue-500" />}
+                {activity.type === 'success' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
                 <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
               </div>
             </button>
