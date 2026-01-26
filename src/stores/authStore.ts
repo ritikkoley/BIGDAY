@@ -6,7 +6,7 @@ import type { User } from '@supabase/supabase-js';
 interface UserProfile {
   id: string;
   name: string;
-  role: 'student' | 'teacher' | 'admin';
+  role: 'student' | 'teacher' | 'admin' | 'operations';
   group_id?: string;
   department?: string;
   profile_data?: any;
@@ -16,13 +16,13 @@ interface UserProfile {
 interface AuthState {
   user: User | null;
   profile: UserProfile | null;
-  role: 'student' | 'teacher' | 'admin' | null;
+  role: 'student' | 'teacher' | 'admin' | 'operations' | null;
   isLoading: boolean;
   isInitialized: boolean;
-  
+
   // Actions
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, role: 'student' | 'teacher' | 'admin') => Promise<void>;
+  signUp: (email: string, password: string, name: string, role: 'student' | 'teacher' | 'admin' | 'operations') => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'apple') => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -85,7 +85,8 @@ export const useAuthStore = create<AuthState>()(
           const demoAccounts = {
             'student@dpsb.edu': { role: 'student', name: 'Ritik Koley', id: 'student-1' },
             'teacher@dpsb.edu': { role: 'teacher', name: 'Anil Kumar Jangir', id: 'teacher-1' },
-            'admin@dpsb.edu': { role: 'admin', name: 'Admin User', id: 'admin-1' }
+            'admin@dpsb.edu': { role: 'admin', name: 'Admin User', id: 'admin-1' },
+            'operations@dpsb.edu': { role: 'operations', name: 'Operations Manager', id: 'operations-1' }
           };
           
           // Check if using a demo account
@@ -144,6 +145,8 @@ export const useAuthStore = create<AuthState>()(
                 window.location.href = '/teacher/dashboard';
               } else if (profile.role === 'admin') {
                 window.location.href = '/admin/performance';
+              } else if (profile.role === 'operations') {
+                window.location.href = '/operations/dashboard';
               }
             }
           }
@@ -220,7 +223,7 @@ export const useAuthStore = create<AuthState>()(
           
           // Check if using a demo account
           const { profile } = get();
-          if (profile?.id?.startsWith('student-') || profile?.id?.startsWith('teacher-') || profile?.id?.startsWith('admin-')) {
+          if (profile?.id?.startsWith('student-') || profile?.id?.startsWith('teacher-') || profile?.id?.startsWith('admin-') || profile?.id?.startsWith('operations-')) {
             // Just clear the state for demo accounts
             set({
               user: null,

@@ -65,7 +65,8 @@ export const LoginPage: React.FC = () => {
   const demoAccounts = [
     { role: 'Student', email: 'student@dpsb.edu', password: 'student123' },
     { role: 'Teacher', email: 'teacher@dpsb.edu', password: 'teacher123' },
-    { role: 'Admin', email: 'admin@dpsb.edu', password: 'admin123' }
+    { role: 'Admin', email: 'admin@dpsb.edu', password: 'admin123' },
+    { role: 'Operations', email: 'operations@dpsb.edu', password: 'operations123' }
   ];
 
   const fillDemoCredentials = (email: string, password: string) => {

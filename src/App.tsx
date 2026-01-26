@@ -6,6 +6,7 @@ import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage';
 import { StudentPortal } from './components/portals/StudentPortal';
 import { TeacherPortal } from './components/portals/TeacherPortal';
 import { AdminPortal } from './components/portals/AdminPortal';
+import { OperationsPortal } from './components/portals/OperationsPortal';
 import { StudentProfileView } from './components/profiles/StudentProfileView';
 import { TeacherProfileView } from './components/profiles/TeacherProfileView';
 
@@ -60,6 +61,10 @@ function App() {
         <Route
           path="/admin/*"
           element={user && role === 'admin' ? <AdminPortal /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/operations/*"
+          element={user && role === 'operations' ? <OperationsPortal /> : <Navigate to="/login" replace />}
         />
 
         {/* Default Redirects */}
